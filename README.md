@@ -1,0 +1,1 @@
+必ずCommitするときはGoogle chatにコメントしてください
