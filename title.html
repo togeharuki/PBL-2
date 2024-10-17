@@ -55,6 +55,19 @@
 </head>
 <body>
     <h1>Deck・Dreamers</h1>
-    <button>スタート</button>
+    <button id="startButton">スタート</button>
+
+    <script>
+        document.getElementById('startButton').addEventListener('click', function() {
+            // フェードアウト効果を追加
+            document.body.style.transition = 'opacity 0.5s';
+            document.body.style.opacity = '0';
+            
+            // 0.5秒後に遷移
+            setTimeout(function() {
+                window.location.href = 'battle/battle.html';
+            }, 500);
+        });
+    </script>
 </body>
 </html>
