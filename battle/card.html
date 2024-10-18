@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>トレーディングカード作成</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Noto Sans JP', sans-serif;
             background-color: #1a1a2e;
             color: white;
             display: flex;
@@ -51,17 +52,20 @@
             padding: 10px;
             background-color: #5a5a7e;
             overflow-y: auto;
-            font-size: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
         }
-        input[type="file"], textarea, button {
+        input[type="file"], button {
             width: 100%;
             margin-bottom: 10px;
             padding: 10px;
             border: none;
             border-radius: 5px;
-        }
-        textarea {
-            resize: vertical;
         }
         button {
             background-color: #4ecdc4;
@@ -111,6 +115,43 @@
         .delete-button:hover {
             background-color: #ff6b81;
         }
+        .battle-button {
+            background-color: #ff6b6b;
+            color: white;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 20px;
+        }
+        .battle-button:hover {
+            background-color: #ff5252;
+        }
+        .effect-buttons {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 10px;
+        }
+        .effect-button {
+            font-size: 28px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .effect-button:hover {
+            transform: scale(1.1);
+        }
+        .effect-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .effect-text {
+            font-size: 14px;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -123,7 +164,10 @@
             <div class="card-effect" id="preview-effect"></div>
         </div>
         <input type="file" id="card-image" accept="image/*">
-        <textarea id="card-effect" rows="4" placeholder="カードの効果を入力してください"></textarea>
+        <div class="effect-buttons">
+            <button class="effect-button" id="heart-button">❤️<div class="effect-text">回復</div></button>
+            <button class="effect-button" id="sword-button">⚔️<div class="effect-text">攻撃</div></button>
+        </div>
         <button id="create-card">カードを作成</button>
     </div>
     <p id="card-count">作成したカード: 0 / 20</p>
@@ -133,19 +177,26 @@
         <div class="card-list-grid" id="card-list-grid"></div>
     </div>
 
+    <button id="start-battle" class="battle-button">対戦開始</button>
+
     <script>
         const imageInput = document.getElementById('card-image');
-        const effectInput = document.getElementById('card-effect');
         const createButton = document.getElementById('create-card');
         const previewImage = document.getElementById('preview-image');
         const previewEffect = document.getElementById('preview-effect');
         const cardCountDisplay = document.getElementById('card-count');
         const cardList = document.getElementById('card-list');
         const cardListGrid = document.getElementById('card-list-grid');
+        const startBattleButton = document.getElementById('start-battle');
+        const heartButton = document.getElementById('heart-button');
+        const swordButton = document.getElementById('sword-button');
 
         let cards = JSON.parse(localStorage.getItem('cards') || '[]');
+        let currentEffect = '';
+        let effectGenerated = false;
+
         updateCardCount();
-        showCardList(); // 初期表示
+        showCardList();
 
         imageInput.addEventListener('change', function(event) {
             const file = event.target.files[0];
@@ -158,8 +209,36 @@
             }
         });
 
-        effectInput.addEventListener('input', function() {
-            previewEffect.textContent = this.value;
+        function generateRandomEffect(type) {
+            const value = Math.floor(Math.random() * 10) + 1;
+            if (type === 'heal') {
+                return `✨ 回復魔法 ${value} ✨`;
+            } else {
+                return `⚡ 攻撃力 ${value} ⚡`;
+            }
+        }
+
+        function disableEffectButtons() {
+            heartButton.disabled = true;
+            swordButton.disabled = true;
+        }
+
+        heartButton.addEventListener('click', function() {
+            if (!effectGenerated) {
+                currentEffect = generateRandomEffect('heal');
+                previewEffect.textContent = currentEffect;
+                effectGenerated = true;
+                disableEffectButtons();
+            }
+        });
+
+        swordButton.addEventListener('click', function() {
+            if (!effectGenerated) {
+                currentEffect = generateRandomEffect('attack');
+                previewEffect.textContent = currentEffect;
+                effectGenerated = true;
+                disableEffectButtons();
+            }
         });
 
         createButton.addEventListener('click', function() {
@@ -173,21 +252,29 @@
                 return;
             }
 
+            if (!currentEffect) {
+                alert('効果を選択してください。');
+                return;
+            }
+
             const newCard = {
                 image: previewImage.src,
-                effect: effectInput.value
+                effect: currentEffect
             };
 
             cards.push(newCard);
             localStorage.setItem('cards', JSON.stringify(cards));
             updateCardCount();
-            showCardList(); // カード作成時に一覧を更新
+            showCardList();
 
             // リセット
             previewImage.src = '';
             previewEffect.textContent = '';
             imageInput.value = '';
-            effectInput.value = '';
+            currentEffect = '';
+            effectGenerated = false;
+            heartButton.disabled = false;
+            swordButton.disabled = false;
         });
 
         function getCardCount() {
@@ -203,7 +290,7 @@
         function showCardList() {
             cardListGrid.innerHTML = '';
             cards.forEach((card, index) => {
-                if (!card.image) return; // 画像がないカードはスキップ
+                if (!card.image) return;
                 const cardElement = document.createElement('div');
                 cardElement.className = 'card-item';
                 cardElement.innerHTML = `
@@ -216,7 +303,6 @@
                 cardListGrid.appendChild(cardElement);
             });
 
-            // 削除ボタンにイベントリスナーを追加
             document.querySelectorAll('.delete-button').forEach(button => {
                 button.addEventListener('click', function() {
                     const index = parseInt(this.getAttribute('data-index'));
@@ -231,6 +317,46 @@
             updateCardCount();
             showCardList();
         }
+
+        startBattleButton.addEventListener('click', function() {
+            if (getCardCount() < 20) {
+                alert('デッキを完成させるには20枚のカードが必要です。');
+                return;
+            }
+
+            const deckId = 'deck_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            const deckData = {
+                deckId: deckId,
+                cards: cards
+            };
+
+            fetch('/api/save-deck', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(deckData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    alert(`デッキが保存されました。デッキID: ${deckId}`);
+                    // ここで対戦画面への遷移ロジックを実装
+                    // 例: window.location.href = '対戦画面のURL?deckId=' + deckId;
+                } else {
+                    throw new Error(data.message || 'デッキの保存に失敗しました。');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('エラーが発生しました: ' + error.message);
+            });
+        });
     </script>
 </body>
 </html>
