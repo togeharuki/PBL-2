@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deck・Dreamers Battle Screen</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            background-color: #0a0a2a;
+            color: white;
+        }
+        .game-board {
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(circle, #1a1a4a 10%, #0a0a2a 90%);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .player-area {
+            height: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 10px;
+        }
+        .battle-zone {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            min-height: 150px;
+        }
+        .card {
+            width: 80px;
+            height: 120px;
+            background-color: #4a4a6a;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px;
+            box-shadow: 0 0 10px rgba(255,255,255,0.2);
+            cursor: pointer;
+        }
+        .card-power {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .ui-element {
+            position: absolute;
+            background-color: rgba(0,0,0,0.5);
+            border-radius: 10px;
+            padding: 5px;
+        }
+        .menu-button {
+            top: 10px;
+            left: 10px;
+        }
+        .turn-end {
+            bottom: 10px;
+            right: 10px;
+            padding: 10px 20px;
+            background-color: #4a90e2;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .card-count {
+            top: 10px;
+            right: 10px;
+        }
+        .hand {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .player-info {
+            position: absolute;
+            left: 10px;
+            padding: 5px;
+            background-color: rgba(0,0,0,0.5);
+            border-radius: 5px;
+        }
+        #player1-info {
+            top: 10px;
+        }
+        #player2-info {
+            bottom: 10px;
+        }
+        .graveyard {
+            position: absolute;
+            right: 10px;
+            width: 80px;
+            height: 120px;
+            background-color: rgba(0,0,0,0.5);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #player1-graveyard {
+            top: 50px;
+        }
+        #player2-graveyard {
+            bottom: 50px;
+        }
+        #create-card-button {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            padding: 10px 20px;
+            background-color: #e2725b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #current-turn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            font-weight: bold;
+            background-color: rgba(0,0,0,0.7);
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-board">
+        <div class="ui-element menu-button">≡</div>
+        <div class="ui-element card-count">残りカード: <span id="deck-count">30</span></div>
+        <div class="ui-element turn-end" onclick="endTurn()">TURN END</div>
+        
+        <div id="player1-info" class="player-info">Player 1 HP: <span id="player1-hp">10000</span></div>
+        <div id="player2-info" class="player-info">Player 2 HP: <span id="player2-hp">10000</span></div>
+        
+        <div id="player1-graveyard" class="graveyard">墓地: <span id="player1-graveyard-count">0</span></div>
+        <div id="player2-graveyard" class="graveyard">墓地: <span id="player2-graveyard-count">0</span></div>
+        
+        <div class="player-area">
+            <div id="player1-battle-zone" class="battle-zone"></div>
+        </div>
+        <div class="player-area">
+            <div id="player2-battle-zone" class="battle-zone"></div>
+        </div>
+        <div id="player-hand" class="hand"></div>
+        
+        <button id="create-card-button" onclick="createCustomCard()">カードを作成</button>
+        <div id="current-turn"></div>
+    </div>
+
+    <script>
+        let deck = [];
+        let player1HP = 10000;
+        let player2HP = 10000;
+        let player1Graveyard = [];
+        let player2Graveyard = [];
+        let currentPlayer = 1;
+        let cardCreated = false;
+        let cardPlayedThisTurn = false;
+
+        function initializeDeck() {
+            for (let i = 0; i < 30; i++) {
+                deck.push({
+                    power: Math.floor(Math.random() * 3000) + 1000,
+                    isHeal: Math.random() < 0.2  // 20% chance for a heal card
+                });
+            }
+            updateDeckCount();
+            drawCard();
+            updateCurrentTurn();
+        }
+
+        function drawCard() {
+            if (deck.length > 0) {
+                const card = deck.pop();
+                const handElement = document.getElementById('player-hand');
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card';
+                cardElement.innerHTML = `<div class="card-power">${card.isHeal ? 'Heal ' + card.power : card.power}</div>`;
+                cardElement.onclick = () => playCard(card, cardElement);
+                cardElement.__data = card;  // Store card data
+                handElement.appendChild(cardElement);
+                updateDeckCount();
+            }
+        }
+
+        function playCard(card, cardElement) {
+            if (cardPlayedThisTurn) {
+                alert("このターンではすでにカードを出しています。");
+                return;
+            }
+
+            const battleZone = document.getElementById(`player${currentPlayer}-battle-zone`);
+            battleZone.innerHTML = ''; // Clear previous card
+            battleZone.appendChild(cardElement);
+            cardElement.onclick = null;  // Remove the click event after playing
+            
+            if (card.isHeal) {
+                if (currentPlayer === 1) {
+                    player1HP += card.power;
+                } else {
+                    player2HP += card.power;
+                }
+                updateHP();
+                moveToGraveyard(currentPlayer, cardElement);
+            }
+
+            cardPlayedThisTurn = true;
+            disableHandCards();
+        }
+
+        function disableHandCards() {
+            const handCards = document.querySelectorAll('#player-hand .card');
+            handCards.forEach(card => {
+                card.classList.add('disabled');
+                card.onclick = null;
+            });
+        }
+
+        function enableHandCards() {
+            const handCards = document.querySelectorAll('#player-hand .card');
+            handCards.forEach(card => {
+                card.classList.remove('disabled');
+                card.onclick = () => playCard(card.__data, card);
+            });
+        }
+
+        function moveToGraveyard(player, cardElement) {
+            cardElement.remove();
+            if (player === 1) {
+                player1Graveyard.push(cardElement);
+            } else {
+                player2Graveyard.push(cardElement);
+            }
+            updateGraveyardCount();
+        }
+
+        function endTurn() {
+            const currentBattleZone = document.getElementById(`player${currentPlayer}-battle-zone`);
+            const opponentBattleZone = document.getElementById(`player${currentPlayer === 1 ? 2 : 1}-battle-zone`);
+            
+            const currentCard = currentBattleZone.firstChild;
+            const opponentCard = opponentBattleZone.firstChild;
+            
+            if (currentCard && opponentCard) {
+                const currentPower = parseInt(currentCard.querySelector('.card-power').textContent);
+                const opponentPower = parseInt(opponentCard.querySelector('.card-power').textContent);
+                
+                if (currentPower > opponentPower) {
+                    if (currentPlayer === 1) {
+                        player2HP -= (currentPower - opponentPower);
+                    } else {
+                        player1HP -= (currentPower - opponentPower);
+                    }
+                    moveToGraveyard(currentPlayer === 1 ? 2 : 1, opponentCard);
+                } else if (opponentPower > currentPower) {
+                    if (currentPlayer === 1) {
+                        player1HP -= (opponentPower - currentPower);
+                    } else {
+                        player2HP -= (opponentPower - currentPower);
+                    }
+                    moveToGraveyard(currentPlayer, currentCard);
+                } else {
+                    moveToGraveyard(1, currentCard);
+                    moveToGraveyard(2, opponentCard);
+                }
+            }
+            
+            updateHP();
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+            cardPlayedThisTurn = false;
+            enableHandCards();
+            drawCard();
+            updateCurrentTurn();
+        }
+
+        function updateHP() {
+            document.getElementById('player1-hp').textContent = player1HP;
+            document.getElementById('player2-hp').textContent = player2HP;
+        }
+
+        function updateDeckCount() {
+            document.getElementById('deck-count').textContent = deck.length;
+        }
+
+        function updateGraveyardCount() {
+            document.getElementById('player1-graveyard-count').textContent = player1Graveyard.length;
+            document.getElementById('player2-graveyard-count').textContent = player2Graveyard.length;
+        }
+
+        function updateCurrentTurn() {
+            document.getElementById('current-turn').textContent = `Player ${currentPlayer}のターン`;
+        }
+
+        function createCustomCard() {
+            if (!cardCreated) {
+                const power = Math.floor(Math.random() * 5000) + 1000;
+                const isHeal = Math.random() < 0.3;  // 30% chance for a heal card
+                const card = { power: power, isHeal: isHeal };
+                
+                const handElement = document.getElementById('player-hand');
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card';
+                cardElement.innerHTML = `<div class="card-power">${isHeal ? 'Heal ' + power : power}</div>`;
+                cardElement.onclick = () => playCard(card, cardElement);
+                cardElement.__data = card;  // Store card data
+                handElement.appendChild(cardElement);
+                
+                cardCreated = true;
+                document.getElementById('create-card-button').style.display = 'none';
+            }
+        }
+
+        initializeDeck();
+    </script>
+</body>
+</html>
