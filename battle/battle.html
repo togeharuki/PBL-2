@@ -32,9 +32,8 @@
         }
         .button-container {
             display: flex;
-            flex-direction: row; /* 横並びに変更 */
             gap: 20px;
-            justify-content: center; /* ボタンを中央寄せ */
+            justify-content: center;
         }
         .button {
             font-size: 1.2em;
@@ -59,16 +58,25 @@
         .button.create-card {
             background: linear-gradient(45deg, #ffa41b, #ff5151);
         }
-        .button.back-to-menu {
+        .button.start-battle {
             background: linear-gradient(45deg, #4ecdc4, #45b7a8);
+        }
+        .back-to-menu {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 1em;
+            padding: 8px 20px;
+            background: linear-gradient(45deg, #6a11cb, #2575fc);
         }
     </style>
 </head>
 <body>
+    <button class="button back-to-menu" id="backToMenuButton">メニューに戻る</button>
     <h1>Deck・Dreamers</h1>
     <div class="button-container">
         <button class="button create-card" id="createCardButton">カードを作成</button>
-        <button class="button back-to-menu" id="backToMenuButton">メニューに戻る</button>
+        <button class="button start-battle" id="startBattleButton">対戦開始</button>
     </div>
 
     <script>
@@ -87,6 +95,10 @@
 
         document.getElementById('backToMenuButton').addEventListener('click', function() {
             navigateTo('../main/menu.html');
+        });
+
+        document.getElementById('startBattleButton').addEventListener('click', function() {
+            navigateTo('../battle/battle.html');
         });
     </script>
 </body>
