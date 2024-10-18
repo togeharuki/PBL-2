@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>トレーディングカード作成</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a2e;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .card-creator {
+            background-color: #2a2a4e;
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 400px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .card-preview, .card-item {
+            width: 100%;
+            aspect-ratio: 2.5 / 3.5;
+            background-color: #3a3a5e;
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .card-image {
+            flex: 1;
+            background-color: #4a4a6e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .card-effect {
+            flex: 1;
+            padding: 10px;
+            background-color: #5a5a7e;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+        input[type="file"], textarea, button {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+        }
+        textarea {
+            resize: vertical;
+        }
+        button {
+            background-color: #4ecdc4;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45b7a8;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .card-list {
+            display: block;
+            width: 100%;
+            max-width: 1000px;
+            background-color: #2a2a4e;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .card-list-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+        .card-item {
+            margin-bottom: 0;
+        }
+        .delete-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            font-size: 16px;
+            line-height: 25px;
+            text-align: center;
+            cursor: pointer;
+            z-index: 10;
+        }
+        .delete-button:hover {
+            background-color: #ff6b81;
+        }
+    </style>
+</head>
+<body>
+    <h1>トレーディングカード作成</h1>
+    <div class="card-creator">
+        <div class="card-preview">
+            <div class="card-image">
+                <img id="preview-image" src="" alt="カード画像">
+            </div>
+            <div class="card-effect" id="preview-effect"></div>
+        </div>
+        <input type="file" id="card-image" accept="image/*">
+        <textarea id="card-effect" rows="4" placeholder="カードの効果を入力してください"></textarea>
+        <button id="create-card">カードを作成</button>
+    </div>
+    <p id="card-count">作成したカード: 0 / 20</p>
+
+    <div class="card-list" id="card-list">
+        <h2>作成したカード一覧</h2>
+        <div class="card-list-grid" id="card-list-grid"></div>
+    </div>
+
+    <script>
+        const imageInput = document.getElementById('card-image');
+        const effectInput = document.getElementById('card-effect');
+        const createButton = document.getElementById('create-card');
+        const previewImage = document.getElementById('preview-image');
+        const previewEffect = document.getElementById('preview-effect');
+        const cardCountDisplay = document.getElementById('card-count');
+        const cardList = document.getElementById('card-list');
+        const cardListGrid = document.getElementById('card-list-grid');
+
+        let cards = JSON.parse(localStorage.getItem('cards') || '[]');
+        updateCardCount();
+        showCardList(); // 初期表示
+
+        imageInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        effectInput.addEventListener('input', function() {
+            previewEffect.textContent = this.value;
+        });
+
+        createButton.addEventListener('click', function() {
+            if (getCardCount() >= 20) {
+                alert('最大20枚までしか作成できません。');
+                return;
+            }
+
+            if (!previewImage.src) {
+                alert('写真をアップロードしてください。');
+                return;
+            }
+
+            const newCard = {
+                image: previewImage.src,
+                effect: effectInput.value
+            };
+
+            cards.push(newCard);
+            localStorage.setItem('cards', JSON.stringify(cards));
+            updateCardCount();
+            showCardList(); // カード作成時に一覧を更新
+
+            // リセット
+            previewImage.src = '';
+            previewEffect.textContent = '';
+            imageInput.value = '';
+            effectInput.value = '';
+        });
+
+        function getCardCount() {
+            return cards.filter(card => card.image).length;
+        }
+
+        function updateCardCount() {
+            const count = getCardCount();
+            cardCountDisplay.textContent = `作成したカード: ${count} / 20`;
+            createButton.disabled = count >= 20;
+        }
+
+        function showCardList() {
+            cardListGrid.innerHTML = '';
+            cards.forEach((card, index) => {
+                if (!card.image) return; // 画像がないカードはスキップ
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card-item';
+                cardElement.innerHTML = `
+                    <button class="delete-button" data-index="${index}">×</button>
+                    <div class="card-image">
+                        <img src="${card.image}" alt="カード ${index + 1}">
+                    </div>
+                    <div class="card-effect">${card.effect}</div>
+                `;
+                cardListGrid.appendChild(cardElement);
+            });
+
+            // 削除ボタンにイベントリスナーを追加
+            document.querySelectorAll('.delete-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    deleteCard(index);
+                });
+            });
+        }
+
+        function deleteCard(index) {
+            cards.splice(index, 1);
+            localStorage.setItem('cards', JSON.stringify(cards));
+            updateCardCount();
+            showCardList();
+        }
+    </script>
+</body>
+</html>
