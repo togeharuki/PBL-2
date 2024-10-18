@@ -152,9 +152,25 @@
             font-size: 14px;
             margin-top: 5px;
         }
+        .taisen-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: #4ecdc4;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .taisen-button:hover {
+            background-color: #45b7a8;
+        }
     </style>
 </head>
 <body>
+    <button class="taisen-button" onclick="window.location.href='taisen.html'">対戦画面へ</button>
     <h1>トレーディングカード作成</h1>
     <div class="card-creator">
         <div class="card-preview">
