@@ -34,6 +34,36 @@
             margin-bottom: 20px;
             position: relative;
         }
+        .card-name {
+            background: linear-gradient(45deg, #2a2a4e, #3a3a5e);
+            padding: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        #card-name-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-family: 'Noto Sans JP', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            text-align: center;
+            padding: 5px;
+            outline: none;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        #card-name-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .card-name-display {
+            background: linear-gradient(45deg, #2a2a4e, #3a3a5e);
+            padding: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
         .card-image {
             flex: 1;
             background-color: #4a4a6e;
@@ -174,6 +204,9 @@
     <h1>トレーディングカード作成</h1>
     <div class="card-creator">
         <div class="card-preview">
+            <div class="card-name">
+                <input type="text" id="card-name-input" placeholder="カード名を入力" maxlength="20">
+            </div>
             <div class="card-image">
                 <img id="preview-image" src="" alt="カード画像">
             </div>
@@ -206,6 +239,7 @@
         const startBattleButton = document.getElementById('start-battle');
         const heartButton = document.getElementById('heart-button');
         const swordButton = document.getElementById('sword-button');
+        const cardNameInput = document.getElementById('card-name-input');
 
         let cards = JSON.parse(localStorage.getItem('cards') || '[]');
         let currentEffect = '';
@@ -273,7 +307,13 @@
                 return;
             }
 
+            if (!cardNameInput.value.trim()) {
+                alert('カード名を入力してください。');
+                return;
+            }
+
             const newCard = {
+                name: cardNameInput.value.trim(),
                 image: previewImage.src,
                 effect: currentEffect
             };
@@ -287,6 +327,7 @@
             previewImage.src = '';
             previewEffect.textContent = '';
             imageInput.value = '';
+            cardNameInput.value = '';
             currentEffect = '';
             effectGenerated = false;
             heartButton.disabled = false;
@@ -311,6 +352,7 @@
                 cardElement.className = 'card-item';
                 cardElement.innerHTML = `
                     <button class="delete-button" data-index="${index}">×</button>
+                    <div class="card-name-display">${card.name || 'No Name'}</div>
                     <div class="card-image">
                         <img src="${card.image}" alt="カード ${index + 1}">
                     </div>
@@ -363,7 +405,7 @@
                 if (data.success) {
                     alert(`デッキが保存されました。デッキID: ${deckId}`);
                     // ここで対戦画面への遷移ロジックを実装
-                    // 例: window.location.href = '対戦画面のURL?deckId=' + deckId;
+                    // window.location.href = 'taisen.html?deckId=' + deckId;
                 } else {
                     throw new Error(data.message || 'デッキの保存に失敗しました。');
                 }
