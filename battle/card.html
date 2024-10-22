@@ -34,9 +34,23 @@
             margin-bottom: 20px;
             position: relative;
         }
+        .card-image {
+            flex: 2;
+            background-color: #4a4a6e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
         .card-name {
             background: linear-gradient(45deg, #2a2a4e, #3a3a5e);
             padding: 10px;
+            border-top: 2px solid rgba(255, 255, 255, 0.1);
             border-bottom: 2px solid rgba(255, 255, 255, 0.1);
         }
         #card-name-input {
@@ -62,20 +76,8 @@
             font-weight: 700;
             text-align: center;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            border-top: 2px solid rgba(255, 255, 255, 0.1);
             border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-        }
-        .card-image {
-            flex: 1;
-            background-color: #4a4a6e;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-        }
-        .card-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
         }
         .card-effect {
             flex: 1;
@@ -204,11 +206,11 @@
     <h1>トレーディングカード作成</h1>
     <div class="card-creator">
         <div class="card-preview">
-            <div class="card-name">
-                <input type="text" id="card-name-input" placeholder="カード名を入力" maxlength="20">
-            </div>
             <div class="card-image">
                 <img id="preview-image" src="" alt="カード画像">
+            </div>
+            <div class="card-name">
+                <input type="text" id="card-name-input" placeholder="カード名を入力" maxlength="20">
             </div>
             <div class="card-effect" id="preview-effect"></div>
         </div>
@@ -352,10 +354,10 @@
                 cardElement.className = 'card-item';
                 cardElement.innerHTML = `
                     <button class="delete-button" data-index="${index}">×</button>
-                    <div class="card-name-display">${card.name || 'No Name'}</div>
                     <div class="card-image">
                         <img src="${card.image}" alt="カード ${index + 1}">
                     </div>
+                    <div class="card-name-display">${card.name || 'No Name'}</div>
                     <div class="card-effect">${card.effect}</div>
                 `;
                 cardListGrid.appendChild(cardElement);
