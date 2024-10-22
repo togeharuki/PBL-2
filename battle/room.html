@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ルーム作成 - Deck Dreamers</title>
+    <title>ルーム作成</title>
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -90,6 +90,7 @@
             font-size: 1em;
             transition: background-color 0.3s;
             width: 100%;
+            margin-bottom: 10px;
         }
 
         .button:hover {
@@ -102,6 +103,14 @@
 
         .search-button:hover {
             background-color: #1976D2;
+        }
+
+        .back-button {
+            background-color: #f44336;
+        }
+
+        .back-button:hover {
+            background-color: #d32f2f;
         }
 
         input[type="text"] {
@@ -141,6 +150,10 @@
             </div>
             <button class="button search-button" onclick="searchRoom()">検索</button>
         </div>
+
+        <div class="divider"></div>
+
+        <button class="button back-button" onclick="goBack()">戻る</button>
     </div>
 
     <script src="room.js"></script>
@@ -199,6 +212,10 @@
             } else {
                 alert('指定されたルームが見つかりませんでした');
             }
+        }
+
+        function goBack() {
+            window.location.href = 'battle.html';
         }
 
         // 入力フォーマットのバリデーション
