@@ -1,4 +1,4 @@
-// ルーム保持するためのMap
+// ルームを保持するためのMap
 const rooms = new Map();
 
 // ゲームルームクラス
@@ -49,36 +49,6 @@ class GameRoom {
     finish() {
         this.status = 'finished';
         // 必要に応じて終了処理を追加
-    }
-}
-
-// プレイヤークラス
-class Player {
-    constructor(id, name) {
-        this.id = id;
-        this.name = name;
-        this.deck = []; // プレイヤーのデッキ
-        this.hand = []; // 手札
-        this.health = 20; // 初期ライフ値
-    }
-
-    // デッキをセット
-    setDeck(deck) {
-        this.deck = deck;
-    }
-
-    // カードを引く
-    drawCard() {
-        if (this.deck.length === 0) return null;
-        const card = this.deck.pop();
-        this.hand.push(card);
-        return card;
-    }
-
-    // カードをプレイ
-    playCard(cardIndex) {
-        if (cardIndex < 0 || cardIndex >= this.hand.length) return null;
-        return this.hand.splice(cardIndex, 1)[0];
     }
 }
 

@@ -182,40 +182,40 @@
         }
 
         function createRoom() {
-            const roomId = generateRoomId();
-            document.querySelector('.room-id').textContent = roomId;
+            const roomId = generateRoomId(); // 新しいルームIDを生成
+            document.querySelector('.room-id').textContent = roomId; // 生成したIDを表示
             const copyButton = document.querySelector('.copy-button');
             copyButton.textContent = 'コピー';
             copyButton.classList.remove('success');
-            
+
             // 新しいルームを作成
             const newRoom = new GameRoom(roomId);
-            rooms.set(roomId, newRoom);
-            
-            console.log(`ルーム${roomId}が作成されました`);
+            rooms.set(roomId, newRoom); // グローバルなroomsマップに追加
+
+            console.log(`ルーム ${roomId} が作成されました`);
         }
 
         function searchRoom() {
-            const roomId = document.getElementById('roomIdInput').value;
-            const regex = /^\d{3}-\d{4}$/;
+            const roomId = document.getElementById('roomIdInput').value; // 入力からルームIDを取得
+            const regex = /^\d{3}-\d{4}$/; // 正しいフォーマットの確認
             
             if (!regex.test(roomId)) {
                 alert('正しいフォーマットで入力してください（例：123-4567）');
                 return;
             }
 
-            const room = rooms.get(roomId);
+            const room = rooms.get(roomId); // マップからルームを取得
             if (room) {
-                console.log(`ルーム${roomId}が見つかりました`);
-                // ルームが見つかった場合の処理（例：ゲーム画面への遷移）
-                window.location.href = `game.html?roomId=${roomId}`;
+                console.log(`ルーム ${roomId} が見つかりました`);
+                // ルームが見つかった場合、ゲーム画面への遷移
+                window.location.href = `matching.html?roomId=${roomId}`;
             } else {
                 alert('指定されたルームが見つかりませんでした');
             }
         }
 
         function goBack() {
-            window.location.href = 'battle.html';
+            window.location.href = 'battle.html'; // 戻るボタンの処理
         }
 
         // 入力フォーマットのバリデーション
