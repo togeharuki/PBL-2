@@ -6,7 +6,7 @@ const dbConfig = {
     host: 'localhost',
     user: 'root',
     password: '',
-    database: 'Deck_Dreamers'
+    database: 'deck_dreamers'  // データベース名を小文字に修正
 };
 
 let connection;
@@ -39,7 +39,7 @@ async function saveDeck(cards) {
             // カードデータを1枚ずつ保存
             for (const card of cards) {
                 const query = `
-                    INSERT INTO Card (deck_id, image_url, card_name, card_effect) 
+                    INSERT INTO card (deck_id, image_url, card_name, card_effect) 
                     VALUES (?, ?, ?, ?)
                 `;
                 
@@ -88,7 +88,7 @@ async function getDeck(deckId) {
         const conn = await connectToDatabase();
         
         const [rows] = await conn.execute(
-            'SELECT * FROM Card WHERE deck_id = ?',
+            'SELECT * FROM card WHERE deck_id = ?', // テーブル名を小文字に修正
             [deckId]
         );
 
@@ -121,14 +121,14 @@ async function updateDeck(deckId, updatedCards) {
         try {
             // 既存のカードを削除
             await conn.execute(
-                'DELETE FROM Card WHERE deck_id = ?',
+                'DELETE FROM card WHERE deck_id = ?', // テーブル名を小文字に修正
                 [deckId]
             );
 
             // 新しいカードを挿入
             for (const card of updatedCards) {
                 await conn.execute(
-                    'INSERT INTO Card (deck_id, image_url, card_name, card_effect) VALUES (?, ?, ?, ?)',
+                    'INSERT INTO card (deck_id, image_url, card_name, card_effect) VALUES (?, ?, ?, ?)',
                     [deckId, card.image, card.name, card.effect]
                 );
             }
@@ -157,7 +157,7 @@ async function deleteDeck(deckId) {
     try {
         const conn = await connectToDatabase();
         const [result] = await conn.execute(
-            'DELETE FROM Card WHERE deck_id = ?',
+            'DELETE FROM card WHERE deck_id = ?', // テーブル名を小文字に修正
             [deckId]
         );
         return result.affectedRows > 0;
