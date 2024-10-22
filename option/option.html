@@ -22,7 +22,7 @@
         h2 {
             font-family: 'Abril Fatface', cursive;
             font-size: 36px;
-            color: #4ecdc4;
+            color: #ff5151;
             margin-bottom: 20px;
         }
         .option-container {
@@ -64,7 +64,7 @@
             box-shadow: 0 3px 4px rgba(0, 0, 0, 0.2);
         }
         .audio-container {
-            margin-top: 20px;
+            display: none;
         }
     </style>
 </head>
@@ -82,7 +82,7 @@
         </select>
 
         <div class="audio-container">
-            <audio id="music-player" controls>
+            <audio id="music-player">
                 <source id="music-source" src="" type="audio/mp3">
                 Your browser does not support the audio element.
             </audio>
