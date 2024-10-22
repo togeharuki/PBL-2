@@ -143,6 +143,7 @@
         </div>
     </div>
 
+    <script src="room.js"></script>
     <script>
         function generateRoomId() {
             const part1 = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
@@ -173,6 +174,12 @@
             const copyButton = document.querySelector('.copy-button');
             copyButton.textContent = 'コピー';
             copyButton.classList.remove('success');
+            
+            // 新しいルームを作成
+            const newRoom = new GameRoom(roomId);
+            rooms.set(roomId, newRoom);
+            
+            console.log(`ルーム${roomId}が作成されました`);
         }
 
         function searchRoom() {
@@ -183,7 +190,15 @@
                 alert('正しいフォーマットで入力してください（例：123-4567）');
                 return;
             }
-            // ここにルーム検索のロジックを追加
+
+            const room = rooms.get(roomId);
+            if (room) {
+                console.log(`ルーム${roomId}が見つかりました`);
+                // ルームが見つかった場合の処理（例：ゲーム画面への遷移）
+                window.location.href = `game.html?roomId=${roomId}`;
+            } else {
+                alert('指定されたルームが見つかりませんでした');
+            }
         }
 
         // 入力フォーマットのバリデーション
