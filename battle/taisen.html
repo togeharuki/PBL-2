@@ -5,333 +5,541 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deck・Dreamers Battle Screen</title>
     <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            font-family: Arial, sans-serif;
-            background-color: #0a0a2a;
-            color: white;
-        }
-        .game-board {
-            width: 100%;
-            height: 100%;
-            background-image: radial-gradient(circle, #1a1a4a 10%, #0a0a2a 90%);
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        .player-area {
-            height: 50%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 10px;
-        }
-        .battle-zone {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            min-height: 150px;
-        }
-        .card {
-            width: 80px;
-            height: 120px;
-            background-color: #4a4a6a;
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-            padding: 5px;
-            box-shadow: 0 0 10px rgba(255,255,255,0.2);
-            cursor: pointer;
-        }
-        .card-power {
-            font-size: 18px;
-            font-weight: bold;
-        }
-        .ui-element {
-            position: absolute;
-            background-color: rgba(0,0,0,0.5);
-            border-radius: 10px;
-            padding: 5px;
-        }
-        .menu-button {
-            top: 10px;
-            left: 10px;
-        }
-        .turn-end {
-            bottom: 10px;
-            right: 10px;
-            padding: 10px 20px;
-            background-color: #4a90e2;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .card-count {
-            top: 10px;
-            right: 10px;
-        }
-        .hand {
-            display: flex;
-            justify-content: center;
-            gap: 5px;
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        .player-info {
-            position: absolute;
-            left: 10px;
-            padding: 5px;
-            background-color: rgba(0,0,0,0.5);
-            border-radius: 5px;
-        }
-        #player1-info {
-            top: 10px;
-        }
-        #player2-info {
-            bottom: 10px;
-        }
-        .graveyard {
-            position: absolute;
-            right: 10px;
-            width: 80px;
-            height: 120px;
-            background-color: rgba(0,0,0,0.5);
-            border-radius: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        #player1-graveyard {
-            top: 50px;
-        }
-        #player2-graveyard {
-            bottom: 50px;
-        }
-        #create-card-button {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            padding: 10px 20px;
-            background-color: #e2725b;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        #current-turn {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 24px;
-            font-weight: bold;
-            background-color: rgba(0,0,0,0.7);
-            padding: 10px;
-            border-radius: 10px;
-        }
-        .card.disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+       /* 基本レイアウト */
+/* 基本レイアウト */
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100vh;
+    background-color: #0a0a2a;
+    color: white;
+    overflow: hidden;
+}
+
+.game-board {
+    width: 100%;
+    height: 100vh;
+    background: linear-gradient(135deg, #1a1a4a 0%, #0a0a2a 100%);
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* バトルコンテナとゾーン */
+.battle-container {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.battle-zone {
+    width: 60%;
+    height: 180px;
+    background: rgba(74, 144, 226, 0.1);
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 20px;
+    gap: 40px;
+}
+
+.player-battle-zone {
+    width: 100px;
+    height: 140px;
+    background: rgba(74, 144, 226, 0.05);
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.player-battle-zone.highlight {
+    background: rgba(74, 144, 226, 0.2);
+    box-shadow: 0 0 10px rgba(74, 144, 226, 0.3);
+}
+
+/* プレイヤーの手札エリア */
+.player-hand {
+    position: absolute;
+    display: flex;
+    gap: 10px;
+}
+
+.player1-hand {
+    left: 50%;
+    top: 20px;
+    transform: translateX(-50%);
+    flex-direction: row;
+}
+
+.player2-hand {
+    left: 50%;
+    bottom: 20px;
+    transform: translateX(-50%);
+    flex-direction: row;
+}
+
+/* カードのスタイル */
+.card {
+    width: 80px;
+    height: 120px;
+    background: linear-gradient(145deg, #2a2a4a 0%, #1a1a3a 100%);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    margin: 0 5px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.card-power {
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    text-align: center;
+    text-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+}
+
+.heal-card {
+    background: linear-gradient(145deg, #2a4a2a 0%, #1a3a1a 100%);
+}
+
+.heal-card .card-power {
+    color: #90EE90;
+}
+
+.card-played {
+    cursor: default;
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(74, 144, 226, 0.3);
+}
+
+/* プレイヤー情報 */
+.player-info {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 5px 10px;
+    border-radius: 5px;
+    z-index: 10;
+}
+
+#player1-info {
+    top: 80px;
+    left: 10px;
+}
+
+#player2-info {
+    bottom: 80px;
+    right: 10px;
+}
+
+/* デッキ情報 */
+.card-count {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.9em;
+    z-index: 10;
+}
+
+#player1-count {
+    top: 80px;
+    right: 10px;
+}
+
+#player2-count {
+    bottom: 80px;
+    left: 10px;
+}
+
+/* タイマー */
+#timer {
+    font-size: 36px;
+    font-weight: bold;
+    color: #4a90e2;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 10px 20px;
+    border-radius: 10px;
+    margin: 0 20px;
+}
+
+/* カード作成ボタン */
+.create-card-btn {
+    background: linear-gradient(45deg, #4a90e2, #2563eb);
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: all 0.2s ease;
+}
+
+.create-card-btn:hover {
+    background: linear-gradient(45deg, #5a9ff2, #3573fb);
+    transform: translateY(-1px);
+}
+
+.create-card-btn:disabled {
+    background: #666;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* バトル結果表示 */
+#battle-result {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    padding: 20px;
+    border-radius: 10px;
+    display: none;
+    z-index: 1000;
+    white-space: pre-line;
+    text-align: center;
+    font-size: 1.2em;
+    color: #fff;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
     </style>
 </head>
 <body>
     <div class="game-board">
-        <div class="ui-element menu-button">≡</div>
-        <div class="ui-element card-count">残りカード: <span id="deck-count">30</span></div>
-        <div class="ui-element turn-end" onclick="endTurn()">TURN END</div>
-        
-        <div id="player1-info" class="player-info">Player 1 HP: <span id="player1-hp">10000</span></div>
-        <div id="player2-info" class="player-info">Player 2 HP: <span id="player2-hp">10000</span></div>
-        
-        <div id="player1-graveyard" class="graveyard">墓地: <span id="player1-graveyard-count">0</span></div>
-        <div id="player2-graveyard" class="graveyard">墓地: <span id="player2-graveyard-count">0</span></div>
-        
-        <div class="player-area">
-            <div id="player1-battle-zone" class="battle-zone"></div>
+        <!-- プレイヤー1情報 -->
+        <div id="player1-info" class="player-info">
+            <div>プレイヤー1 HP: <span id="player1-hp">10000</span></div>
+            <button id="player1-create-card" class="create-card-btn">オリジナルカード作成</button>
         </div>
-        <div class="player-area">
-            <div id="player2-battle-zone" class="battle-zone"></div>
+        <div id="player1-count" class="card-count">デッキ: <span id="player1-deck-count">30</span></div>
+
+        <!-- プレイヤー1手札 -->
+        <div class="player-hand player1-hand" id="player1-hand">
+            <!-- カードは動的に追加 -->
         </div>
-        <div id="player-hand" class="hand"></div>
-        
-        <button id="create-card-button" onclick="createCustomCard()">カードを作成</button>
-        <div id="current-turn"></div>
+
+        <!-- バトルゾーンとタイマーのコンテナ -->
+        <div class="battle-container">
+            <div class="battle-zone" id="battle-zone">
+                <div id="player1-battle-zone" class="player-battle-zone"></div>
+                <div id="player2-battle-zone" class="player-battle-zone"></div>
+            </div>
+            <div id="timer">60</div>
+        </div>
+
+        <!-- バトル結果表示用の要素を追加 -->
+        <div id="battle-result"></div>
+
+        <!-- プレイヤー2手札 -->
+        <div class="player-hand player2-hand" id="player2-hand">
+            <!-- カードは動的に追加 -->
+        </div>
+
+        <!-- プレイヤー2情報 -->
+        <div id="player2-info" class="player-info">
+            <div>プレイヤー2 HP: <span id="player2-hp">10000</span></div>
+            <button id="player2-create-card" class="create-card-btn">オリジナルカード作成</button>
+        </div>
+        <div id="player2-count" class="card-count">デッキ: <span id="player2-deck-count">30</span></div>
     </div>
+</body>
+
 
     <script>
-        let deck = [];
-        let player1HP = 10000;
-        let player2HP = 10000;
-        let player1Graveyard = [];
-        let player2Graveyard = [];
-        let currentPlayer = 1;
-        let cardCreated = false;
-        let cardPlayedThisTurn = false;
+        class Card {
+    constructor(power, isHeal = false) {
+        this.power = power;
+        this.isHeal = isHeal;
+    }
 
-        function initializeDeck() {
-            for (let i = 0; i < 30; i++) {
-                deck.push({
-                    power: Math.floor(Math.random() * 3000) + 1000,
-                    isHeal: Math.random() < 0.2  // 20% chance for a heal card
-                });
+    createCardElement(player, onClick) {
+        const cardElement = document.createElement('div');
+        cardElement.className = `card ${this.isHeal ? 'heal-card' : ''}`;
+        
+        const powerElement = document.createElement('div');
+        powerElement.className = 'card-power';
+        powerElement.textContent = `${this.isHeal ? '回復\n' : ''}${this.power}`;
+        
+        cardElement.appendChild(powerElement);
+        cardElement.onclick = () => onClick(this, cardElement, player);
+        cardElement.__data = this;
+        
+        return cardElement;
+    }
+}
+
+class Player {
+    constructor(id) {
+        this.id = id;
+        this.hp = 10000;
+        this.deck = [];
+        this.hand = [];
+        this.graveyard = [];
+        this.hasCreatedCard = false;
+        this.hasSelectedCard = false;
+    }
+
+    initializeDeck() {
+        for (let i = 0; i < 30; i++) {
+            this.deck.push(new Card(
+                Math.floor(Math.random() * 3000) + 1000,
+                Math.random() < 0.2
+            ));
+        }
+    }
+
+    drawCard() {
+        if (this.deck.length > 0) {
+            const card = this.deck.pop();
+            this.hand.push(card);
+            this.updateUI();
+        }
+    }
+
+    updateUI() {
+        document.getElementById(`player${this.id}-hp`).textContent = this.hp;
+        document.getElementById(`player${this.id}-deck-count`).textContent = this.deck.length;
+
+        const handElement = document.getElementById(`player${this.id}-hand`);
+        handElement.innerHTML = '';
+        this.hand.forEach(card => {
+            handElement.appendChild(card.createCardElement(this.id, playCard));
+        });
+    }
+}
+
+class Game {
+    constructor() {
+        this.player1 = new Player(1);
+        this.player2 = new Player(2);
+        this.timeRemaining = 60;
+        this.timer = null;
+    }
+
+    initialize() {
+        this.player1.initializeDeck();
+        this.player2.initializeDeck();
+        this.drawInitialHands();
+        this.initializeEventListeners();
+        this.startRound();
+    }
+
+    drawInitialHands() {
+        for (let i = 0; i < 5; i++) {
+            this.player1.drawCard();
+            this.player2.drawCard();
+        }
+    }
+
+    initializeEventListeners() {
+        document.getElementById('player1-create-card').onclick = () => this.createCustomCard(1);
+        document.getElementById('player2-create-card').onclick = () => this.createCustomCard(2);
+    }
+
+    createCustomCard(playerId) {
+        const player = playerId === 1 ? this.player1 : this.player2;
+        if (!player.hasCreatedCard) {
+            const power = Math.floor(Math.random() * 5000) + 1000;
+            const isHeal = Math.random() < 0.3;
+            const card = new Card(power, isHeal);
+            player.hand.push(card);
+            player.hasCreatedCard = true;
+            player.updateUI();
+            document.getElementById(`player${playerId}-create-card`).disabled = true;
+        }
+    }
+
+    startRound() {
+        this.timeRemaining = 60;
+        this.player1.hasSelectedCard = false;
+        this.player2.hasSelectedCard = false;
+        this.updateTimer();
+
+        this.timer = setInterval(() => {
+            this.timeRemaining--;
+            this.updateTimer();
+
+            if (this.timeRemaining <= 0) {
+                clearInterval(this.timer);
+                if (!this.player1.hasSelectedCard) this.selectRandomCard(1);
+                if (!this.player2.hasSelectedCard) this.selectRandomCard(2);
             }
-            updateDeckCount();
-            drawCard();
-            updateCurrentTurn();
+        }, 1000);
+    }
+
+    updateTimer() {
+        const timerElement = document.getElementById('timer');
+        timerElement.textContent = this.timeRemaining;
+        if (this.timeRemaining <= 10) {
+            timerElement.style.color = '#ff4444';
+        } else {
+            timerElement.style.color = '#4a90e2';
         }
+    }
 
-        function drawCard() {
-            if (deck.length > 0) {
-                const card = deck.pop();
-                const handElement = document.getElementById('player-hand');
-                const cardElement = document.createElement('div');
-                cardElement.className = 'card';
-                cardElement.innerHTML = `<div class="card-power">${card.isHeal ? 'Heal ' + card.power : card.power}</div>`;
-                cardElement.onclick = () => playCard(card, cardElement);
-                cardElement.__data = card;  // Store card data
-                handElement.appendChild(cardElement);
-                updateDeckCount();
-            }
+    selectRandomCard(playerId) {
+        const player = playerId === 1 ? this.player1 : this.player2;
+        if (player.hand.length > 0) {
+            const randomIndex = Math.floor(Math.random() * player.hand.length);
+            const card = player.hand[randomIndex];
+            const handElement = document.getElementById(`player${playerId}-hand`);
+            const cardElement = handElement.children[randomIndex];
+            playCard(card, cardElement, playerId);
         }
+    }
 
-        function playCard(card, cardElement) {
-            if (cardPlayedThisTurn) {
-                alert("このターンではすでにカードを出しています。");
-                return;
-            }
+    resolveBattle() {
+        clearInterval(this.timer);
+        const battleZone1 = document.getElementById('player1-battle-zone');
+        const battleZone2 = document.getElementById('player2-battle-zone');
+        const card1 = battleZone1.firstChild?.__data;
+        const card2 = battleZone2.firstChild?.__data;
 
-            const battleZone = document.getElementById(`player${currentPlayer}-battle-zone`);
-            battleZone.innerHTML = ''; // Clear previous card
-            battleZone.appendChild(cardElement);
-            cardElement.onclick = null;  // Remove the click event after playing
-            
-            if (card.isHeal) {
-                if (currentPlayer === 1) {
-                    player1HP += card.power;
-                } else {
-                    player2HP += card.power;
-                }
-                updateHP();
-                moveToGraveyard(currentPlayer, cardElement);
-            }
+        if (card1 && card2) {
+            let message = '';
 
-            cardPlayedThisTurn = true;
-            disableHandCards();
-        }
-
-        function disableHandCards() {
-            const handCards = document.querySelectorAll('#player-hand .card');
-            handCards.forEach(card => {
-                card.classList.add('disabled');
-                card.onclick = null;
-            });
-        }
-
-        function enableHandCards() {
-            const handCards = document.querySelectorAll('#player-hand .card');
-            handCards.forEach(card => {
-                card.classList.remove('disabled');
-                card.onclick = () => playCard(card.__data, card);
-            });
-        }
-
-        function moveToGraveyard(player, cardElement) {
-            cardElement.remove();
-            if (player === 1) {
-                player1Graveyard.push(cardElement);
+            if (card1.isHeal && card2.isHeal) {
+                this.player1.hp += card1.power;
+                this.player2.hp += card2.power;
+                message = `両プレイヤーが回復!\nP1: +${card1.power} HP\nP2: +${card2.power} HP`;
+            } else if (card1.isHeal) {
+                this.player1.hp += card1.power;
+                this.player1.hp -= card2.power;
+                message = `P1が${card1.power}回復し、${card2.power}のダメージを受けた！`;
+            } else if (card2.isHeal) {
+                this.player2.hp += card2.power;
+                this.player2.hp -= card1.power;
+                message = `P2が${card2.power}回復し、${card1.power}のダメージを受けた！`;
             } else {
-                player2Graveyard.push(cardElement);
-            }
-            updateGraveyardCount();
-        }
-
-        function endTurn() {
-            const currentBattleZone = document.getElementById(`player${currentPlayer}-battle-zone`);
-            const opponentBattleZone = document.getElementById(`player${currentPlayer === 1 ? 2 : 1}-battle-zone`);
-            
-            const currentCard = currentBattleZone.firstChild;
-            const opponentCard = opponentBattleZone.firstChild;
-            
-            if (currentCard && opponentCard) {
-                const currentPower = parseInt(currentCard.querySelector('.card-power').textContent);
-                const opponentPower = parseInt(opponentCard.querySelector('.card-power').textContent);
-                
-                if (currentPower > opponentPower) {
-                    if (currentPlayer === 1) {
-                        player2HP -= (currentPower - opponentPower);
-                    } else {
-                        player1HP -= (currentPower - opponentPower);
-                    }
-                    moveToGraveyard(currentPlayer === 1 ? 2 : 1, opponentCard);
-                } else if (opponentPower > currentPower) {
-                    if (currentPlayer === 1) {
-                        player1HP -= (opponentPower - currentPower);
-                    } else {
-                        player2HP -= (opponentPower - currentPower);
-                    }
-                    moveToGraveyard(currentPlayer, currentCard);
+                const damage = Math.abs(card1.power - card2.power);
+                if (card1.power > card2.power) {
+                    this.player2.hp -= damage;
+                    message = `P1の勝利！P2に${damage}のダメージ！`;
+                } else if (card2.power > card1.power) {
+                    this.player1.hp -= damage;
+                    message = `P2の勝利！P1に${damage}のダメージ！`;
                 } else {
-                    moveToGraveyard(1, currentCard);
-                    moveToGraveyard(2, opponentCard);
+                    message = "引き分け！";
                 }
             }
+
+            this.showBattleResult(message);
             
-            updateHP();
-            currentPlayer = currentPlayer === 1 ? 2 : 1;
-            cardPlayedThisTurn = false;
-            enableHandCards();
-            drawCard();
-            updateCurrentTurn();
+            setTimeout(() => {
+                this.player1.graveyard.push(card1);
+                this.player2.graveyard.push(card2);
+                this.player1.updateUI();
+                this.player2.updateUI();
+
+                if (this.isGameOver()) {
+                    this.endGame();
+                } else {
+                    battleZone1.innerHTML = '';
+                    battleZone2.innerHTML = '';
+                    this.player1.drawCard();
+                    this.player2.drawCard();
+                    this.startRound();
+                }
+            }, 2000);
+        }
+    }
+
+    showBattleResult(message) {
+        const resultElement = document.getElementById('battle-result');
+        resultElement.textContent = message;
+        resultElement.style.display = 'block';
+        setTimeout(() => {
+            resultElement.style.display = 'none';
+        }, 2000);
+    }
+
+    isGameOver() {
+        return this.player1.hp <= 0 || 
+               this.player2.hp <= 0 || 
+               (this.player1.deck.length === 0 && this.player2.deck.length === 0);
+    }
+
+    endGame() {
+        clearInterval(this.timer);
+        let winner;
+        if (this.player1.hp <= 0 && this.player2.hp <= 0) {
+            winner = "引き分け";
+        } else if (this.player1.hp <= 0) {
+            winner = "プレイヤー2";
+        } else if (this.player2.hp <= 0) {
+            winner = "プレイヤー1";
+        } else if (this.player1.hp > this.player2.hp) {
+            winner = "プレイヤー1";
+        } else if (this.player2.hp > this.player1.hp) {
+            winner = "プレイヤー2";
+        } else {
+            winner = "引き分け";
         }
 
-        function updateHP() {
-            document.getElementById('player1-hp').textContent = player1HP;
-            document.getElementById('player2-hp').textContent = player2HP;
-        }
+        const gameOverMessage = `
+            ゲーム終了！
+            ${winner === "引き分け" ? "引き分け" : `${winner}の勝利！`}
+            
+            最終結果:
+            プレイヤー1 HP: ${this.player1.hp}
+            プレイヤー2 HP: ${this.player2.hp}
+        `;
 
-        function updateDeckCount() {
-            document.getElementById('deck-count').textContent = deck.length;
-        }
+        this.showBattleResult(gameOverMessage);
+        document.getElementById('player1-create-card').disabled = true;
+        document.getElementById('player2-create-card').disabled = true;
+    }
+}
 
-        function updateGraveyardCount() {
-            document.getElementById('player1-graveyard-count').textContent = player1Graveyard.length;
-            document.getElementById('player2-graveyard-count').textContent = player2Graveyard.length;
+function playCard(card, cardElement, playerId) {
+    const player = playerId === 1 ? game.player1 : game.player2;
+    if (!player.hasSelectedCard) {
+        const battleZone = document.getElementById(`player${playerId}-battle-zone`);
+        battleZone.innerHTML = '';
+        const playedCard = card.createCardElement(playerId, () => {});
+        playedCard.classList.add('card-played');
+        battleZone.appendChild(playedCard);
+        
+        const handIndex = player.hand.indexOf(card);
+        if (handIndex !== -1) {
+            player.hand.splice(handIndex, 1);
         }
+        player.updateUI();
+        
+        player.hasSelectedCard = true;
 
-        function updateCurrentTurn() {
-            document.getElementById('current-turn').textContent = `Player ${currentPlayer}のターン`;
+        if (game.player1.hasSelectedCard && game.player2.hasSelectedCard) {
+            setTimeout(() => game.resolveBattle(), 500);
         }
+    }
+}
 
-        function createCustomCard() {
-            if (!cardCreated) {
-                const power = Math.floor(Math.random() * 5000) + 1000;
-                const isHeal = Math.random() < 0.3;  // 30% chance for a heal card
-                const card = { power: power, isHeal: isHeal };
-                
-                const handElement = document.getElementById('player-hand');
-                const cardElement = document.createElement('div');
-                cardElement.className = 'card';
-                cardElement.innerHTML = `<div class="card-power">${isHeal ? 'Heal ' + power : power}</div>`;
-                cardElement.onclick = () => playCard(card, cardElement);
-                cardElement.__data = card;  // Store card data
-                handElement.appendChild(cardElement);
-                
-                cardCreated = true;
-                document.getElementById('create-card-button').style.display = 'none';
-            }
-        }
-
-        initializeDeck();
+// ゲームの初期化と開始
+const game = new Game();
+game.initialize();
     </script>
 </body>
 </html>
