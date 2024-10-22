@@ -64,5 +64,5 @@ function cleanupInactiveRooms() {
     }
 }
 
-// 定期的な不要ルームの削除
+// 定期的な不要ルーム削除
 setInterval(cleanupInactiveRooms, 1000 * 60 * 15); // 15分ごとにチェック
