@@ -43,14 +43,41 @@
             margin-bottom: 20px;
         }
 
+        .room-id-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
         .room-id {
+            flex: 1;
             font-size: 1.5em;
             background: #f8f9fa;
             padding: 15px;
             border-radius: 5px;
             text-align: center;
             letter-spacing: 2px;
-            margin: 10px 0;
+            margin: 0;
+        }
+
+        .copy-button {
+            background-color: #6c757d;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s;
+        }
+
+        .copy-button:hover {
+            background-color: #5a6268;
+        }
+
+        .copy-button.success {
+            background-color: #28a745;
         }
 
         .button {
@@ -97,7 +124,10 @@
     <div class="container">
         <div class="room-section">
             <h2>ルームを作成</h2>
-            <div class="room-id">123-4567</div>
+            <div class="room-id-container">
+                <div class="room-id">123-4567</div>
+                <button class="copy-button" onclick="copyRoomId()">コピー</button>
+            </div>
             <button class="button" onclick="createRoom()">ルームを作成</button>
         </div>
 
@@ -120,10 +150,29 @@
             return `${part1}-${part2}`;
         }
 
+        function copyRoomId() {
+            const roomId = document.querySelector('.room-id').textContent;
+            navigator.clipboard.writeText(roomId).then(() => {
+                const copyButton = document.querySelector('.copy-button');
+                copyButton.textContent = 'コピー完了!';
+                copyButton.classList.add('success');
+                
+                setTimeout(() => {
+                    copyButton.textContent = 'コピー';
+                    copyButton.classList.remove('success');
+                }, 1000);
+            }).catch(err => {
+                alert('コピーに失敗しました');
+                console.error('コピーに失敗:', err);
+            });
+        }
+
         function createRoom() {
             const roomId = generateRoomId();
             document.querySelector('.room-id').textContent = roomId;
-            // ここにルーム作成のロジックを追加
+            const copyButton = document.querySelector('.copy-button');
+            copyButton.textContent = 'コピー';
+            copyButton.classList.remove('success');
         }
 
         function searchRoom() {
