@@ -25,6 +25,23 @@
             color: #4ecdc4;
             margin-bottom: 20px;
         }
+        .option-container {
+            background-color: #28284e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-size: 18px;
+            margin-right: 10px;
+            color: white;
+        }
+
+        input[type="radio"] {
+            margin-right: 5px;
+        }
         button {
             font-size: 1.4em;
             padding: 15px 40px;
@@ -46,10 +63,31 @@
             transform: translateY(-1px);
             box-shadow: 0 3px 4px rgba(0, 0, 0, 0.2);
         }
+        .audio-container {
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
     <h2>Deck・Dreamers BGM</h2>
+
+     <!-- 音楽選択オプション（コンボボックス） -->
+     <div class="option-container">
+        <label for="music-select">音楽を選択:</label>
+        <select id="music-select">
+            <option value="none">BGMなし</option>
+            <option value="bgm1">BGM1</option>
+            <option value="bgm2">BGM2</option>
+            <option value="bgm3">BGM3</option>
+        </select>
+
+        <div class="audio-container">
+            <audio id="music-player" controls>
+                <source id="music-source" src="" type="audio/mp3">
+                Your browser does not support the audio element.
+            </audio>
+        </div>
+    </div>
 
     <button id="titleButton">タイトル</button>
     <script>
@@ -63,6 +101,30 @@
                 window.location.href = '../title.html';
             }, 500);
         });
+
+                // 音楽選択コンボボックスのイベントハンドラ
+                document.getElementById('music-select').addEventListener('change', function() {
+            let selectedMusic = this.value;
+            let audioPlayer = document.getElementById('music-player');
+            let musicSource = document.getElementById('music-source');
+
+            switch(selectedMusic) {
+                case 'bgm1':
+                    musicSource.src = "maou_game_medley02.mp3" // 実際の音楽ファイルパスを指定
+                    break;
+                case 'bgm2':
+                    musicSource.src = "upbeat.mp3"; // 実際の音楽ファイルパスを指定
+                    break;
+                case 'bgm3':
+                    musicSource.src = "classic.mp3"; // 実際の音楽ファイルパスを指定
+                    break;
+                default:
+                    musicSource.src = ""; // 音楽なしの場合
+            }
+
+            audioPlayer.load(); // 新しい音楽をロードして再生準備
+        });
+
     </script>
 </body>
 </html>
