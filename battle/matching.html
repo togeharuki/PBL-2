@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ゲームルーム</title>
+</head>
+<body>
+    <h1>ゲームルーム</h1>
+    <p>ルームID: <span id="roomId"></span></p>
+    <script>
+        // GETパラメータからルームIDを取得して表示
+        const params = new URLSearchParams(window.location.search);
+        const roomId = params.get('roomId');
+        document.getElementById('roomId').textContent = roomId || 'ルームIDが指定されていません';
+    </script>
+</body>
+</html>
