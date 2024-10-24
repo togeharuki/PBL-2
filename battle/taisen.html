@@ -225,6 +225,89 @@ body, html {
     color: #fff;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
 }
+
+/* カードエフェクトのアニメーション */
+@keyframes cardEntrance {
+    0% {
+        transform: scale(0.3) translateY(-100px) rotate(-10deg);
+        opacity: 0;
+    }
+    60% {
+        transform: scale(1.2) translateY(20px) rotate(5deg);
+    }
+    100% {
+        transform: scale(1) translateY(0) rotate(0);
+        opacity: 1;
+    }
+}
+
+@keyframes cardGlow {
+    0% {
+        box-shadow: 0 0 5px rgba(74, 144, 226, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(74, 144, 226, 0.6);
+    }
+    100% {
+        box-shadow: 0 0 5px rgba(74, 144, 226, 0.3);
+    }
+}
+
+@keyframes healGlow {
+    0% {
+        box-shadow: 0 0 5px rgba(144, 238, 144, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(144, 238, 144, 0.6);
+    }
+    100% {
+        box-shadow: 0 0 5px rgba(144, 238, 144, 0.3);
+    }
+}
+
+@keyframes battleZoneActivate {
+    0% {
+        background: rgba(74, 144, 226, 0.05);
+    }
+    50% {
+        background: rgba(74, 144, 226, 0.2);
+    }
+    100% {
+        background: rgba(74, 144, 226, 0.1);
+    }
+}
+
+/* エフェクトクラス */
+.card-entrance {
+    animation: cardEntrance 0.6s ease-out forwards;
+}
+
+.card-glow {
+    animation: cardGlow 2s infinite;
+}
+
+.heal-card-glow {
+    animation: healGlow 2s infinite;
+}
+
+.battle-zone-activate {
+    animation: battleZoneActivate 0.8s ease-out;
+}
+
+.particle {
+    position: absolute;
+    pointer-events: none;
+    border-radius: 50%;
+    z-index: 1000;
+}
+
+.particle-attack {
+    background: rgba(74, 144, 226, 0.6);
+}
+
+.particle-heal {
+    background: rgba(144, 238, 144, 0.6);
+}
     </style>
 </head>
 <body>
@@ -232,7 +315,7 @@ body, html {
         <!-- プレイヤー1情報 -->
         <div id="player1-info" class="player-info">
             <div>プレイヤー1 HP: <span id="player1-hp">10000</span></div>
-            <button id="player1-create-card" class="create-card-btn">オリジナルカード作成</button>
+            <button id="player1-create-card" class="create-card-btn">神の一手</button>
         </div>
         <div id="player1-count" class="card-count">デッキ: <span id="player1-deck-count">30</span></div>
 
@@ -261,7 +344,7 @@ body, html {
         <!-- プレイヤー2情報 -->
         <div id="player2-info" class="player-info">
             <div>プレイヤー2 HP: <span id="player2-hp">10000</span></div>
-            <button id="player2-create-card" class="create-card-btn">オリジナルカード作成</button>
+            <button id="player2-create-card" class="create-card-btn">神の一手</button>
         </div>
         <div id="player2-count" class="card-count">デッキ: <span id="player2-deck-count">30</span></div>
     </div>
@@ -520,8 +603,24 @@ function playCard(card, cardElement, playerId) {
         const battleZone = document.getElementById(`player${playerId}-battle-zone`);
         battleZone.innerHTML = '';
         const playedCard = card.createCardElement(playerId, () => {});
+        
+        // エフェクトの適用
         playedCard.classList.add('card-played');
+        playedCard.classList.add('card-entrance');
+        
+        if (card.isHeal) {
+            playedCard.classList.add('heal-card-glow');
+        } else {
+            playedCard.classList.add('card-glow');
+        }
+        
         battleZone.appendChild(playedCard);
+        battleZone.classList.add('battle-zone-activate');
+        
+        // パーティクルエフェクト
+        setTimeout(() => {
+            createParticles(playedCard, 20, card.isHeal);
+        }, 300);
         
         const handIndex = player.hand.indexOf(card);
         if (handIndex !== -1) {
@@ -531,11 +630,73 @@ function playCard(card, cardElement, playerId) {
         
         player.hasSelectedCard = true;
 
+        // サウンドエフェクト
+        const playSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodHQql4yLlmAhoZvY2xvCQUEBwcfHRwYDQ0VJy0zRVlSN0koIVpzdWNMNi11dYJ1Y0c3CwQBBRUsO1FVb1c5EhYzFxEOaDkvVk8/HTxK');
+        playSound.volume = 0.3;
+        playSound.play().catch(() => {});
+
         if (game.player1.hasSelectedCard && game.player2.hasSelectedCard) {
             setTimeout(() => game.resolveBattle(), 500);
         }
     }
 }
+
+function createParticles(element, count, isHeal = false) {
+    const rect = element.getBoundingClientRect();
+    const particles = [];
+    
+    for (let i = 0; i < count; i++) {
+        const particle = document.createElement('div');
+        particle.className = `particle ${isHeal ? 'particle-heal' : 'particle-attack'}`;
+        
+        const size = Math.random() * 8 + 4;
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        
+        const startX = rect.left + rect.width / 2;
+        const startY = rect.top + rect.height / 2;
+        
+        particle.style.left = startX + 'px';
+        particle.style.top = startY + 'px';
+        
+        document.body.appendChild(particle);
+        particles.push({
+            element: particle,
+            vx: (Math.random() - 0.5) * 10,
+            vy: (Math.random() - 0.5) * 10,
+            life: 1
+        });
+    }
+    
+    let frame = 0;
+    const animate = () => {
+        frame++;
+        let allDead = true;
+        
+        particles.forEach(p => {
+            if (p.life > 0) {
+                allDead = false;
+                p.life -= 0.02;
+                p.element.style.opacity = p.life;
+                
+                const currentX = parseFloat(p.element.style.left);
+                const currentY = parseFloat(p.element.style.top);
+                
+                p.element.style.left = (currentX + p.vx) + 'px';
+                p.element.style.top = (currentY + p.vy) + 'px';
+            } else if (p.element.parentNode) {
+                p.element.parentNode.removeChild(p.element);
+            }
+        });
+        
+        if (!allDead) {
+            requestAnimationFrame(animate);
+        }
+    };
+    
+    requestAnimationFrame(animate);
+}
+        
 
 // ゲームの初期化と開始
 const game = new Game();
