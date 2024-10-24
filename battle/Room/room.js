@@ -48,7 +48,7 @@ function searchRoom() {
     if (room) {
         console.log(`ルーム ${roomId} が見つかりました`);
         // ルームが見つかった場合、matching.htmlへの遷移
-        window.location.href = `matching.html?roomId=${roomId}`;
+        window.location.href = `../Match/matching.html?roomId=${roomId}`;
     } else {
         alert('指定されたルームが見つかりませんでした');
     }

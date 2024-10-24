@@ -14,7 +14,7 @@ document.getElementById('settingsButton').addEventListener('click', function() {
 });
 
 document.getElementById('battleButton').addEventListener('click', function() {
-    navigateTo('../battle/battle.html');
+    navigateTo('../../battle/Battle/battle.html');
 });
 
 document.getElementById('RuleBtn').addEventListener('click', function() {
