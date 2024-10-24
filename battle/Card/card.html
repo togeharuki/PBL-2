@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>トレーディングカード作成</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <link href="card.css" rel="stylesheet">
+</head>
+<body>
+    <button class="taisen-button" onclick="window.location.href='../fight/taisen.html'">対戦画面へ</button>
+    <h1>トレーディングカード作成</h1>
+    <div class="card-creator">
+        <div class="card-preview">
+            <div class="card-image">
+                <img id="preview-image" src="" alt="カード画像">
+            </div>
+            <div class="card-name">
+                <input type="text" id="card-name-input" placeholder="カード名を入力" maxlength="20">
+            </div>
+            <div class="card-effect" id="preview-effect"></div>
+        </div>
+        <input type="file" id="card-image" accept="image/*">
+        <div class="effect-buttons">
+            <button class="effect-button" id="heart-button">❤️<div class="effect-text">回復</div></button>
+            <button class="effect-button" id="sword-button">⚔️<div class="effect-text">攻撃</div></button>
+        </div>
+        <button id="create-card">カードを作成</button>
+    </div>
+    <p id="card-count">作成したカード: 0 / 20</p>
+
+    <div class="card-list" id="card-list">
+        <h2>作成したカード一覧</h2>
+        <div class="card-list-grid" id="card-list-grid"></div>
+    </div>
+
+    <button id="start-battle" class="battle-button">対戦開始</button>
+</body>
+    <script src="card.js"></script>
+</html>

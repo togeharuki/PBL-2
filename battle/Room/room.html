@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>ルーム作成</title>
+        <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap" rel="stylesheet">
+        <link href="room.css" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Deck Dreamers</h1>
+        <div class="container">
+            <div class="room-section">
+                <h2>ルームを作成</h2>
+                <div class="room-id-container">
+                    <div class="room-id">123-4567</div>
+                    <button class="copy-button" onclick="copyRoomId()">コピー</button>
+                </div>
+                <button class="button" onclick="createRoom()">ルームを作成</button>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="room-section">
+                <h2>ルームを検索</h2>
+                <div class="input-group">
+                    <input type="text" id="roomIdInput" placeholder="ルームID（例：123-4567）" 
+                        pattern="\d{3}-\d{4}" maxlength="8">
+                </div>
+                <button class="button search-button" onclick="searchRoom()">検索</button>
+            </div>
+
+            <div class="divider"></div>
+
+            <button class="button back-button" onclick="goBack()">戻る</button>
+        </div>
+    </body>
+    <script src="room.js"></script>
+</html>

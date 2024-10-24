@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Deck・Dreamers Battle Screen</title>
+        <link href="taisen.css" rel="stylesheet"> 
+    </head>
+    <body>
+        <div class="game-board">
+            <!-- プレイヤー1情報 -->
+            <div id="player1-info" class="player-info">
+                <div>プレイヤー1 HP: <span id="player1-hp">10000</span></div>
+                <button id="player1-create-card" class="create-card-btn">神の一手</button>
+            </div>
+            <div id="player1-count" class="card-count">デッキ: <span id="player1-deck-count">30</span></div>
+
+            <!-- プレイヤー1手札 -->
+            <div class="player-hand player1-hand" id="player1-hand">
+                <!-- カードは動的に追加 -->
+            </div>
+
+            <!-- バトルゾーンとタイマーのコンテナ -->
+            <div class="battle-container">
+                <div class="battle-zone" id="battle-zone">
+                    <div id="player1-battle-zone" class="player-battle-zone"></div>
+                    <div id="player2-battle-zone" class="player-battle-zone"></div>
+                </div>
+                <div id="timer">60</div>
+            </div>
+
+            <!-- バトル結果表示用の要素を追加 -->
+            <div id="battle-result"></div>
+
+            <!-- プレイヤー2手札 -->
+            <div class="player-hand player2-hand" id="player2-hand">
+                <!-- カードは動的に追加 -->
+            </div>
+
+            <!-- プレイヤー2情報 -->
+            <div id="player2-info" class="player-info">
+                <div>プレイヤー2 HP: <span id="player2-hp">10000</span></div>
+                <button id="player2-create-card" class="create-card-btn">神の一手</button>
+            </div>
+            <div id="player2-count" class="card-count">デッキ: <span id="player2-deck-count">30</span></div>
+        </div>
+    </body>
+    <script src="taisen.js"></script>
+</html>

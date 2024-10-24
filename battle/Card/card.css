@@ -1,0 +1,193 @@
+body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background-color: #1a1a2e;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+.card-creator {
+    background-color: #2a2a4e;
+    border-radius: 10px;
+    padding: 20px;
+    max-width: 400px;
+    width: 100%;
+    margin-bottom: 20px;
+}
+.card-preview, .card-item {
+    width: 100%;
+    aspect-ratio: 2.5 / 3.5;
+    background-color: #3a3a5e;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+    position: relative;
+}
+.card-image {
+    flex: 2;
+    background-color: #4a4a6e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+.card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.card-name {
+    background: linear-gradient(45deg, #2a2a4e, #3a3a5e);
+    padding: 10px;
+    border-top: 2px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+#card-name-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    text-align: center;
+    padding: 5px;
+    outline: none;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+#card-name-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+.card-name-display {
+    background: linear-gradient(45deg, #2a2a4e, #3a3a5e);
+    padding: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    text-align: center;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    border-top: 2px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+.card-effect {
+    flex: 1;
+    padding: 10px;
+    background-color: #5a5a7e;
+    overflow-y: auto;
+    font-size: 16px;
+    font-weight: 700;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+input[type="file"], button {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+}
+button {
+    background-color: #4ecdc4;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+button:hover {
+    background-color: #45b7a8;
+}
+button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+.card-list {
+    display: block;
+    width: 100%;
+    max-width: 1000px;
+    background-color: #2a2a4e;
+    border-radius: 10px;
+    padding: 20px;
+}
+.card-list-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+}
+.card-item {
+    margin-bottom: 0;
+}
+.delete-button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: #ff4757;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    font-size: 16px;
+    line-height: 25px;
+    text-align: center;
+    cursor: pointer;
+    z-index: 10;
+}
+.delete-button:hover {
+    background-color: #ff6b81;
+}
+.battle-button {
+    background-color: #ff6b6b;
+    color: white;
+    padding: 15px 30px;
+    font-size: 1.2em;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 20px;
+}
+.battle-button:hover {
+    background-color: #ff5252;
+}
+.effect-buttons {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 10px;
+}
+.effect-button {
+    font-size: 28px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+.effect-button:hover {
+    transform: scale(1.1);
+}
+.effect-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.effect-text {
+    font-size: 14px;
+    margin-top: 5px;
+}
+.taisen-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background-color: #4ecdc4;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.taisen-button:hover {
+    background-color: #45b7a8;
+}
