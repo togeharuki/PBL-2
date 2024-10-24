@@ -5,6 +5,6 @@ document.getElementById('StartBtn').addEventListener('click', function() {
     
     // 0.5秒後に遷移する
     setTimeout(function() {
-        window.location.href = 'menu.html';
+        window.location.href = '../Menu/Menu.html';
     }, 500);
 });
