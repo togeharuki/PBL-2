@@ -10,7 +10,7 @@ function navigateTo(url) {
 }
 
 document.getElementById('settingsButton').addEventListener('click', function() {
-    navigateTo('../option/option.html');
+    navigateTo('../../Music/Music.html');
 });
 
 document.getElementById('battleButton').addEventListener('click', function() {

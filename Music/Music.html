@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deck・Dreamers</title>
+    <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap" rel="stylesheet">
+    <link href="Music.css" rel="stylesheet">
+</head>
+<body>
+    <h2>Deck・Dreamers BGM</h2>
+     <!-- 音楽選択オプション（コンボボックス） -->
+     <div class="option-container">
+        <label for="music-select">音楽を選択:</label>
+        <select id="music-select">
+            <option value="none">BGMなし</option>
+            <option value="bgm1">BGM1</option>
+            <option value="bgm2">BGM2</option>
+            <option value="bgm3">BGM3</option>
+        </select>
+        <div class="audio-container">
+            <audio id="music-player">
+                <source id="music-source" src="" type="audio/mp3">
+                Your browser does not support the audio element.
+            </audio>
+        </div>
+    </div>
+    <button id="titleButton">タイトル</button>
+</body>
+    <script src="Music.js"></script>
+</html>
