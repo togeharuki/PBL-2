@@ -11,6 +11,12 @@ body {
         radial-gradient(circle at 10% 20%, rgba(90, 90, 90, 0.1) 0%, rgba(90, 90, 90, 0.1) 5%, transparent 5%),
         radial-gradient(circle at 90% 80%, rgba(90, 90, 90, 0.1) 0%, rgba(90, 90, 90, 0.1) 5%, transparent 5%);
 }
+
+ui {
+    color: rgb(200, 206, 211);
+
+}
+
 h1 {
     font-family: 'Abril Fatface', cursive;
     font-size: 5em;
