@@ -57,7 +57,59 @@
     <h1>Deck・Dreamers</h1>
     <button id="startButton">スタート</button>
 
+        <!-- 音楽再生用のオーディオ要素 -->
+        <div class="audio-container">
+            <audio id="music-player">
+                <source id="music-source" src="" type="audio/mp3">
+                Your browser does not support the audio element.
+            </audio>
+        </div>
+
     <script>
+        // ページが読み込まれた際に選択した音楽を再開する
+        window.addEventListener('load', function() {
+            let selectedMusic = localStorage.getItem('selectedMusic'); // 前のページで保存された音楽設定を取得
+            let audioPlayer = document.getElementById('music-player');
+            let musicSource = document.getElementById('music-source');
+
+                        // 選択した音楽がある場合
+                        if (selectedMusic) {
+                switch(selectedMusic) {
+                    case 'bgm1':
+                        musicSource.src = "maou_game_medley02.mp3";
+                        break;
+                    case 'bgm2':
+                        musicSource.src = "upbeat.mp3";
+                        break;
+                    case 'bgm3':
+                        musicSource.src = "classic.mp3";
+                        break;
+                    default:
+                        musicSource.src = "";
+                }
+
+                audioPlayer.load();
+
+                // 保存された再生時間があれば設定
+                let currentTime = localStorage.getItem('currentTime');
+                if (currentTime) {
+                    audioPlayer.currentTime = currentTime;
+                }
+
+                audioPlayer.play(); // 音楽を再生
+            }
+    });
+
+            // ページ遷移時に音楽の再生時間を保存する
+            document.getElementById('startButton').addEventListener('click', function() {
+            let audioPlayer = document.getElementById('music-player');
+            
+            // 再生中の音楽があれば、その再生時間を保存
+            if (!audioPlayer.paused) {
+                localStorage.setItem('currentTime', audioPlayer.currentTime);
+            }
+        });
+        
         document.getElementById('startButton').addEventListener('click', function() {
             // フェードアウト効果を追加
             document.body.style.transition = 'opacity 0.5s';
