@@ -16,3 +16,8 @@ document.querySelectorAll('.entry-box').forEach(box => {
         box.style.background = '#555';
     });
 });
+
+// 対戦開始ボタンのクリックイベント
+document.querySelector('.start-button').addEventListener('click', () => {
+    window.location.href = '../fight/taisen.html';
+});
