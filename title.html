@@ -108,8 +108,7 @@
             if (!audioPlayer.paused) {
                 localStorage.setItem('currentTime', audioPlayer.currentTime);
             }
-        });
-        
+
         document.getElementById('startButton').addEventListener('click', function() {
             // フェードアウト効果を追加
             document.body.style.transition = 'opacity 0.5s';
@@ -120,6 +119,7 @@
                 window.location.href = 'main/Menu/Menu.html';
             }, 500);
         });
+    });
     </script>
 </body>
 </html>
