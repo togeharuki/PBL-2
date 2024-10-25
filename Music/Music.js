@@ -29,5 +29,8 @@ document.getElementById('titleButton').addEventListener('click', function() {
             musicSource.src = ""; // 音楽なしの場合
     }
 
-    audioPlayer.load(); // 新しい音楽をロードして再生準備
+    if (musicSource.src) {
+        audioPlayer.load(); // 新しい音楽をロードして再生準備
+        audioPlayer.play();
+    }
 });
