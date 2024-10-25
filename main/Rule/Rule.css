@@ -14,7 +14,6 @@ body {
 
 ui {
     color: rgb(200, 206, 211);
-
 }
 
 h1 {
@@ -27,4 +26,18 @@ h1 {
     text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
     margin-bottom: 40px;
     letter-spacing: 2px;
+}
+
+.StartBtn {
+    font-size: 1.2em;
+    padding: 12px 30px;
+    background: linear-gradient(45deg, #91AD70, #42602D);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
