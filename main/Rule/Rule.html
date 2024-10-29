@@ -1,15 +1,42 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deck・Dreamers</title>
-    <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap" rel="stylesheet">
-    <link href="Rule.css" rel="stylesheet">
-</head>
-<body>
-    <h1>Deck・Dreamers</h1>
-    <button id="StartBtn">戻る</button>
-</body>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Deck・Dreamers</title>
+        <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap" rel="stylesheet">
+        <link href="Rule.css" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Deck・Dreamers</h1>
+
+            <ui>
+                <基本的な処理>
+                <li>対戦方式:1vs1</li>
+                <li>お互いにカードを1分以内に出し、攻撃力が高いほうが相手プレイヤーにダメージを与える</li>
+                <li>1分以内にカードが出されなかった場合、手札からランダムで出される</li>
+                <li>ダメージは"高い攻撃力"から"低い攻撃力"の数値を引いた余りとする</li>
+                <li>カードはプレイヤーにダメージを与える攻撃カードとプレイヤーを回復する回復カードの2種類ある</li>
+                <li>プレイヤーは一回だけカードを作成することができます</li>
+                <li>1ターンにカードは一枚だけ出せます</li>
+                <li>デッキ枚数は各プレイヤー30枚所持している</li>
+                <li>手札は5枚です</li><br>
+
+                <墓地の処理>
+                <li>バトルで使用したカードは自動的に墓地に送られる</li><br>
+                
+                <回復カードの処理>
+                <li>回復カードを選択すると、選択したプレイヤーのHPが回復カードの数値分回復します。</li>
+                <li>回復効果が発動すると、その内容が画面に表示されます。</li>
+                <li>回復カードは使用後、墓地に送られます。</li>
+                <li>回復カード使用後、新しいラウンドが開始されます。</li>
+                <li>回復カードの場合は通常の戦闘は行われません。</li><br>
+
+                <勝利条件>
+                <li>HPが0になったほうが負け</li>
+                <li>デッキ枚数が0になったら、その時点でHPが高いほうのプレイヤーが勝利する</li>
+            </ui><br>
+            <button class="StartBtn" id="StartBtn">戻る</button>
+        </body>
     <script src="Rule.js"></script>
 </html>
