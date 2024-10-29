@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>カードガチャ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="card.css">
+</head>
+<body>
+    <div class="gacha-container">
+        <h1 class="gacha-title">カードガチャ</h1>
+        
+        <!-- 10連ガチャ用のカードコンテナ -->
+        <div class="cards-container">
+            <!-- JavaScriptで動的に生成されるミニカード -->
+        </div>
+
+        <div class="card-display">
+            <div class="card">
+                <div class="card-front">
+                    <img src="C:\Users\t-kyuna\Downloads\13791242-トランプのカードの裏面.jpg" alt="カードの裏面">
+                </div>
+                <div class="card-back">
+                    <div class="rarity"></div>
+                    <div class="card-image">
+                        <img src="" alt="カード画像">
+                    </div>
+                    <div class="card-name"></div>
+                    <div class="card-effect"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-container">
+            <button class="gacha-button" id="gacha-button">ガチャを引く</button>
+            <button class="gacha-button" id="gacha-button-10">10連ガチャを引く</button>
+        </div>
+
+        <div class="stats">
+            <p>引いた回数: <span id="pull-count">0</span>回</p>
+            <p>URレート: <span id="ur-rate">0</span>%</p>
+            <p>SRレート: <span id="sr-rate">0</span>%</p>
+            <p>Rレート: <span id="r-rate">0</span>%</p>
+            <p>Nレート: <span id="n-rate">0</span>%</p>
+        </div>
+        
+        <p class="info-text">※1回の価格: 100コイン</p>
+    </div>
+    <script src="card.js"></script>
+</body>
+</html>
