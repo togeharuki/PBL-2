@@ -1,3 +1,6 @@
+// BGMの状態を管理する変数
+let bgmPlaying = false; // 初期状態をオフに設定
+
 // タイトルボタンのイベントリスナー
 document.getElementById('titleButton').addEventListener('click', function() {
     // 再生中の音楽があれば、その再生時間を保存
@@ -39,10 +42,27 @@ document.getElementById('music-select').addEventListener('change', function() {
     if (musicSource.src) {
         audioPlayer.load(); // 音楽をロード
         audioPlayer.play(); // 音楽を再生
+        bgmPlaying = true; // BGM再生中の状態にする
+        document.getElementById('bgmToggleButton').textContent = "BGM オフ"; // ボタンのテキストを更新
     }
 
     // 選択された音楽をlocalStorageに保存
     localStorage.setItem('selectedMusic', selectedMusic);
+});
+
+// BGMトグルボタンのイベントリスナー
+document.getElementById('bgmToggleButton').addEventListener('click', function() {
+    let audioPlayer = document.getElementById('music-player');
+    
+    if (bgmPlaying) {
+        audioPlayer.pause(); // 音楽を一時停止
+        this.textContent = "BGM オン"; // ボタンのテキストを変更
+    } else {
+        audioPlayer.play(); // 音楽を再生
+        this.textContent = "BGM オフ"; // ボタンのテキストを変更
+    }
+    
+    bgmPlaying = !bgmPlaying; // 再生状態を反転
 });
 
 const audioPlayer = document.getElementById('music-player');
@@ -82,5 +102,8 @@ window.addEventListener('load', function() {
         }
 
         audioPlayer.play(); // 音楽を再生
+        bgmPlaying = true; // BGM再生中の状態にする
+        document.getElementById('bgmToggleButton').textContent = "BGM オフ"; // ボタンのテキストを更新
     }
 });
+
