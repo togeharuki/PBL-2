@@ -64,3 +64,7 @@ h1 {
     text-transform: uppercase;
     letter-spacing: 1px;
 }
+.rule:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+}
