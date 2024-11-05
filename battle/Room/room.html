@@ -1,39 +1,60 @@
 <!DOCTYPE html>
 <html lang="ja">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>ルーム作成</title>
-        <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap" rel="stylesheet">
-        <link href="room.css" rel="stylesheet">
-    </head>
-    <body>
-        <h1>Deck Dreamers</h1>
-        <div class="container">
-            <div class="room-section">
-                <h2>ルームを作成</h2>
-                <div class="room-id-container">
-                    <div class="room-id">123-4567</div>
-                    <button class="copy-button" onclick="copyRoomId()">コピー</button>
-                </div>
-                <button class="button" onclick="createRoom()">ルームを作成</button>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ルーム作成</title>
+    <link rel="stylesheet" href="room.css">
+</head>
+<body>
+    <h1>Deck Dreamers</h1>
+    
+    <div class="container">
+        <div class="room-section">
+            <h2>ルーム作成</h2>
+            <div class="room-id-container">
+                <p class="room-id">123-4567</p>
+                <button class="copy-button" onclick="copyRoomId()">コピー</button>
             </div>
-
-            <div class="divider"></div>
-
-            <div class="room-section">
-                <h2>ルームを検索</h2>
-                <div class="input-group">
-                    <input type="text" id="roomIdInput" placeholder="ルームID（例：123-4567）" 
-                        pattern="\d{3}-\d{4}" maxlength="8">
-                </div>
-                <button class="button search-button" onclick="searchRoom()">検索</button>
-            </div>
-
-            <div class="divider"></div>
-
-            <button class="button back-button" onclick="goBack()">戻る</button>
+            <button class="button" onclick="showCreateRoomModal()">ルームを作成</button>
         </div>
-    </body>
+
+        <div class="divider"></div>
+
+        <div class="room-section">
+            <h2>ルームを検索</h2>
+            <div class="input-group">
+                <input type="text" id="roomIdInput" placeholder="ルームID">
+            </div>
+            <button class="button search-button" onclick="searchRoom()">検索</button>
+        </div>
+
+        <button class="button back-button" onclick="goBack()">戻る</button>
+    </div>
+
+    <div id="createRoomModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>ルーム作成</h2>
+            </div>
+            <div class="modal-body">
+                <div class="player-count-selector">
+                    <label>プレイ人数を選択:</label>
+                    <div class="player-count-buttons">
+                        <button class="player-count-button" data-count="2">2人</button>
+                        <button class="player-count-button" data-count="3">3人</button>
+                        <button class="player-count-button" data-count="4">4人</button>
+                    </div>
+                </div>
+                <p id="selectedPlayerCount">選択中: 2人</p>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-button confirm-button" onclick="confirmCreateRoom()">作成する</button>
+                <button class="modal-button cancel-button" onclick="closeModal()">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
     <script src="room.js"></script>
+</body>
 </html>

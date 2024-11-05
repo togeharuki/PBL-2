@@ -1,3 +1,5 @@
+let selectedPlayerCount = 2;
+
 function generateRoomId() {
     const part1 = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
     const part2 = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
@@ -22,32 +24,58 @@ function copyRoomId() {
 }
 
 function createRoom() {
-    const roomId = generateRoomId(); // 新しいルームIDを生成
-    document.querySelector('.room-id').textContent = roomId; // 生成したIDを表示
+    const roomId = generateRoomId();
+    document.querySelector('.room-id').textContent = roomId;
     const copyButton = document.querySelector('.copy-button');
     copyButton.textContent = 'コピー';
     copyButton.classList.remove('success');
 
-    // 新しいルームを作成
-    const newRoom = new GameRoom(roomId);
-    rooms.set(roomId, newRoom); // グローバルなroomsマップに追加
+    const newRoom = new GameRoom(roomId, selectedPlayerCount);
+    rooms.set(roomId, newRoom);
 
-    console.log(`ルーム ${roomId} が作成されました`);
+    console.log(`${selectedPlayerCount}人用のルーム ${roomId} が作成されました`);
+}
+
+function showCreateRoomModal() {
+    document.getElementById('createRoomModal').style.display = 'block';
+    document.querySelector('[data-count="2"]').classList.add('selected');
+}
+
+function closeModal() {
+    document.getElementById('createRoomModal').style.display = 'none';
+    resetPlayerCountSelection();
+}
+
+function resetPlayerCountSelection() {
+    selectedPlayerCount = 2;
+    document.querySelectorAll('.player-count-button').forEach(button => {
+        button.classList.remove('selected');
+    });
+    document.querySelector('[data-count="2"]').classList.add('selected');
+    updateSelectedPlayerCount();
+}
+
+function updateSelectedPlayerCount() {
+    document.getElementById('selectedPlayerCount').textContent = `選択中: ${selectedPlayerCount}人`;
+}
+
+function confirmCreateRoom() {
+    createRoom();
+    closeModal();
 }
 
 function searchRoom() {
-    const roomId = document.getElementById('roomIdInput').value; // 入力からルームIDを取得
-    const regex = /^\d{3}-\d{4}$/; // 正しいフォーマットの確認
+    const roomId = document.getElementById('roomIdInput').value;
+    const regex = /^\d{3}-\d{4}$/;
     
     if (!regex.test(roomId)) {
         alert('正しいフォーマットで入力してください（例：123-4567）');
         return;
     }
 
-    const room = rooms.get(roomId); // マップからルームを取得
+    const room = rooms.get(roomId);
     if (room) {
         console.log(`ルーム ${roomId} が見つかりました`);
-        // ルームが見つかった場合、matching.htmlへの遷移
         window.location.href = `../Match/matching.html?roomId=${roomId}`;
     } else {
         alert('指定されたルームが見つかりませんでした');
@@ -55,10 +83,29 @@ function searchRoom() {
 }
 
 function goBack() {
-    window.location.href = '../Battle/battle.html'; // 戻るボタンの処理
+    window.location.href = '../Battle/battle.html';
 }
 
-// 入力フォーマットのバリデーション
+document.addEventListener('DOMContentLoaded', function() {
+    const playerCountButtons = document.querySelectorAll('.player-count-button');
+    
+    playerCountButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            playerCountButtons.forEach(btn => btn.classList.remove('selected'));
+            this.classList.add('selected');
+            selectedPlayerCount = parseInt(this.getAttribute('data-count'));
+            updateSelectedPlayerCount();
+        });
+    });
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('createRoomModal');
+        if (event.target === modal) {
+            closeModal();
+        }
+    };
+});
+
 document.getElementById('roomIdInput').addEventListener('input', function(e) {
     let value = e.target.value.replace(/\D/g, '');
     if (value.length > 3) {
@@ -67,43 +114,36 @@ document.getElementById('roomIdInput').addEventListener('input', function(e) {
     e.target.value = value;
 });
 
-// ルームを保持するためのMap
 const rooms = new Map();
 
-// ゲームルームクラス
 class GameRoom {
-    constructor(roomId) {
+    constructor(roomId, maxPlayers = 2) {
         this.roomId = roomId;
         this.players = [];
-        this.status = 'waiting'; // waiting, playing, finished
+        this.status = 'waiting';
         this.createdAt = new Date();
-        this.maxPlayers = 2;
+        this.maxPlayers = maxPlayers;
     }
 
-    // プレイヤーの追加
     addPlayer(player) {
         if (this.players.length >= this.maxPlayers) {
             throw new Error('ルームが満員です');
         }
         this.players.push(player);
 
-        // プレイヤーが揃ったらゲーム開始
         if (this.players.length === this.maxPlayers) {
             this.status = 'playing';
         }
     }
 
-    // プレイヤーの削除
     removePlayer(playerId) {
         this.players = this.players.filter(player => player.id !== playerId);
         
-        // プレイヤーがいなくなったらルームを削除
         if (this.players.length === 0) {
             rooms.delete(this.roomId);
         }
     }
 
-    // ゲームの状態を取得
     getStatus() {
         return {
             roomId: this.roomId,
@@ -114,18 +154,14 @@ class GameRoom {
         };
     }
 
-    // ルームの終了
     finish() {
         this.status = 'finished';
-        // 必要に応じて終了処理を追加
     }
 }
 
-// ルーム管理の補助関数
 function cleanupInactiveRooms() {
     const now = new Date();
     for (const [roomId, room] of rooms) {
-        // 1時間以上経過した未使用のルームを削除
         const hoursPassed = (now - room.createdAt) / (1000 * 60 * 60);
         if (hoursPassed >= 1 && room.players.length === 0) {
             rooms.delete(roomId);
@@ -133,5 +169,4 @@ function cleanupInactiveRooms() {
     }
 }
 
-// 定期的な不要ルーム削除
-setInterval(cleanupInactiveRooms, 1000 * 60 * 15); // 15分ごとにチェック
+setInterval(cleanupInactiveRooms, 1000 * 60 * 15);
