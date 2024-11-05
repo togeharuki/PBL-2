@@ -1,61 +1,3 @@
-// Express と MySQL の設定
-const express = require('express');
-const mysql = require('mysql2');
-const path = require('path');
-const app = express();
-
-// データベース接続設定
-const connection = mysql.createConnection({
-    host: 'deck-dreamers.cnyeqqe06mm2.us-east-1.rds.amazonaws.com',
-    user: 'admin',
-    password: '', // AWSのデータベースパスワードを設定
-    database: 'deck_dreamers'
-});
-
-// データベース接続
-connection.connect(err => {
-    if (err) {
-        console.error('データベース接続エラー:', err);
-        return;
-    }
-    console.log('データベースに接続されました');
-});
-
-// Express設定
-app.use(express.json({ limit: '50mb' }));
-app.use(express.static(path.join(__dirname)));
-
-// デッキ保存API
-app.post('/api/save-deck', async (req, res) => {
-    const { deckId, cards } = req.body;
-
-    try {
-        await connection.promise().beginTransaction();
-
-        // カードデータの保存
-        for (const card of cards) {
-            await connection.promise().query(
-                'INSERT INTO cards (deck_id, card_name, card_effect, image_url) VALUES (?, ?, ?, ?)',
-                [deckId, card.name, card.effect, card.image]
-            );
-        }
-
-        await connection.promise().commit();
-        res.json({ success: true, message: 'デッキが保存されました', deckId: deckId });
-
-    } catch (error) {
-        await connection.promise().rollback();
-        console.error('デッキ保存エラー:', error);
-        res.status(500).json({ success: false, message: 'デッキの保存中にエラーが発生しました' });
-    }
-});
-
-// サーバー起動
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`サーバーがポート${PORT}で起動しました`);
-});
-
 // クライアントサイドのコード
 let cards = JSON.parse(localStorage.getItem('cards') || '[]');
 let currentEffect = '';
@@ -106,6 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+
     // カードの削除
     function deleteCard(index) {
         cards.splice(index, 1);
@@ -130,6 +73,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // プレビューエフェクトに直接表示
         previewEffect.textContent = effectText;
+        currentEffect = effectText;
+        effectGenerated = true;
         return effectText;
     }
 
@@ -150,7 +95,6 @@ document.addEventListener('DOMContentLoaded', function() {
         heartButton.disabled = false;
         swordButton.disabled = false;
     }
-
     // イベントリスナー設定
     imageInput.addEventListener('change', function(event) {
         const file = event.target.files[0];
@@ -192,16 +136,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     heartButton.addEventListener('click', function() {
         if (!effectGenerated) {
-            currentEffect = generateRandomEffect('heal');
-            effectGenerated = true;
+            generateRandomEffect('heal');
             disableEffectButtons();
         }
     });
 
     swordButton.addEventListener('click', function() {
         if (!effectGenerated) {
-            currentEffect = generateRandomEffect('attack');
-            effectGenerated = true;
+            generateRandomEffect('attack');
             disableEffectButtons();
         }
     });
@@ -250,28 +192,15 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const deckId = 'deck_' + Date.now();
             
-            const response = await fetch('/api/save-deck', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    deckId: deckId,
-                    cards: cards
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error('デッキの保存に失敗しました');
-            }
-
+            // デッキ情報をセッションストレージに保存
             sessionStorage.setItem('battle_deck', JSON.stringify({
                 id: deckId,
                 cards: cards
             }));
             
+            // ローカルストレージのカードをクリア
             localStorage.removeItem('cards');
-            alert('デッキが保存されました。対戦を開始します。');
+            alert('対戦を開始します。');
             window.location.href = '../battle/battle.html';
 
         } catch (error) {
@@ -286,12 +215,15 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // エラーハンドリング
-process.on('uncaughtException', (error) => {
-    console.error('予期せぬエラーが発生しました:', error);
+window.addEventListener('error', function(event) {
+    console.error('エラーが発生しました:', event.error);
 });
 
-// 終了時の処理
-process.on('SIGTERM', () => {
-    connection.end();
-    process.exit(0);
+// アンロード時の処理
+window.addEventListener('beforeunload', function() {
+    try {
+        localStorage.setItem('cards', JSON.stringify(cards));
+    } catch (e) {
+        console.error('Storage error:', e);
+    }
 });
