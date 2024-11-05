@@ -5,10 +5,283 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>トレーディングカード作成</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="card.css">
+    <style>
+body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background-color: #1a1a2e;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    min-height: 100vh;
+    margin: 0;
+}
+
+h1 {
+    margin-bottom: 30px;
+    color: #4ecdc4;
+}
+
+.card-creator {
+    background-color: #2a2a4e;
+    border-radius: 10px;
+    padding: 20px;
+    max-width: 400px;
+    width: 100%;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card-preview, .card-item {
+    width: 100%;
+    aspect-ratio: 2.5 / 3.5;
+    background-color: #3a3a5e;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.card-image {
+    flex: 2;
+    background-color: #4a4a6e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+}
+
+.card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.card-name {
+    background: linear-gradient(45deg, #2a2a4e, #3a3a5e);
+    padding: 10px;
+    border-top: 2px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+#card-name-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    text-align: center;
+    padding: 5px;
+    outline: none;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+#card-name-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.card-name-display {
+    background: linear-gradient(45deg, #2a2a4e, #3a3a5e);
+    padding: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    text-align: center;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    border-top: 2px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-effect {
+    flex: 1;
+    padding: 10px;
+    background-color: #5a5a7e;
+    overflow-y: auto;
+    font-size: 16px;
+    font-weight: 700;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+input[type="file"] {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #4a4a6e;
+    color: white;
+    cursor: pointer;
+}
+
+button {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #4ecdc4;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    font-weight: bold;
+}
+
+button:hover {
+    background-color: #45b7a8;
+    transform: translateY(-1px);
+}
+
+button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.card-list {
+    display: block;
+    width: 100%;
+    max-width: 1200px;
+    background-color: #2a2a4e;
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card-list-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 10px;
+}
+
+.card-item {
+    margin-bottom: 0;
+    transition: transform 0.3s ease;
+}
+
+.card-item:hover {
+    transform: translateY(-5px);
+}
+
+.delete-button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: #ff4757;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    font-size: 16px;
+    line-height: 25px;
+    text-align: center;
+    cursor: pointer;
+    z-index: 10;
+    padding: 0;
+}
+
+.delete-button:hover {
+    background-color: #ff6b81;
+}
+
+.battle-button {
+    background-color: #ff6b6b;
+    color: white;
+    padding: 15px 30px;
+    font-size: 1.2em;
+    margin-top: 20px;
+    max-width: 400px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.battle-button:hover {
+    background-color: #ff5252;
+}
+
+.effect-buttons {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+.effect-button {
+    font-size: 28px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    width: auto;
+    padding: 5px;
+}
+
+.effect-button:hover {
+    transform: scale(1.1);
+}
+
+.effect-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.effect-text {
+    font-size: 14px;
+    margin-top: 5px;
+    text-align: center;
+}
+
+.taisen-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background-color: #4ecdc4;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.taisen-button:hover {
+    background-color: #45b7a8;
+}
+
+#card-count {
+    margin: 20px 0;
+    font-size: 1.1em;
+    color: #4ecdc4;
+    font-weight: bold;
+}
+
+@media (max-width: 768px) {
+    .card-list-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+    
+    .taisen-button {
+        position: static;
+        margin-bottom: 20px;
+        display: inline-block;
+    }
+}
+    </style>
 </head>
 <body>
-    <a href="../taisen/taisen.html" class="taisen-button">対戦画面へ</a>
+    <a href="../fight/taisen.html" class="taisen-button">対戦画面へ</a>
 
     <h1>トレーディングカード作成</h1>
 
