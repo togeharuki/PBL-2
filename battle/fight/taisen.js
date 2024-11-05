@@ -215,7 +215,7 @@ class Game {
         clearInterval(this.timer);
         let winner;
         if (this.player1.hp <= 0 && this.player2.hp <= 0) {
-            winner = "引き分け";
+            winner = "draw";
         } else if (this.player1.hp <= 0) {
             winner = "プレイヤー2";
         } else if (this.player2.hp <= 0) {
@@ -225,21 +225,28 @@ class Game {
         } else if (this.player2.hp > this.player1.hp) {
             winner = "プレイヤー2";
         } else {
-            winner = "引き分け";
+            winner = "draw";
         }
-
+    
+        // 結果を表示して2秒後に結果画面へ遷移
         const gameOverMessage = `
             ゲーム終了！
-            ${winner === "引き分け" ? "引き分け" : `${winner}の勝利！`}
+            ${winner === "draw" ? "引き分け" : `${winner}の勝利！`}
             
             最終結果:
             プレイヤー1 HP: ${this.player1.hp}
             プレイヤー2 HP: ${this.player2.hp}
         `;
-
+    
         this.showBattleResult(gameOverMessage);
         document.getElementById('player1-create-card').disabled = true;
         document.getElementById('player2-create-card').disabled = true;
+    
+        // 2秒後に結果画面へ遷移
+        setTimeout(() => {
+            const turns = 60 - this.timeRemaining;
+            window.location.href = `result.html?winner=${encodeURIComponent(winner)}&turns=${turns}`;
+        }, 2000);
     }
 }
 
