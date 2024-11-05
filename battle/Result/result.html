@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deck・Dreamers Result Screen</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, #1a1a4a 0%, #0a0a2a 100%);
+            color: white;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        .result-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: url('/api/placeholder/1920/1080') center/cover no-repeat;
+            position: relative;
+        }
+
+        .result-content {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .win-text {
+            font-size: 72px;
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            margin-bottom: 40px;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .action-button {
+            padding: 15px 30px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+            color: white;
+            transition: transform 0.2s;
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(45deg, #42A5F5, #1E88E5);
+        }
+
+        .duel-master-logo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animated {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+    </style>
+</head>
+<body>
+    <div class="result-container">
+        <div class="result-content animated">
+            <div class="win-text" id="result-text">WIN</div>
+        </div>
+
+        <div class="button-container animated">
+            <button class="action-button" onclick="location.href='room.html'">ルームに戻る</button>
+            <button class="action-button" onclick="location.href='menu.html'">メニューに戻る</button>
+        </div>
+
+        
+    </div>
+
+    <script>
+        // URL パラメータから結果を取得
+        const urlParams = new URLSearchParams(window.location.search);
+        const winner = urlParams.get('winner');
+
+        // 結果テキストを更新
+        const resultText = document.getElementById('result-text');
+        if (winner) {
+            resultText.textContent = winner === "draw" ? "DRAW" : `${winner}の勝利！`;
+        }
+
+        // サウンドエフェクト
+        window.addEventListener('load', () => {
+            const resultSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodHQql4yLlmAhoZvY2xvCQUEBwcfHRwYDQ0VJy0zRVlSN0koIVpzdWNMNi11dYJ1Y0c3CwQBBRUsO1FVb1c5EhYzFxEOaDkvVk8/HTxK');
+            resultSound.volume = 0.3;
+            resultSound.play().catch(() => {});
+        });
+    </script>
+</body>
+</html>
