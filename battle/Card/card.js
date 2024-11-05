@@ -1,35 +1,20 @@
-const express = require('express');
-const mysql = require('mysql2');
-const app = express();
-
-// データベース接続設定
-const connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'deck_dreamers',
-    charset: 'utf8mb4'
-});
-
-// データベース接続
-connection.connect(err => {
-    if (err) {
-        console.error('データベース接続エラー:', err);
-        return;
-    }
-    console.log('データベースに接続されました');
-});
-
-// Express設定
-app.use(express.json({ limit: '50mb' }));
-app.use(express.static('public'));
-
-// グローバル変数の初期化
-let cards = JSON.parse(localStorage.getItem('cards') || '[]');
+// クライアントサイドのコード
+let cards = [];
 let currentEffect = '';
 let effectGenerated = false;
 
+// ページ読み込み時に保存されているカードを読み込む
 document.addEventListener('DOMContentLoaded', function() {
+    try {
+        const savedCards = localStorage.getItem('cards');
+        if (savedCards) {
+            cards = JSON.parse(savedCards);
+        }
+    } catch (e) {
+        console.error('Failed to load cards:', e);
+        cards = [];
+    }
+
     // DOM要素の取得
     const imageInput = document.getElementById('card-image');
     const createButton = document.getElementById('create-card');
@@ -86,11 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // カードの削除
     function deleteCard(index) {
         cards.splice(index, 1);
-        try {
-            localStorage.setItem('cards', JSON.stringify(cards));
-        } catch (e) {
-            console.error('Storage error:', e);
-        }
+        localStorage.setItem('cards', JSON.stringify(cards));
         updateCardCount();
         showCardList();
     }
@@ -110,6 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
         effectGenerated = true;
         return effectText;
     }
+
     function disableEffectButtons() {
         heartButton.disabled = true;
         swordButton.disabled = true;
@@ -197,11 +179,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     createButton.addEventListener('click', function() {
-        if (cards.length >= 20) {
-            alert('最大20枚までしか作成できません。');
-            return;
-        }
-
         if (!currentEffect) {
             alert('効果を選択してください。');
             return;
@@ -212,31 +189,27 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        try {
-            const newCard = {
-                name: cardNameInput.value.trim() || 'No Name',
-                image: previewImage.src,
-                effect: currentEffect
-            };
-
-            cards.push(newCard);
-            localStorage.setItem('cards', JSON.stringify(cards));
-            
-            // カードリストを更新
-            const cardElement = createCardElement(newCard, cards.length - 1);
-            cardListGrid.appendChild(cardElement);
-            
-            // 新しいカードが表示される位置までスクロール
-            cardElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            
-            updateCardCount();
-            showSuccessMessage();
-            resetForm();
-
-        } catch (error) {
-            console.error('Error saving card:', error);
-            alert('カードの保存中にエラーが発生しました。');
+        if (cards.length >= 20) {
+            alert('最大20枚までしか作成できません。');
+            return;
         }
+
+        const newCard = {
+            name: cardNameInput.value.trim() || 'No Name',
+            image: previewImage.src,
+            effect: currentEffect
+        };
+
+        cards.push(newCard);
+        localStorage.setItem('cards', JSON.stringify(cards));
+        
+        const cardElement = createCardElement(newCard, cards.length - 1);
+        cardListGrid.appendChild(cardElement);
+        cardElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        
+        updateCardCount();
+        showSuccessMessage();
+        resetForm();
     });
 
     saveDeckButton.addEventListener('click', async function() {
@@ -255,10 +228,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     cards: cards
                 })
             });
-
-            if (!response.ok) {
-                throw new Error('カードの保存に失敗しました');
-            }
 
             const result = await response.json();
             if (result.success) {
@@ -280,55 +249,4 @@ document.addEventListener('DOMContentLoaded', function() {
     // 初期化
     updateCardCount();
     showCardList();
-});
-
-// APIエンドポイント
-app.post('/api/save-cards', async (req, res) => {
-    const { cards } = req.body;
-
-    try {
-        // トランザクション開始
-        await connection.promise().beginTransaction();
-
-        // カードデータの保存
-        for (const card of cards) {
-            await connection.promise().query(
-                'INSERT INTO Card (card_url, card_name, card_effect) VALUES (?, ?, ?)',
-                [card.image, card.name, card.effect]
-            );
-        }
-
-        // トランザクションのコミット
-        await connection.promise().commit();
-        res.json({ success: true, message: 'カードが保存されました' });
-
-    } catch (error) {
-        // エラー時はロールバック
-        await connection.promise().rollback();
-        console.error('カード保存エラー:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'カードの保存中にエラーが発生しました' 
-        });
-    }
-});
-
-// サーバー起動
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`サーバーがポート${PORT}で起動しました`);
-});
-
-// エラーハンドリング
-window.addEventListener('error', function(event) {
-    console.error('エラーが発生しました:', event.error);
-});
-
-// アンロード時の処理
-window.addEventListener('beforeunload', function() {
-    try {
-        localStorage.setItem('cards', JSON.stringify(cards));
-    } catch (e) {
-        console.error('Storage error:', e);
-    }
 });
