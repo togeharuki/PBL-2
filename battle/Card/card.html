@@ -5,36 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>トレーディングカード作成</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
-    <link href="card.css" rel="stylesheet">
+    <link rel="stylesheet" href="card.css">
 </head>
 <body>
-    <button class="taisen-button" onclick="window.location.href='../fight/taisen.html'">対戦画面へ</button>
+    <a href="../taisen/taisen.html" class="taisen-button">対戦画面へ</a>
+
     <h1>トレーディングカード作成</h1>
+
     <div class="card-creator">
         <div class="card-preview">
             <div class="card-image">
-                <img id="preview-image" src="" alt="カード画像">
+                <img id="preview-image" style="display: none;">
             </div>
             <div class="card-name">
-                <input type="text" id="card-name-input" placeholder="カード名を入力" maxlength="20">
+                <input type="text" id="card-name-input" placeholder="カード名を入力">
             </div>
-            <div class="card-effect" id="preview-effect"></div>
+            <div id="preview-effect" class="card-effect"></div>
         </div>
-        <input type="file" id="card-image" accept="image/*">
+
         <div class="effect-buttons">
-            <button class="effect-button" id="heart-button">❤️<div class="effect-text">回復</div></button>
-            <button class="effect-button" id="sword-button">⚔️<div class="effect-text">攻撃</div></button>
+            <div>
+                <button id="heart-button" class="effect-button">❤️</button>
+                <div class="effect-text">回復</div>
+            </div>
+            <div>
+                <button id="sword-button" class="effect-button">⚔️</button>
+                <div class="effect-text">攻撃</div>
+            </div>
         </div>
+
+        <input type="file" id="card-image" accept="image/*">
         <button id="create-card">カードを作成</button>
     </div>
-    <p id="card-count">作成したカード: 0 / 20</p>
 
-    <div class="card-list" id="card-list">
+    <div id="card-count">作成したカード: 0 / 20</div>
+
+    <div id="card-list" class="card-list">
         <h2>作成したカード一覧</h2>
-        <div class="card-list-grid" id="card-list-grid"></div>
+        <div id="card-list-grid" class="card-list-grid"></div>
     </div>
 
     <button id="start-battle" class="battle-button">対戦開始</button>
+
+    <script src="card.js"></script>
 </body>
-    <script src="../Card/card.js"></script>
 </html>
