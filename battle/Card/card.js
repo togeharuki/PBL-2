@@ -1,4 +1,4 @@
-// クライアントサイドのコード
+// グローバル変数の初期化
 let cards = JSON.parse(localStorage.getItem('cards') || '[]');
 let currentEffect = '';
 let effectGenerated = false;
@@ -24,28 +24,37 @@ document.addEventListener('DOMContentLoaded', function() {
         startBattleButton.disabled = count < 20;
     }
 
+    // カード要素を作成する関数
+    function createCardElement(card, index) {
+        const cardElement = document.createElement('div');
+        cardElement.className = 'card-item';
+        cardElement.innerHTML = `
+            <button class="delete-button" data-index="${index}">×</button>
+            <div class="card-image">
+                <img src="${card.image}" alt="カード ${index + 1}">
+            </div>
+            <div class="card-name-display">${card.name || 'No Name'}</div>
+            <div class="card-effect">${card.effect}</div>
+        `;
+
+        // 新しいカードの場合、アニメーション用クラスを追加
+        if (index === cards.length - 1) {
+            cardElement.classList.add('new-card');
+        }
+
+        // 削除ボタンのイベントリスナーを追加
+        const deleteButton = cardElement.querySelector('.delete-button');
+        deleteButton.addEventListener('click', () => deleteCard(index));
+
+        return cardElement;
+    }
+
     // カードリストの表示
     function showCardList() {
         cardListGrid.innerHTML = '';
         cards.forEach((card, index) => {
-            const cardElement = document.createElement('div');
-            cardElement.className = 'card-item';
-            cardElement.innerHTML = `
-                <button class="delete-button" data-index="${index}">×</button>
-                <div class="card-image">
-                    <img src="${card.image || ''}" alt="カード ${index + 1}" style="${!card.image ? 'display: none;' : ''}">
-                </div>
-                <div class="card-name-display">${card.name || 'No Name'}</div>
-                <div class="card-effect">${card.effect}</div>
-            `;
+            const cardElement = createCardElement(card, index);
             cardListGrid.appendChild(cardElement);
-        });
-
-        // 削除ボタンのイベントリスナー
-        document.querySelectorAll('.delete-button').forEach(button => {
-            button.addEventListener('click', function() {
-                deleteCard(parseInt(this.getAttribute('data-index')));
-            });
         });
     }
 
@@ -71,7 +80,6 @@ document.addEventListener('DOMContentLoaded', function() {
             effectText = `⚡ 攻撃力 ${value} ⚡`;
         }
         
-        // プレビューエフェクトに直接表示
         previewEffect.textContent = effectText;
         currentEffect = effectText;
         effectGenerated = true;
@@ -81,6 +89,15 @@ document.addEventListener('DOMContentLoaded', function() {
     function disableEffectButtons() {
         heartButton.disabled = true;
         swordButton.disabled = true;
+    }
+
+    // 成功メッセージの表示
+    function showSuccessMessage() {
+        const message = document.createElement('div');
+        message.className = 'success-message';
+        message.textContent = 'カードを作成しました！';
+        document.body.appendChild(message);
+        setTimeout(() => message.remove(), 2000);
     }
 
     // リセット関数
@@ -95,10 +112,16 @@ document.addEventListener('DOMContentLoaded', function() {
         heartButton.disabled = false;
         swordButton.disabled = false;
     }
+
     // イベントリスナー設定
     imageInput.addEventListener('change', function(event) {
         const file = event.target.files[0];
         if (file) {
+            if (!file.type.startsWith('image/')) {
+                alert('画像ファイルを選択してください。');
+                return;
+            }
+
             const reader = new FileReader();
             reader.onload = function(e) {
                 const img = new Image();
@@ -124,8 +147,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     canvas.height = height;
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    // 圧縮した画像をプレビューに表示
-                    previewImage.src = canvas.toDataURL('image/jpeg', 0.7);
+                    // 圧縮した画像をプレビューに設定
+                    const compressedImage = canvas.toDataURL('image/jpeg', 0.7);
+                    previewImage.src = compressedImage;
                     previewImage.style.display = 'block';
                 };
                 img.src = e.target.result;
@@ -173,8 +197,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
             cards.push(newCard);
             localStorage.setItem('cards', JSON.stringify(cards));
+            
+            // カードリストを更新
+            const cardElement = createCardElement(newCard, cards.length - 1);
+            cardListGrid.appendChild(cardElement);
+            
+            // 新しいカードが表示される位置までスクロール
+            cardElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
             updateCardCount();
-            showCardList();
+            showSuccessMessage();
             resetForm();
 
         } catch (error) {
