@@ -33,7 +33,14 @@ function createRoom() {
     const newRoom = new GameRoom(roomId, selectedPlayerCount);
     rooms.set(roomId, newRoom);
 
+    // 表示を更新
+    updateRoomDisplay(newRoom);
     console.log(`${selectedPlayerCount}人用のルーム ${roomId} が作成されました`);
+}
+
+function updateRoomDisplay(room) {
+    document.getElementById('playerCapacity').textContent = room.maxPlayers;
+    document.getElementById('currentPlayers').textContent = room.players.length;
 }
 
 function showCreateRoomModal() {
