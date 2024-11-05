@@ -109,7 +109,6 @@
                 localStorage.setItem('currentTime', audioPlayer.currentTime);
             }
 
-        document.getElementById('startButton').addEventListener('click', function() {
             // フェードアウト効果を追加
             document.body.style.transition = 'opacity 0.5s';
             document.body.style.opacity = '0';
@@ -119,7 +118,6 @@
                 window.location.href = 'main/Menu/Menu.html';
             }, 500);
         });
-    });
     </script>
 </body>
 </html>
