@@ -98,12 +98,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 成功メッセージの表示
-    function showSuccessMessage(message = 'カードを作成しました！') {
+    function showSuccessMessage(message = 'カードを作成しました！', duration = 3000) {
         const messageElement = document.createElement('div');
         messageElement.className = 'success-message';
-        messageElement.textContent = message;
+        messageElement.innerHTML = `
+            <div class="success-icon">✔</div>
+            <div class="success-text">${message}</div>
+        `;
         document.body.appendChild(messageElement);
-        setTimeout(() => messageElement.remove(), 2000);
+        
+        setTimeout(() => {
+            messageElement.remove();
+        }, duration);
     }
 
     // リセット関数
@@ -231,7 +237,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const result = await response.json();
             if (result.success) {
-                showSuccessMessage('カードがデータベースに保存されました！');
+                showSuccessMessage(`${cards.length}枚のカードを保存しました！`);
                 localStorage.removeItem('cards');
                 cards = [];
                 updateCardCount();
@@ -249,4 +255,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // 初期化
     updateCardCount();
     showCardList();
+});
+
+// エラーハンドリング
+window.addEventListener('error', function(event) {
+    console.error('エラーが発生しました:', event.error);
+});
+
+// アンロード時の処理
+window.addEventListener('beforeunload', function() {
+    try {
+        localStorage.setItem('cards', JSON.stringify(cards));
+    } catch (e) {
+        console.error('Storage error:', e);
+    }
 });
