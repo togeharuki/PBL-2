@@ -120,8 +120,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ランダム効果の生成
     function generateRandomEffect(type) {
-        const value = Math.floor(Math.random() * 10) + 1;
-        return type === 'heal' ? `✨ 回復魔法 ${value} ✨` : `⚡ 攻撃力 ${value} ⚡`;
+        const value = Math.floor(Math.random() * 8) + 3; // 3から10までの値を生成
+        let effectText;
+        if (type === 'heal') {
+            effectText = `✨ 回復魔法 ${value} ✨`;
+        } else {
+            effectText = `⚡ 攻撃力 ${value} ⚡`;
+        }
+        
+        // プレビューエフェクトに直接表示
+        previewEffect.textContent = effectText;
+        return effectText;
     }
 
     function disableEffectButtons() {
@@ -184,7 +193,6 @@ document.addEventListener('DOMContentLoaded', function() {
     heartButton.addEventListener('click', function() {
         if (!effectGenerated) {
             currentEffect = generateRandomEffect('heal');
-            previewEffect.textContent = currentEffect;
             effectGenerated = true;
             disableEffectButtons();
         }
@@ -193,7 +201,6 @@ document.addEventListener('DOMContentLoaded', function() {
     swordButton.addEventListener('click', function() {
         if (!effectGenerated) {
             currentEffect = generateRandomEffect('attack');
-            previewEffect.textContent = currentEffect;
             effectGenerated = true;
             disableEffectButtons();
         }
