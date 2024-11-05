@@ -106,7 +106,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
-
     // カードの削除
     function deleteCard(index) {
         cards.splice(index, 1);
@@ -149,8 +148,34 @@ document.addEventListener('DOMContentLoaded', function() {
         if (file) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                previewImage.src = e.target.result;
-                previewImage.style.display = 'block';
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // リサイズ処理
+                    const maxWidth = 300;
+                    const maxHeight = 300;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height && width > maxWidth) {
+                        height *= maxWidth / width;
+                        width = maxWidth;
+                    } else if (height > maxHeight) {
+                        width *= maxHeight / height;
+                        height = maxHeight;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // 圧縮した画像をプレビューに表示
+                    previewImage.src = canvas.toDataURL('image/jpeg', 0.7);
+                    previewImage.style.display = 'block';
+                };
+                img.src = e.target.result;
             };
             reader.readAsDataURL(file);
         }
