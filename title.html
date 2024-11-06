@@ -66,76 +66,18 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
     </style>
+    <script src="bgm.js"></script> 
 </head>
 <body>
     <h1>Deck・Dreamers</h1>
     <button id="startButton">スタート</button>
     <button id="bgmToggleButton">BGM オン/オフ</button>
 
-        <!-- 音楽再生用のオーディオ要素 -->
-        <div class="audio-container">
-            <audio id="music-player">
-                <source id="music-source" src="" type="audio/mp3">
-                Your browser does not support the audio element.
-            </audio>
-        </div>
-
     <script>
-                // ページが読み込まれた際に選択した音楽を再開する
-                window.addEventListener('load', function() {
-            let selectedMusic = localStorage.getItem('selectedMusic'); 
-            let musicSource = document.getElementById('music-source');
-            let audioPlayer = document.getElementById('music-player');
-            let currentTime = localStorage.getItem('currentTime');
 
-            if (selectedMusic) {
-                switch(selectedMusic) {
-                    case 'bgm1':
-                        musicSource.src = "maou_game_medley02.mp3";
-                        break;
-                    case 'bgm2':
-                        musicSource.src = "upbeat.mp3";
-                        break;
-                    case 'bgm3':
-                        musicSource.src = "classic.mp3";
-                        break;
-                    default:
-                        musicSource.src = "";
-                }
-                audioPlayer.load();
-                
-                if (currentTime) {
-                    audioPlayer.currentTime = currentTime;
-                }
-            }
-
-
-    let bgmStatus = localStorage.getItem('bgmStatus');
-            if (bgmStatus === 'off') {
-                audioPlayer.pause();
-                bgmToggleButton.textContent = "BGM オン";
-            } else {
-                audioPlayer.play();
-                bgmToggleButton.textContent = "BGM オフ";
-            }
-        });
-
-        const bgmToggleButton = document.getElementById('bgmToggleButton');
-        const audioPlayer = document.getElementById('music-player');
-
-        bgmToggleButton.addEventListener('click', function() {
-            if (audioPlayer.paused) {
-                audioPlayer.play();
-                bgmToggleButton.textContent = "BGM オフ";
-                localStorage.setItem('bgmStatus', 'on');
-            } else {
-                audioPlayer.pause();
-                bgmToggleButton.textContent = "BGM オン";
-                localStorage.setItem('bgmStatus', 'off');
-            }
-        })
             // ページ遷移時に音楽の再生時間を保存する
             document.getElementById('startButton').addEventListener('click', function() {
+            const audioPlayer = document.getElementById('music-player');
             if (!audioPlayer.paused) {
                 localStorage.setItem('currentTime', audioPlayer.currentTime);
             }
