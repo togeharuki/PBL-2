@@ -82,8 +82,11 @@ function searchRoom() {
 
     const room = rooms.get(roomId);
     if (room) {
+        const url = new URL('../Match/matching.html', window.location.href);
+        url.searchParams.set('roomId', roomId);
+        url.searchParams.set('maxPlayers', room.maxPlayers);
+        window.location.href = url.toString();
         console.log(`ルーム ${roomId} が見つかりました`);
-        window.location.href = `../Match/matching.html?roomId=${roomId}`;
     } else {
         alert('指定されたルームが見つかりませんでした');
     }
