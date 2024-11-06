@@ -9,13 +9,13 @@ const bgmToggleButton = document.getElementById('bgmToggleButton'); // ボタン
 function playSelectedMusic(selectedMusic) {
     switch (selectedMusic) {
         case 'bgm1':
-            musicSource.src = "maou_game_medley02.mp3";
+            musicSource.src = "/maou_game_medley02.mp3";
             break;
         case 'bgm2':
-            musicSource.src = "upbeat.mp3";
+            musicSource.src = "/upbeat.mp3";
             break;
         case 'bgm3':
-            musicSource.src = "classic.mp3";
+            musicSource.src = "/classic.mp3";
             break;
         default:
             musicSource.src = "";
