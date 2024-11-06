@@ -66,19 +66,19 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
     </style>
-    <script src="bgm.js"></script> 
+    <script src="/Music/bgm.js"></script> 
 </head>
 <body>
     <h1>Deck・Dreamers</h1>
     <button id="startButton">スタート</button>
-    <button id="bgmToggleButton">BGM オン/オフ</button>
+    <button id="bgmToggleButton">BGM オン</button>
     
         <!-- 音楽プレイヤー追加 -->
         <audio id="music-player" preload="auto">
             <source id="music-source" src="path/to/your/music.mp3" type="audio/mp3">
             Your browser does not support the audio element.
         </audio>
-        
+
     <script>
 
             // ページ遷移時に音楽の再生時間を保存する
@@ -87,10 +87,6 @@
             if (!audioPlayer.paused) {
                 localStorage.setItem('currentTime', audioPlayer.currentTime);
             }
-
-            // フェードアウト効果を追加
-            document.body.style.transition = 'opacity 0.5s';
-            document.body.style.opacity = '0';
             
             // 0.5秒後に遷移する
             setTimeout(function() {
