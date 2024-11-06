@@ -17,8 +17,9 @@
                     <p class="room-id">123-4567</p>
                     <button class="copy-button" onclick="copyRoomId()">コピー</button>
                 </div>
-                <p class="room-capacity">定員: <span id="playerCapacity">2</span>人</p>
-                <p class="current-players">現在の参加者: <span id="currentPlayers">0</span>人</p>
+                <div class="member-count">
+                    メンバー <span id="currentPlayers">0</span>/<span id="playerCapacity">2</span>
+                </div>
             </div>
             <button class="button" onclick="showCreateRoomModal()">ルームを作成</button>
         </div>

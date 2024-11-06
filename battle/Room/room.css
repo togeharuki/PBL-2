@@ -62,6 +62,14 @@ h2 {
     background-color: #45a049;
 }
 
+.member-count {
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    margin: 15px 0;
+}
+
 .input-group {
     margin-bottom: 20px;
 }
@@ -222,18 +230,6 @@ input[type="text"] {
     padding: 15px;
     border-radius: 8px;
     margin-bottom: 20px;
-}
-
-.room-capacity, .current-players {
-    margin: 10px 0;
-    color: #666;
-    font-size: 1.1em;
-    text-align: center;
-}
-
-.room-capacity span, .current-players span {
-    font-weight: bold;
-    color: #4CAF50;
 }
 
 @media (max-width: 480px) {
