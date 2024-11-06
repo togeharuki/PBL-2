@@ -19,23 +19,25 @@ function loadAndPlayBGM() {
     if (selectedMusic) {
         switch (selectedMusic) {
             case 'bgm1':
-                musicSource.src = "maou_game_medley02.mp3";
+                musicSource.src = "/maou_game_medley02.mp3"; // BGM1のファイル
                 break;
             case 'bgm2':
-                musicSource.src = "upbeat.mp3";
+                musicSource.src = "/upbeat.mp3"; // BGM2のファイル
                 break;
             case 'bgm3':
-                musicSource.src = "classic.mp3";
+                musicSource.src = "/classic.mp3"; // BGM3のファイル
                 break;
             default:
                 musicSource.src = "";
         }
         audioPlayer.load();
 
+        // 保存された再生位置を設定
         if (savedTime) {
             audioPlayer.currentTime = savedTime;
         }
 
+        // BGMの再生状態を復元
         if (bgmPlaying) {
             audioPlayer.play();
         }
@@ -58,6 +60,7 @@ if (bgmToggleButton) {
         }
     });
 
+    // 初期状態のボタンテキストを設定
     bgmToggleButton.textContent = bgmPlaying ? "BGM オフ" : "BGM オン";
 }
 
