@@ -1,7 +1,7 @@
-// BGM用のオーディオ要素
+// BGM用のオーディオ要素を作成
 const audioPlayer = document.createElement('audio');
 audioPlayer.id = 'music-player';
-audioPlayer.style.display = 'none'; // オーディオプレイヤーを非表示
+audioPlayer.style.display = 'none'; // オーディオプレイヤーを非表示にする
 document.body.appendChild(audioPlayer);
 
 // 音楽ソースの取得
@@ -9,7 +9,7 @@ const musicSource = document.createElement('source');
 musicSource.id = 'music-source';
 audioPlayer.appendChild(musicSource);
 
-// localStorageから選択されたBGMと再生時間、再生状態を取得
+// localStorageから選択されたBGM、再生時間、再生状態を取得
 const selectedMusic = localStorage.getItem('selectedMusic');
 const savedTime = localStorage.getItem('currentTime');
 let bgmPlaying = localStorage.getItem('bgmStatus') === 'on';
@@ -19,25 +19,26 @@ function loadAndPlayBGM() {
     if (selectedMusic) {
         switch (selectedMusic) {
             case 'bgm1':
-                musicSource.src = "/maou_game_medley02.mp3"; // BGM1のファイル
+                musicSource.src = "/maou_game_medley02.mp3";
                 break;
             case 'bgm2':
-                musicSource.src = "/upbeat.mp3"; // BGM2のファイル
+                musicSource.src = "/upbeat.mp3";
                 break;
             case 'bgm3':
-                musicSource.src = "/classic.mp3"; // BGM3のファイル
+                musicSource.src = "/classic.mp3";
                 break;
             default:
                 musicSource.src = "";
         }
+
         audioPlayer.load();
 
-        // 保存された再生位置を設定
+        // 再生時間の復元
         if (savedTime) {
             audioPlayer.currentTime = savedTime;
         }
 
-        // BGMの再生状態を復元
+        // 再生状態がオンの場合にBGMを再生
         if (bgmPlaying) {
             audioPlayer.play();
         }
@@ -60,11 +61,10 @@ if (bgmToggleButton) {
         }
     });
 
-    // 初期状態のボタンテキストを設定
     bgmToggleButton.textContent = bgmPlaying ? "BGM オフ" : "BGM オン";
 }
 
-// ページ離脱時に再生時間を保存
+// ページ遷移時に再生時間を保存
 window.addEventListener('beforeunload', function () {
     if (!audioPlayer.paused) {
         localStorage.setItem('currentTime', audioPlayer.currentTime);
