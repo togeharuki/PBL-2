@@ -70,15 +70,8 @@ document.getElementById('titleButton').addEventListener('click', function () {
     if (!audioPlayer.paused) {
         localStorage.setItem('currentTime', audioPlayer.currentTime); // 再生時間を保存
     }
-
-    // フェードアウト効果を追加してページ遷移
-    document.body.style.transition = 'opacity 0.5s';
-    document.body.style.opacity = '0';
-
-    setTimeout(function () {
-        window.location.href = '../title.html'; // タイトルページに遷移
-    }, 500);
 });
+
 
 // BGM オン/オフ ボタンのイベントハンドラ
 bgmToggleButton.addEventListener('click', function () {
