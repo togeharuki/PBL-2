@@ -25,19 +25,23 @@
 
     <script src="bgm.js"></script>
     <script>
-            // 音楽の選択が変更された際に、選択されたBGMをlocalStorageに保存
-            document.getElementById('music-select').addEventListener('change', function() {
+        // 音楽の選択が変更された際に、選択されたBGMをlocalStorageに保存
+        document.getElementById('music-select').addEventListener('change', function() {
             localStorage.setItem('selectedMusic', this.value);
         });
 
+        // タイトルボタンの処理（前のページに戻る）
+        document.getElementById('titleButton').addEventListener('click', function() {
             // フェードアウト効果を追加してページ遷移
             document.body.style.transition = 'opacity 0.5s';
             document.body.style.opacity = '0';
 
-            // タイトルボタンの処理（前のページに戻る）
-            document.getElementById('titleButton').addEventListener('click', function() {
-            window.location.href = './title.html'; // タイトルページに遷移
+            // フェードアウト後にページ遷移
+            setTimeout(function() {
+                window.location.href = './title.html'; // タイトルページに遷移
+            }, 500);
         });
     </script>
 </body>
 </html>
+
