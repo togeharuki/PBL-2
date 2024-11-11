@@ -6,18 +6,20 @@ const app = express();
 // CORS設定
 app.use(cors());
 
-// データベース接続設定
+// AWS RDS データベース接続設定
 const connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '', // XAMPPのデフォルト設定
+    host: 'db-POSFXNXO7OWRKY5UTVWZQE7BKM.us-east-1.rds.amazonaws.com', // RDSのエンドポイント
+    user: 'admin', // マスターユーザー名
+    password: 'tomo2190', // マスターパスワード（実際のパスワードに置き換えてください）
     database: 'deck_dreamers',
-    charset: 'utf8mb4',
     port: 3306,
-    socketPath: 'C:/xampp/mysql/mysql.sock'
+    ssl: {
+        rejectUnauthorized: true
+    },
+    connectTimeout: 20000 // タイムアウト設定（20秒）
 });
 
-// データベース接続
+// データベース接続テスト
 connection.connect(err => {
     if (err) {
         console.error('データベース接続エラー:', err);
@@ -29,7 +31,7 @@ connection.connect(err => {
         });
         return;
     }
-    console.log('データベースに接続されました');
+    console.log('AWS RDSデータベースに接続されました');
 });
 
 // Express設定
@@ -63,8 +65,8 @@ app.post('/api/save-cards', async (req, res) => {
         await connection.promise().commit();
         
         console.log(`${cards.length}枚のカードを保存しました`);
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             message: 'カードが保存されました',
             count: cards.length
         });
@@ -73,47 +75,70 @@ app.post('/api/save-cards', async (req, res) => {
         // エラー時はロールバック
         await connection.promise().rollback();
         console.error('カード保存エラー:', error);
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             message: 'カードの保存中にエラーが発生しました',
             error: error.message
         });
     }
 });
 
-// 簡単な健全性チェックエンドポイント
-app.get('/health', (req, res) => {
-    res.json({ status: 'ok', message: 'サーバーは正常に動作しています' });
+// エラーハンドリングミドルウェア
+app.use((err, req, res, next) => {
+    console.error('サーバーエラー:', err);
+    res.status(500).json({
+        success: false,
+        message: '内部サーバーエラーが発生しました',
+        error: err.message
+    });
+});
+
+// 接続テスト用エンドポイント
+app.get('/health', async (req, res) => {
+    try {
+        await connection.promise().query('SELECT 1');
+        res.json({ 
+            status: 'ok', 
+            message: 'データベース接続は正常です',
+            database: 'AWS RDS'
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            status: 'error', 
+            message: 'データベース接続エラー',
+            error: error.message 
+        });
+    }
 });
 
 // サーバー起動
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`サーバーがポート${PORT}で起動しました`);
 });
 
-// エラーハンドリング
+// グレースフルシャットダウン
+function gracefulShutdown(signal) {
+    console.log(`${signal} を受信しました。シャットダウンを開始します...`);
+    server.close(() => {
+        console.log('HTTPサーバーを停止しました');
+        connection.end(err => {
+            if (err) {
+                console.error('データベース接続のクローズ中にエラーが発生しました:', err);
+                process.exit(1);
+            }
+            console.log('データベース接続を閉じました');
+            process.exit(0);
+        });
+    });
+}
+
+// シグナルハンドラの設定
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// 予期せぬエラーのハンドリング
 process.on('uncaughtException', (error) => {
     console.error('予期せぬエラーが発生しました:', error);
-});
-
-// クリーンアップ処理
-process.on('SIGTERM', () => {
-    console.log('サーバーをシャットダウンしています...');
-    connection.end(err => {
-        if (err) {
-            console.error('データベース接続のクローズ中にエラーが発生しました:', err);
-        }
-        process.exit(err ? 1 : 0);
-    });
-});
-
-process.on('SIGINT', () => {
-    console.log('サーバーを中断しています...');
-    connection.end(err => {
-        if (err) {
-            console.error('データベース接続のクローズ中にエラーが発生しました:', err);
-        }
-        process.exit(err ? 1 : 0);
-    });
+    gracefulShutdown('uncaughtException');
 });
