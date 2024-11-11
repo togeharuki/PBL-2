@@ -1,38 +1,45 @@
 const express = require('express');
-const mysql = require('mysql2');
+const mongoose = require('mongoose');
 const cors = require('cors');
 const app = express();
 
 // CORS設定
 app.use(cors());
 
-// AWS RDS データベース接続設定
-const connection = mysql.createConnection({
-    host: 'db-POSFXNXO7OWRKY5UTVWZQE7BKM.us-east-1.rds.amazonaws.com', // RDSのエンドポイント
-    user: 'admin', // マスターユーザー名
-    password: 'tomo2190', // マスターパスワード（実際のパスワードに置き換えてください）
-    database: 'deck_dreamers',
-    port: 3306,
-    ssl: {
-        rejectUnauthorized: true
+// MongoDBの接続URI
+const MONGODB_URI = 'mongodb+srv://23110003:zXXBXMSaBThDllH1@deckdreamers.bg6ts.mongodb.net/deck_dreamers';
+
+// Cardスキーマの定義
+const cardSchema = new mongoose.Schema({
+    card_url: {
+        type: String,
+        required: true
     },
-    connectTimeout: 20000 // タイムアウト設定（20秒）
+    card_name: {
+        type: String,
+        required: true
+    },
+    card_effect: {
+        type: String,
+        required: true
+    },
+    created_at: {
+        type: Date,
+        default: Date.now
+    }
 });
 
-// データベース接続テスト
-connection.connect(err => {
-    if (err) {
+// モデルの作成
+const Card = mongoose.model('Card', cardSchema);
+
+// MongoDB接続
+mongoose.connect(MONGODB_URI)
+    .then(() => {
+        console.log('MongoDBデータベースに接続されました');
+    })
+    .catch(err => {
         console.error('データベース接続エラー:', err);
-        console.error('エラーの詳細:', {
-            code: err.code,
-            errno: err.errno,
-            sqlMessage: err.sqlMessage,
-            sqlState: err.sqlState
-        });
-        return;
-    }
-    console.log('AWS RDSデータベースに接続されました');
-});
+    });
 
 // Express設定
 app.use(express.json({ limit: '50mb' }));
@@ -50,20 +57,16 @@ app.post('/api/save-cards', async (req, res) => {
     }
 
     try {
-        // トランザクション開始
-        await connection.promise().beginTransaction();
+        // カードデータの変換
+        const cardDocuments = cards.map(card => ({
+            card_url: card.image,
+            card_name: card.name,
+            card_effect: card.effect
+        }));
 
-        // カードデータの保存
-        for (const card of cards) {
-            await connection.promise().query(
-                'INSERT INTO Card (card_url, card_name, card_effect) VALUES (?, ?, ?)',
-                [card.image, card.name, card.effect]
-            );
-        }
+        // カードデータの一括保存
+        await Card.insertMany(cardDocuments);
 
-        // トランザクションのコミット
-        await connection.promise().commit();
-        
         console.log(`${cards.length}枚のカードを保存しました`);
         res.json({
             success: true,
@@ -72,12 +75,34 @@ app.post('/api/save-cards', async (req, res) => {
         });
 
     } catch (error) {
-        // エラー時はロールバック
-        await connection.promise().rollback();
         console.error('カード保存エラー:', error);
         res.status(500).json({
             success: false,
             message: 'カードの保存中にエラーが発生しました',
+            error: error.message
+        });
+    }
+});
+
+// カード取得エンドポイント
+app.get('/api/cards', async (req, res) => {
+    try {
+        const cards = await Card.find().sort({ created_at: -1 });
+        res.json({
+            success: true,
+            cards: cards.map(card => ({
+                id: card._id,
+                name: card.card_name,
+                image: card.card_url,
+                effect: card.card_effect,
+                created_at: card.created_at
+            }))
+        });
+    } catch (error) {
+        console.error('カード取得エラー:', error);
+        res.status(500).json({
+            success: false,
+            message: 'カードの取得中にエラーが発生しました',
             error: error.message
         });
     }
@@ -95,18 +120,17 @@ app.use((err, req, res, next) => {
 
 // 接続テスト用エンドポイント
 app.get('/health', async (req, res) => {
-    try {
-        await connection.promise().query('SELECT 1');
+    if (mongoose.connection.readyState === 1) {
         res.json({ 
             status: 'ok', 
             message: 'データベース接続は正常です',
-            database: 'AWS RDS'
+            database: 'MongoDB'
         });
-    } catch (error) {
+    } else {
         res.status(500).json({ 
             status: 'error', 
             message: 'データベース接続エラー',
-            error: error.message 
+            state: mongoose.connection.readyState
         });
     }
 });
@@ -118,19 +142,19 @@ const server = app.listen(PORT, () => {
 });
 
 // グレースフルシャットダウン
-function gracefulShutdown(signal) {
+async function gracefulShutdown(signal) {
     console.log(`${signal} を受信しました。シャットダウンを開始します...`);
-    server.close(() => {
-        console.log('HTTPサーバーを停止しました');
-        connection.end(err => {
-            if (err) {
-                console.error('データベース接続のクローズ中にエラーが発生しました:', err);
-                process.exit(1);
-            }
-            console.log('データベース接続を閉じました');
+    try {
+        await mongoose.connection.close();
+        console.log('MongoDBデータベース接続を閉じました');
+        server.close(() => {
+            console.log('HTTPサーバーを停止しました');
             process.exit(0);
         });
-    });
+    } catch (err) {
+        console.error('シャットダウン中にエラーが発生しました:', err);
+        process.exit(1);
+    }
 }
 
 // シグナルハンドラの設定
