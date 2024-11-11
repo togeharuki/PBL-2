@@ -1,4 +1,4 @@
-// クライアントサイドのコード
+// クライアントサイドのコード - パート1
 let cards = [];
 let currentEffect = '';
 let effectGenerated = false;
@@ -111,7 +111,6 @@ document.addEventListener('DOMContentLoaded', function() {
             messageElement.remove();
         }, duration);
     }
-
     // リセット関数
     function resetForm() {
         previewImage.src = '';
@@ -225,7 +224,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            const response = await fetch('http://localhost:3000/api/save-cards', {
+            const response = await fetch('http://database-1.cl60gge24lrz.us-east-1.rds.amazonaws.com:3000/api/save-cards', { // AWS endpointに変更
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
