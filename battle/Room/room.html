@@ -7,14 +7,19 @@
     <link rel="stylesheet" href="room.css">
 </head>
 <body>
-    <h1>Deck Dreamers</h1>
+    <h1> </h1>
     
     <div class="container">
         <div class="room-section">
             <h2>ルーム作成</h2>
-            <div class="room-id-container">
-                <p class="room-id">123-4567</p>
-                <button class="copy-button" onclick="copyRoomId()">コピー</button>
+            <div class="room-info">
+                <div class="room-id-container">
+                    <p class="room-id">123-4567</p>
+                    <button class="copy-button" onclick="copyRoomId()">コピー</button>
+                </div>
+                <div class="member-count">
+                    メンバー <span id="currentPlayers">0</span>/<span id="playerCapacity">2</span>
+                </div>
             </div>
             <button class="button" onclick="showCreateRoomModal()">ルームを作成</button>
         </div>
@@ -24,9 +29,9 @@
         <div class="room-section">
             <h2>ルームを検索</h2>
             <div class="input-group">
-                <input type="text" id="roomIdInput" placeholder="ルームID">
+                <input type="text" id="roomIdInput" placeholder="ルームID（例：123-4567）">
             </div>
-            <button class="button search-button" onclick="searchRoom()">検索</button>
+            <button class="button" onclick="searchRoom()">検索</button>
         </div>
 
         <button class="button back-button" onclick="goBack()">戻る</button>
@@ -42,8 +47,8 @@
                     <label>プレイ人数を選択:</label>
                     <div class="player-count-buttons">
                         <button class="player-count-button" data-count="2">2人</button>
-                        <button class="player-count-button" data-count="3">3人</button>
                         <button class="player-count-button" data-count="4">4人</button>
+                        <button class="player-count-button" data-count="6">6人</button>
                     </div>
                 </div>
                 <p id="selectedPlayerCount">選択中: 2人</p>

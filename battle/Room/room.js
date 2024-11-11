@@ -33,7 +33,14 @@ function createRoom() {
     const newRoom = new GameRoom(roomId, selectedPlayerCount);
     rooms.set(roomId, newRoom);
 
+    // 表示を更新
+    updateRoomDisplay(newRoom);
     console.log(`${selectedPlayerCount}人用のルーム ${roomId} が作成されました`);
+}
+
+function updateRoomDisplay(room) {
+    document.getElementById('playerCapacity').textContent = room.maxPlayers;
+    document.getElementById('currentPlayers').textContent = room.players.length;
 }
 
 function showCreateRoomModal() {
@@ -75,8 +82,11 @@ function searchRoom() {
 
     const room = rooms.get(roomId);
     if (room) {
+        const url = new URL('../Match/matching.html', window.location.href);
+        url.searchParams.set('roomId', roomId);
+        url.searchParams.set('maxPlayers', room.maxPlayers);
+        window.location.href = url.toString();
         console.log(`ルーム ${roomId} が見つかりました`);
-        window.location.href = `../Match/matching.html?roomId=${roomId}`;
     } else {
         alert('指定されたルームが見つかりませんでした');
     }

@@ -1,9 +1,20 @@
-// グローバル変数の初期化
-let cards = JSON.parse(localStorage.getItem('cards') || '[]');
+// クライアントサイドのコード - パート1
+let cards = [];
 let currentEffect = '';
 let effectGenerated = false;
 
+// ページ読み込み時に保存されているカードを読み込む
 document.addEventListener('DOMContentLoaded', function() {
+    try {
+        const savedCards = localStorage.getItem('cards');
+        if (savedCards) {
+            cards = JSON.parse(savedCards);
+        }
+    } catch (e) {
+        console.error('Failed to load cards:', e);
+        cards = [];
+    }
+
     // DOM要素の取得
     const imageInput = document.getElementById('card-image');
     const createButton = document.getElementById('create-card');
@@ -14,14 +25,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const cardNameInput = document.getElementById('card-name-input');
     const cardCountDisplay = document.getElementById('card-count');
     const cardListGrid = document.getElementById('card-list-grid');
-    const startBattleButton = document.getElementById('start-battle');
+    const saveDeckButton = document.getElementById('save-deck');
 
     // カード数の更新
     function updateCardCount() {
         const count = cards.length;
         cardCountDisplay.textContent = `作成したカード: ${count} / 20`;
         createButton.disabled = count >= 20;
-        startBattleButton.disabled = count < 20;
     }
 
     // カード要素を作成する関数
@@ -61,11 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // カードの削除
     function deleteCard(index) {
         cards.splice(index, 1);
-        try {
-            localStorage.setItem('cards', JSON.stringify(cards));
-        } catch (e) {
-            console.error('Storage error:', e);
-        }
+        localStorage.setItem('cards', JSON.stringify(cards));
         updateCardCount();
         showCardList();
     }
@@ -92,14 +98,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 成功メッセージの表示
-    function showSuccessMessage() {
-        const message = document.createElement('div');
-        message.className = 'success-message';
-        message.textContent = 'カードを作成しました！';
-        document.body.appendChild(message);
-        setTimeout(() => message.remove(), 2000);
+    function showSuccessMessage(message = 'カードを作成しました！', duration = 3000) {
+        const messageElement = document.createElement('div');
+        messageElement.className = 'success-message';
+        messageElement.innerHTML = `
+            <div class="success-icon">✔</div>
+            <div class="success-text">${message}</div>
+        `;
+        document.body.appendChild(messageElement);
+        
+        setTimeout(() => {
+            messageElement.remove();
+        }, duration);
     }
-
     // リセット関数
     function resetForm() {
         previewImage.src = '';
@@ -173,11 +184,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     createButton.addEventListener('click', function() {
-        if (cards.length >= 20) {
-            alert('最大20枚までしか作成できません。');
-            return;
-        }
-
         if (!currentEffect) {
             alert('効果を選択してください。');
             return;
@@ -188,52 +194,56 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        try {
-            const newCard = {
-                name: cardNameInput.value.trim() || 'No Name',
-                image: previewImage.src,
-                effect: currentEffect
-            };
-
-            cards.push(newCard);
-            localStorage.setItem('cards', JSON.stringify(cards));
-            
-            // カードリストを更新
-            const cardElement = createCardElement(newCard, cards.length - 1);
-            cardListGrid.appendChild(cardElement);
-            
-            // 新しいカードが表示される位置までスクロール
-            cardElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            
-            updateCardCount();
-            showSuccessMessage();
-            resetForm();
-
-        } catch (error) {
-            console.error('Error saving card:', error);
-            alert('カードの保存中にエラーが発生しました。');
+        if (cards.length >= 20) {
+            alert('最大20枚までしか作成できません。');
+            return;
         }
+
+        const newCard = {
+            name: cardNameInput.value.trim() || 'No Name',
+            image: previewImage.src,
+            effect: currentEffect
+        };
+
+        cards.push(newCard);
+        localStorage.setItem('cards', JSON.stringify(cards));
+        
+        const cardElement = createCardElement(newCard, cards.length - 1);
+        cardListGrid.appendChild(cardElement);
+        cardElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        
+        updateCardCount();
+        showSuccessMessage();
+        resetForm();
     });
 
-    startBattleButton.addEventListener('click', async function() {
-        if (cards.length < 20) {
-            alert('デッキを完成させるには20枚のカードが必要です。');
+    saveDeckButton.addEventListener('click', async function() {
+        if (cards.length === 0) {
+            alert('カードが作成されていません。');
             return;
         }
 
         try {
-            const deckId = 'deck_' + Date.now();
-            
-            // デッキ情報をセッションストレージに保存
-            sessionStorage.setItem('battle_deck', JSON.stringify({
-                id: deckId,
-                cards: cards
-            }));
-            
-            // ローカルストレージのカードをクリア
-            localStorage.removeItem('cards');
-            alert('対戦を開始します。');
-            window.location.href = '../battle/battle.html';
+            const response = await fetch('http://database-1.cl60gge24lrz.us-east-1.rds.amazonaws.com:3000/api/save-cards', { // AWS endpointに変更
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    cards: cards
+                })
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                showSuccessMessage(`${cards.length}枚のカードを保存しました！`);
+                localStorage.removeItem('cards');
+                cards = [];
+                updateCardCount();
+                showCardList();
+            } else {
+                throw new Error(result.message || 'カードの保存に失敗しました');
+            }
 
         } catch (error) {
             console.error('Error:', error);

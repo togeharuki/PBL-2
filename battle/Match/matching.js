@@ -1,44 +1,57 @@
-// ルームIDをURLから取得
-const urlParams = new URLSearchParams(window.location.search);
-const roomId = urlParams.get('roomId');
-if (roomId) {
-    document.querySelector('.room-id').textContent = `ルームID: ${roomId}`;
-}
+document.addEventListener('DOMContentLoaded', function() {
+    // URLからパラメータを取得
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomId = urlParams.get('roomId');
+    const maxPlayers = urlParams.get('maxPlayers');
 
-// 退室ボタンの処理
-document.querySelector('.exit-button').addEventListener('click', () => {
-    window.location.href = '../Room/room.html';
-});
+    // ルームIDを表示
+    if (roomId) {
+        document.querySelector('.room-id').textContent = `ルームID: ${roomId}`;
+    }
 
-// エントリーボックスのクリックイベント
-document.querySelectorAll('.entry-box').forEach(box => {
-    box.addEventListener('click', () => {
-        box.style.background = '#555';
-    });
-});
-
-// 対戦開始ボタンのクリックイベント
-document.querySelector('.start-button').addEventListener('click', () => {
-    window.location.href = '../fight/taisen.html';
-});
-
-// メニューバーの各項目のクリックイベント
-document.querySelectorAll('.menu-item').forEach(item => {
-    item.addEventListener('click', (e) => {
-        e.preventDefault(); // デフォルトのリンク動作を防止
+    // プレイヤー数を更新
+    if (maxPlayers) {
+        document.getElementById('playerCapacity').textContent = maxPlayers;
         
-        // メニュー項目のテキストを取得して、対応するページに遷移
-        const menuText = item.textContent.trim();
-        switch (menuText) {
-            case '設定':
-                window.location.href = '../../Music/Music.html';
-                break;
-            case 'ルール説明':
-                window.location.href = '../../main/Rule/Rule.html';
-                break;
-            case 'メニュー':
-                window.location.href = '../../main/Menu/Menu.html';
-                break;
+        // メンバー数に応じてテーブルの表示を制御
+        const matchTables = document.querySelectorAll('.match-table');
+        matchTables.forEach((table, index) => {
+            if (index < Math.floor(maxPlayers / 2)) {
+                table.style.display = 'block';
+            } else {
+                table.style.display = 'none';
+            }
+        });
+    }
+
+    // 退室ボタンのイベントリスナー
+    document.querySelector('.exit-button').addEventListener('click', function() {
+        if (confirm('本当に退室しますか？')) {
+            window.location.href = '../Room/room.html';
         }
+    });
+
+    // エントリーボックスのクリックイベント
+    const entryBoxes = document.querySelectorAll('.entry-box');
+    entryBoxes.forEach(box => {
+        box.addEventListener('click', function() {
+            // ここにエントリー処理を追加
+            console.log('Entry box clicked');
+        });
+    });
+
+    // 対戦開始ボタンのイベント
+    const startButtons = document.querySelectorAll('.start-button');
+    startButtons.forEach((button, index) => {
+        button.addEventListener('click', function() {
+            if (!button.disabled) {
+                // パラメータを維持したまま対戦ページに遷移
+                const taisenUrl = new URL('../fight/taisen.html', window.location.href);
+                taisenUrl.searchParams.set('roomId', roomId);
+                taisenUrl.searchParams.set('maxPlayers', maxPlayers);
+                taisenUrl.searchParams.set('tableNumber', index + 1); // テーブル番号を追加
+                window.location.href = taisenUrl.toString();
+            }
+        });
     });
 });
