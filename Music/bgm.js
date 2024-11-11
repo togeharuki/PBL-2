@@ -3,7 +3,6 @@ let bgmPlaying = JSON.parse(localStorage.getItem('bgmPlaying')) || false;
 
 const audioPlayer = document.getElementById('music-player');
 const musicSource = document.getElementById('music-source');
-const bgmToggleButton = document.getElementById('bgmToggleButton');
 
 // 選択された音楽の再生と保存を行う関数
 function playSelectedMusic(selectedMusic) {
@@ -42,34 +41,38 @@ window.addEventListener('load', function () {
 
         if (bgmPlaying) {
             audioPlayer.play();
-            bgmToggleButton.textContent = "BGM オフ";
         } else {
             audioPlayer.pause();
-            bgmToggleButton.textContent = "BGM オン";
         }
     }
 });
 
-window.addEventListener('beforeunload', function () {
-    if (!audioPlayer.paused) {
-        localStorage.setItem('currentTime', audioPlayer.currentTime);
-    }
-});
-
+// 音楽選択コンボボックスのイベントハンドラ
 document.getElementById('music-select').addEventListener('change', function () {
     let selectedMusic = this.value;
     playSelectedMusic(selectedMusic);
 });
 
-bgmToggleButton.addEventListener('click', function () {
-    bgmPlaying = !bgmPlaying;
-    localStorage.setItem('bgmPlaying', bgmPlaying);
+// 別ページのオン/オフボタン用の設定（このコードはボタンがある別ページでも機能）
+const bgmToggleButton = document.getElementById('bgmToggleButton');
+if (bgmToggleButton) {
+    bgmToggleButton.addEventListener('click', function () {
+        bgmPlaying = !bgmPlaying;
+        localStorage.setItem('bgmPlaying', bgmPlaying);
 
-    if (bgmPlaying) {
-        audioPlayer.play();
-        bgmToggleButton.textContent = "BGM オフ";
-    } else {
-        audioPlayer.pause();
-        bgmToggleButton.textContent = "BGM オン";
+        if (bgmPlaying) {
+            audioPlayer.play();
+            bgmToggleButton.textContent = "BGM オフ";
+        } else {
+            audioPlayer.pause();
+            bgmToggleButton.textContent = "BGM オン";
+        }
+    });
+}
+
+// ページ遷移時に再生時間を保存
+window.addEventListener('beforeunload', function () {
+    if (!audioPlayer.paused) {
+        localStorage.setItem('currentTime', audioPlayer.currentTime);
     }
 });
