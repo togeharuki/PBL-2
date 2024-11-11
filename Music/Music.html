@@ -20,6 +20,12 @@
             <option value="bgm3">BGM3</option>
         </select>
     </div>
+
+    <!-- オーディオプレイヤーの追加 -->
+    <audio id="music-player" controls style="display:none">
+        <source id="music-source" src="">
+        お使いのブラウザはaudioタグをサポートしていません。
+    </audio>
     
     <button id="titleButton">タイトル</button>
 
@@ -32,16 +38,13 @@
 
         // タイトルボタンの処理（前のページに戻る）
         document.getElementById('titleButton').addEventListener('click', function() {
-            // フェードアウト効果を追加してページ遷移
             document.body.style.transition = 'opacity 0.5s';
             document.body.style.opacity = '0';
 
-            // フェードアウト後にページ遷移
             setTimeout(function() {
-                window.location.href = '../title.html'; // タイトルページに遷移
-            }, 500); // フェードアウトの時間（0.5秒）と合わせて遷移を遅延
+                window.location.href = '../title.html';
+            }, 500);
         });
     </script>
 </body>
 </html>
-
