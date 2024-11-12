@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function deleteCard(index) {
         try {
             if (cards[index].firebaseId) {
-                await db.collection('Card').doc('Card')
+                await db.collection('Card')
                     .doc(cards[index].firebaseId).delete();
             }
             cards.splice(index, 1);
