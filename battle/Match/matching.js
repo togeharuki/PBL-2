@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // URLからパラメータを取得
+    // 既存のコード
     const urlParams = new URLSearchParams(window.location.search);
     const roomId = urlParams.get('roomId');
     const maxPlayers = urlParams.get('maxPlayers');
@@ -35,7 +35,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const entryBoxes = document.querySelectorAll('.entry-box');
     entryBoxes.forEach(box => {
         box.addEventListener('click', function() {
-            // ここにエントリー処理を追加
             console.log('Entry box clicked');
         });
     });
@@ -45,12 +44,38 @@ document.addEventListener('DOMContentLoaded', function() {
     startButtons.forEach((button, index) => {
         button.addEventListener('click', function() {
             if (!button.disabled) {
-                // パラメータを維持したまま対戦ページに遷移
                 const taisenUrl = new URL('../fight/taisen.html', window.location.href);
                 taisenUrl.searchParams.set('roomId', roomId);
                 taisenUrl.searchParams.set('maxPlayers', maxPlayers);
-                taisenUrl.searchParams.set('tableNumber', index + 1); // テーブル番号を追加
+                taisenUrl.searchParams.set('tableNumber', index + 1);
                 window.location.href = taisenUrl.toString();
+            }
+        });
+    });
+
+    // メニューバーのリンクにイベントリスナーを追加
+    const menuItems = document.querySelectorAll('.menu-item');
+    menuItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const text = item.textContent.trim();
+            
+            // 現在のURLパラメータを維持するための処理
+            const params = new URLSearchParams(window.location.search);
+            const paramString = params.toString();
+            const queryString = paramString ? `?${paramString}` : '';
+
+            // テキストに応じて適切なページに遷移
+            switch(text) {
+                case '設定':
+                    window.location.href = `../../Music/Music.html${queryString}`;
+                    break;
+                case 'ルール説明':
+                    window.location.href = `../../main/Rule/Rule.html${queryString}`;
+                    break;
+                case 'メニュー':
+                    window.location.href = `../../main/Menu/Menu.html${queryString}`;
+                    break;
             }
         });
     });
