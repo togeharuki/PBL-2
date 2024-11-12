@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Firebaseからカードを読み込む関数
     async function loadCardsFromFirebase() {
         try {
-            const snapshot = await db.collection('Card')
+            const snapshot = await db.collection('Card').doc('Card').collection('deck_dreamers')
                 .orderBy('timestamp', 'desc')
                 .get();
             
@@ -94,11 +94,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // カードをFirebaseに保存する関数
     async function saveCardToFirebase(card) {
         try {
-            const docRef = await db.collection('Card').add({
+            // Card コレクション > Card ドキュメント > deck_dreamers サブコレクション
+            const docRef = await db.collection('Card').doc('Card').collection('deck_dreamers').add({
                 name: card.name,
                 image: card.image,
                 effect: card.effect,
-               
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
             console.log('カードが保存されました。ID:', docRef.id);
             return docRef.id;
@@ -120,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function deleteCard(index) {
         try {
             if (cards[index].firebaseId) {
-                await db.collection('Card')
+                await db.collection('Card').doc('Card').collection('deck_dreamers')
                     .doc(cards[index].firebaseId).delete();
             }
             cards.splice(index, 1);
