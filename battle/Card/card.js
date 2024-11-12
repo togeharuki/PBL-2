@@ -17,9 +17,17 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+// プレイヤー情報の取得
+const playerName = localStorage.getItem('playerName');
+if (!playerName) {
+    console.error('プレイヤー情報が見つかりません');
+    alert('ログインしてください');
+    window.location.href = 'login.html';
+}
+
 // Card コレクションの参照を作成
 const cardCollection = db.collection('Card');
-const playerDoc = cardCollection.doc('player_Name');
+const playerDoc = cardCollection.doc(playerName);
 
 document.addEventListener('DOMContentLoaded', function() {
     // DOM要素の取得
@@ -91,6 +99,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 name: card.name,
                 image: card.image,
                 effect: card.effect,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
 
             const docRef = await playerDoc.collection('deck_dreamers').add(cardData);
@@ -290,4 +299,4 @@ document.addEventListener('DOMContentLoaded', function() {
 // エラーハンドリング
 window.addEventListener('error', function(event) {
     console.error('エラーが発生しました:', event.error);
-});y
+});
