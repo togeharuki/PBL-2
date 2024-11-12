@@ -17,7 +17,10 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// DOM読み込み完了時の処理
+// Card コレクションの参照を作成
+const cardCollection = db.collection('Card');
+const playerDoc = cardCollection.doc('player_Name');
+
 document.addEventListener('DOMContentLoaded', function() {
     // DOM要素の取得
     const imageInput = document.getElementById('card-image');
@@ -64,19 +67,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Firebaseからカードを読み込む関数
     async function loadCardsFromFirebase() {
         try {
-            const querySnapshot = await db.collection('Card')
-                .doc('player_Name')
-                .collection('deck_dreamers')
+            const snapshot = await playerDoc.collection('deck_dreamers')
                 .orderBy('timestamp', 'desc')
                 .get();
             
-            cards = [];
-            querySnapshot.forEach((doc) => {
-                cards.push({
-                    firebaseId: doc.id,
-                    ...doc.data()
-                });
-            });
+            cards = snapshot.docs.map(doc => ({
+                firebaseId: doc.id,
+                ...doc.data()
+            }));
             
             updateCardCount();
             showCardList();
@@ -96,11 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
 
-            const docRef = await db.collection('Card')
-                .doc('player_Name')
-                .collection('deck_dreamers')
-                .add(cardData);
-
+            const docRef = await playerDoc.collection('deck_dreamers').add(cardData);
             console.log('カードが保存されました。ID:', docRef.id);
             return docRef.id;
         } catch (error) {
@@ -121,9 +115,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function deleteCard(index) {
         try {
             if (cards[index].firebaseId) {
-                await db.collection('Card')
-                    .doc('player_Name')
-                    .collection('deck_dreamers')
+                await playerDoc.collection('deck_dreamers')
                     .doc(cards[index].firebaseId)
                     .delete();
             }
@@ -246,6 +238,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // カード作成ボタンのイベントリスナー
     createButton.addEventListener('click', async function() {
         if (!currentEffect) {
             alert('効果を選択してください。');
