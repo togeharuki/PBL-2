@@ -17,17 +17,8 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+// DOM読み込み完了時の処理
 document.addEventListener('DOMContentLoaded', function() {
-    try {
-        const savedCards = localStorage.getItem('cards');
-        if (savedCards) {
-            cards = JSON.parse(savedCards);
-        }
-    } catch (e) {
-        console.error('Failed to load cards:', e);
-        cards = [];
-    }
-
     // DOM要素の取得
     const imageInput = document.getElementById('card-image');
     const createButton = document.getElementById('create-card');
@@ -73,15 +64,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // Firebaseからカードを読み込む関数
     async function loadCardsFromFirebase() {
         try {
-            const snapshot = await db.collection('Card')
+            const querySnapshot = await db.collection('Card')
+                .doc('player_Name')
+                .collection('deck_dreamers')
+                .orderBy('timestamp', 'desc')
                 .get();
             
-            cards = snapshot.docs.map(doc => ({
-                firebaseId: doc.id,
-                ...doc.data()
-            }));
+            cards = [];
+            querySnapshot.forEach((doc) => {
+                cards.push({
+                    firebaseId: doc.id,
+                    ...doc.data()
+                });
+            });
             
-            localStorage.setItem('cards', JSON.stringify(cards));
             updateCardCount();
             showCardList();
         } catch (error) {
@@ -93,11 +89,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // カードをFirebaseに保存する関数
     async function saveCardToFirebase(card) {
         try {
-            const docRef = await db.collection('Card')({
+            const cardData = {
                 name: card.name,
                 image: card.image,
                 effect: card.effect,
-            });
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            const docRef = await db.collection('Card')
+                .doc('player_Name')
+                .collection('deck_dreamers')
+                .add(cardData);
+
             console.log('カードが保存されました。ID:', docRef.id);
             return docRef.id;
         } catch (error) {
@@ -105,6 +108,7 @@ document.addEventListener('DOMContentLoaded', function() {
             throw error;
         }
     }
+
     // カードリストの表示
     function showCardList() {
         cardListGrid.innerHTML = '';
@@ -113,16 +117,17 @@ document.addEventListener('DOMContentLoaded', function() {
             cardListGrid.appendChild(cardElement);
         });
     }
-
     // カードの削除
     async function deleteCard(index) {
         try {
             if (cards[index].firebaseId) {
                 await db.collection('Card')
-                    .doc(cards[index].firebaseId).delete();
+                    .doc('player_Name')
+                    .collection('deck_dreamers')
+                    .doc(cards[index].firebaseId)
+                    .delete();
             }
             cards.splice(index, 1);
-            localStorage.setItem('cards', JSON.stringify(cards));
             updateCardCount();
             showCardList();
             showSuccessMessage('カードを削除しました');
@@ -184,49 +189,49 @@ document.addEventListener('DOMContentLoaded', function() {
     // イベントリスナー設定
     imageInput.addEventListener('change', function(event) {
         const file = event.target.files[0];
-        if (file) {
-            if (!file.type.startsWith('image/')) {
-                alert('画像ファイルを選択してください。');
-                return;
-            }
+        if (!file) return;
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    
-                    // リサイズ処理
-                    const maxWidth = 300;
-                    const maxHeight = 300;
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > height && width > maxWidth) {
-                        height *= maxWidth / width;
-                        width = maxWidth;
-                    } else if (height > maxHeight) {
-                        width *= maxHeight / height;
-                        height = maxHeight;
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    // 圧縮した画像をプレビューに設定
-                    const compressedImage = canvas.toDataURL('image/jpeg', 0.7);
-                    previewImage.src = compressedImage;
-                    previewImage.style.display = 'block';
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
+        if (!file.type.startsWith('image/')) {
+            alert('画像ファイルを選択してください。');
+            return;
         }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // リサイズ処理
+                const maxWidth = 300;
+                const maxHeight = 300;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height && width > maxWidth) {
+                    height *= maxWidth / width;
+                    width = maxWidth;
+                } else if (height > maxHeight) {
+                    width *= maxHeight / height;
+                    height = maxHeight;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // 圧縮した画像をプレビューに設定
+                const compressedImage = canvas.toDataURL('image/jpeg', 0.7);
+                previewImage.src = compressedImage;
+                previewImage.style.display = 'block';
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
     });
 
-    // ボタンのイベントリスナー
+    // 効果ボタンのイベントリスナー
     heartButton.addEventListener('click', function() {
         if (!effectGenerated) {
             generateRandomEffect('heal');
@@ -269,7 +274,6 @@ document.addEventListener('DOMContentLoaded', function() {
             newCard.firebaseId = firebaseId;
 
             cards.push(newCard);
-            localStorage.setItem('cards', JSON.stringify(cards));
             
             const cardElement = createCardElement(newCard, cards.length - 1);
             cardListGrid.appendChild(cardElement);
@@ -294,13 +298,4 @@ document.addEventListener('DOMContentLoaded', function() {
 // エラーハンドリング
 window.addEventListener('error', function(event) {
     console.error('エラーが発生しました:', event.error);
-});
-
-// アンロード時の処理
-window.addEventListener('beforeunload', function() {
-    try {
-        localStorage.setItem('cards', JSON.stringify(cards));
-    } catch (e) {
-        console.error('Storage error:', e);
-    }
 });
