@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ログイン - Deck Dreamers</title>
+    <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #1a1a2e;
+            padding: 20px;
+            color: #fff;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            margin-top: 50px;
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            color: #4ecdc4;
+            text-align: center;
+            margin-bottom: 30px;
+            font-family: 'Abril Fatface', cursive;
+            letter-spacing: 2px;
+            font-size: 2.5em;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            color: #fff;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 1em;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+        input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px #4ecdc4;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(45deg, #4ecdc4, #45b7a8);
+            color: white;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .message {
+            color: #fff;
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .message.show {
+            opacity: 1;
+        }
+        .success {
+            background-color: rgba(76, 175, 80, 0.3);
+        }
+        .error {
+            background-color: rgba(244, 67, 54, 0.3);
+        }
+        .back-button {
+            margin-top: 20px;
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+        }
+        #playerInfo {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(78, 205, 196, 0.1);
+            border-radius: 10px;
+            font-size: 1.2em;
+            color: #4ecdc4;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ログイン</h1>
+        <div class="input-group">
+            <label for="playerName">プレイヤー名</label>
+            <input type="text" id="playerName" maxlength="20" placeholder="プレイヤー名を入力してください">
+        </div>
+        <div id="playerInfo"></div>
+        <button id="loginButton">ログイン</button>
+        <div id="message" class="message"></div>
+        <button class="back-button" onclick="location.href='title.html'">戻る</button>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
+    <!-- ログインスクリプト -->
+    <script src="login.js"></script>
+</body>
+</html>
