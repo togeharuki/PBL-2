@@ -74,7 +74,6 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadCardsFromFirebase() {
         try {
             const snapshot = await db.collection('Card')
-                .orderBy('timestamp', 'desc')
                 .get();
             
             cards = snapshot.docs.map(doc => ({
@@ -98,7 +97,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 name: card.name,
                 image: card.image,
                 effect: card.effect,
-               
             });
             console.log('カードが保存されました。ID:', docRef.id);
             return docRef.id;
