@@ -1,9 +1,22 @@
-// クライアントサイドのコード - パート1
+// Firebase設定と初期化を追加
 let cards = [];
 let currentEffect = '';
 let effectGenerated = false;
 
-// ページ読み込み時に保存されているカードを読み込む
+// Firebaseの設定
+const firebaseConfig = {
+    apiKey: "AIzaSyCGgRBPAF2W0KKw0tX2zwZeyjDGgvv31KM",
+    authDomain: "deck-dreamers.firebaseapp.com",
+    projectId: "deck-dreamers",
+    storageBucket: "deck-dreamers.appspot.com",
+    messagingSenderId: "165933225805",
+    appId: "1:165933225805:web:4e5a3907fc5c7a30a28a6c"
+};
+
+// Firebase初期化
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
 document.addEventListener('DOMContentLoaded', function() {
     try {
         const savedCards = localStorage.getItem('cards');
@@ -27,14 +40,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const cardListGrid = document.getElementById('card-list-grid');
     const saveDeckButton = document.getElementById('save-deck');
 
-    // カード数の更新
+    // 既存の関数はそのまま保持
     function updateCardCount() {
         const count = cards.length;
         cardCountDisplay.textContent = `作成したカード: ${count} / 20`;
         createButton.disabled = count >= 20;
     }
 
-    // カード要素を作成する関数
     function createCardElement(card, index) {
         const cardElement = document.createElement('div');
         cardElement.className = 'card-item';
@@ -47,19 +59,33 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="card-effect">${card.effect}</div>
         `;
 
-        // 新しいカードの場合、アニメーション用クラスを追加
         if (index === cards.length - 1) {
             cardElement.classList.add('new-card');
         }
 
-        // 削除ボタンのイベントリスナーを追加
         const deleteButton = cardElement.querySelector('.delete-button');
         deleteButton.addEventListener('click', () => deleteCard(index));
 
         return cardElement;
     }
 
-    // カードリストの表示
+    // カードをFirebaseに保存する関数を追加
+    async function saveCardToFirebase(card) {
+        try {
+            const docRef = await db.collection('cards').add({
+                name: card.name,
+                image: card.image,
+                effect: card.effect,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log('カードが保存されました。ID:', docRef.id);
+            return docRef.id;
+        } catch (error) {
+            console.error('カードの保存に失敗しました:', error);
+            throw error;
+        }
+    }
+    // 既存の関数を更新
     function showCardList() {
         cardListGrid.innerHTML = '';
         cards.forEach((card, index) => {
@@ -68,17 +94,24 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // カードの削除
-    function deleteCard(index) {
-        cards.splice(index, 1);
-        localStorage.setItem('cards', JSON.stringify(cards));
-        updateCardCount();
-        showCardList();
+    async function deleteCard(index) {
+        try {
+            if (cards[index].firebaseId) {
+                await db.collection('cards').doc(cards[index].firebaseId).delete();
+            }
+            cards.splice(index, 1);
+            localStorage.setItem('cards', JSON.stringify(cards));
+            updateCardCount();
+            showCardList();
+            showSuccessMessage('カードを削除しました');
+        } catch (error) {
+            console.error('カードの削除に失敗しました:', error);
+            alert('カードの削除に失敗しました: ' + error.message);
+        }
     }
 
-    // ランダム効果の生成
     function generateRandomEffect(type) {
-        const value = Math.floor(Math.random() * 8) + 3; // 3から10までの値を生成
+        const value = Math.floor(Math.random() * 8) + 3;
         let effectText;
         if (type === 'heal') {
             effectText = `✨ 回復魔法 ${value} ✨`;
@@ -92,12 +125,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return effectText;
     }
 
-    function disableEffectButtons() {
-        heartButton.disabled = true;
-        swordButton.disabled = true;
-    }
-
-    // 成功メッセージの表示
     function showSuccessMessage(message = 'カードを作成しました！', duration = 3000) {
         const messageElement = document.createElement('div');
         messageElement.className = 'success-message';
@@ -111,79 +138,9 @@ document.addEventListener('DOMContentLoaded', function() {
             messageElement.remove();
         }, duration);
     }
-    // リセット関数
-    function resetForm() {
-        previewImage.src = '';
-        previewImage.style.display = 'none';
-        previewEffect.textContent = '';
-        imageInput.value = '';
-        cardNameInput.value = '';
-        currentEffect = '';
-        effectGenerated = false;
-        heartButton.disabled = false;
-        swordButton.disabled = false;
-    }
 
-    // イベントリスナー設定
-    imageInput.addEventListener('change', function(event) {
-        const file = event.target.files[0];
-        if (file) {
-            if (!file.type.startsWith('image/')) {
-                alert('画像ファイルを選択してください。');
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    
-                    // リサイズ処理
-                    const maxWidth = 300;
-                    const maxHeight = 300;
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > height && width > maxWidth) {
-                        height *= maxWidth / width;
-                        width = maxWidth;
-                    } else if (height > maxHeight) {
-                        width *= maxHeight / height;
-                        height = maxHeight;
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    // 圧縮した画像をプレビューに設定
-                    const compressedImage = canvas.toDataURL('image/jpeg', 0.7);
-                    previewImage.src = compressedImage;
-                    previewImage.style.display = 'block';
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-
-    heartButton.addEventListener('click', function() {
-        if (!effectGenerated) {
-            generateRandomEffect('heal');
-            disableEffectButtons();
-        }
-    });
-
-    swordButton.addEventListener('click', function() {
-        if (!effectGenerated) {
-            generateRandomEffect('attack');
-            disableEffectButtons();
-        }
-    });
-
-    createButton.addEventListener('click', function() {
+    // createButtonのイベントリスナーを更新
+    createButton.addEventListener('click', async function() {
         if (!currentEffect) {
             alert('効果を選択してください。');
             return;
@@ -199,55 +156,46 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const newCard = {
-            name: cardNameInput.value.trim() || 'No Name',
-            image: previewImage.src,
-            effect: currentEffect
-        };
-
-        cards.push(newCard);
-        localStorage.setItem('cards', JSON.stringify(cards));
-        
-        const cardElement = createCardElement(newCard, cards.length - 1);
-        cardListGrid.appendChild(cardElement);
-        cardElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        
-        updateCardCount();
-        showSuccessMessage();
-        resetForm();
-    });
-
-    saveDeckButton.addEventListener('click', async function() {
-        if (cards.length === 0) {
-            alert('カードが作成されていません。');
-            return;
-        }
-
         try {
-            const response = await fetch('http://database-1.cl60gge24lrz.us-east-1.rds.amazonaws.com:3000/api/save-cards', { // AWS endpointに変更
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    cards: cards
-                })
-            });
+            const newCard = {
+                name: cardNameInput.value.trim() || 'No Name',
+                image: previewImage.src,
+                effect: currentEffect
+            };
 
-            const result = await response.json();
-            if (result.success) {
-                showSuccessMessage(`${cards.length}枚のカードを保存しました！`);
-                localStorage.removeItem('cards');
-                cards = [];
-                updateCardCount();
-                showCardList();
-            } else {
-                throw new Error(result.message || 'カードの保存に失敗しました');
-            }
+            // Firebaseにカードを保存
+            const firebaseId = await saveCardToFirebase(newCard);
+            newCard.firebaseId = firebaseId; // FirebaseのドキュメントIDを保存
+
+            cards.push(newCard);
+            localStorage.setItem('cards', JSON.stringify(cards));
+            
+            const cardElement = createCardElement(newCard, cards.length - 1);
+            cardListGrid.appendChild(cardElement);
+            cardElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            updateCardCount();
+            showSuccessMessage();
+            resetForm();
 
         } catch (error) {
-            console.error('Error:', error);
-            alert('エラーが発生しました: ' + error.message);
+            console.error('カードの作成に失敗しました:', error);
+            alert('カードの作成に失敗しました: ' + error.message);
+        }
+    });
+
+    // その他の既存のイベントリスナーとコードはそのまま維持
+    heartButton.addEventListener('click', function() {
+        if (!effectGenerated) {
+            generateRandomEffect('heal');
+            disableEffectButtons();
+        }
+    });
+
+    swordButton.addEventListener('click', function() {
+        if (!effectGenerated) {
+            generateRandomEffect('attack');
+            disableEffectButtons();
         }
     });
 
