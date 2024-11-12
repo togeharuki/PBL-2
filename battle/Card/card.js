@@ -40,13 +40,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const cardListGrid = document.getElementById('card-list-grid');
     const saveDeckButton = document.getElementById('save-deck');
 
-    // 既存の関数はそのまま保持
+    // カード数の更新
     function updateCardCount() {
         const count = cards.length;
         cardCountDisplay.textContent = `作成したカード: ${count} / 20`;
         createButton.disabled = count >= 20;
     }
 
+    // カード要素を作成する関数
     function createCardElement(card, index) {
         const cardElement = document.createElement('div');
         cardElement.className = 'card-item';
@@ -69,10 +70,31 @@ document.addEventListener('DOMContentLoaded', function() {
         return cardElement;
     }
 
-    // カードをFirebaseに保存する関数を追加
+    // Firebaseからカードを読み込む関数
+    async function loadCardsFromFirebase() {
+        try {
+            const snapshot = await db.collection('Card').doc('Card').collection('deck_dreamers')
+                .orderBy('timestamp', 'desc')
+                .get();
+            
+            cards = snapshot.docs.map(doc => ({
+                firebaseId: doc.id,
+                ...doc.data()
+            }));
+            
+            localStorage.setItem('cards', JSON.stringify(cards));
+            updateCardCount();
+            showCardList();
+        } catch (error) {
+            console.error('カードの読み込みに失敗しました:', error);
+            alert('カードの読み込みに失敗しました: ' + error.message);
+        }
+    }
+
+    // カードをFirebaseに保存する関数
     async function saveCardToFirebase(card) {
         try {
-            const docRef = await db.collection('cards').add({
+            const docRef = await db.collection('Card').doc('Card').collection('deck_dreamers').add({
                 name: card.name,
                 image: card.image,
                 effect: card.effect,
@@ -85,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
             throw error;
         }
     }
-    // 既存の関数を更新
+    // カードリストの表示
     function showCardList() {
         cardListGrid.innerHTML = '';
         cards.forEach((card, index) => {
@@ -94,10 +116,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // カードの削除
     async function deleteCard(index) {
         try {
             if (cards[index].firebaseId) {
-                await db.collection('cards').doc(cards[index].firebaseId).delete();
+                await db.collection('Card').doc('Card').collection('deck_dreamers')
+                    .doc(cards[index].firebaseId).delete();
             }
             cards.splice(index, 1);
             localStorage.setItem('cards', JSON.stringify(cards));
@@ -110,6 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // ランダム効果の生成
     function generateRandomEffect(type) {
         const value = Math.floor(Math.random() * 8) + 3;
         let effectText;
@@ -125,6 +150,12 @@ document.addEventListener('DOMContentLoaded', function() {
         return effectText;
     }
 
+    function disableEffectButtons() {
+        heartButton.disabled = true;
+        swordButton.disabled = true;
+    }
+
+    // 成功メッセージの表示
     function showSuccessMessage(message = 'カードを作成しました！', duration = 3000) {
         const messageElement = document.createElement('div');
         messageElement.className = 'success-message';
@@ -139,7 +170,79 @@ document.addEventListener('DOMContentLoaded', function() {
         }, duration);
     }
 
-    // createButtonのイベントリスナーを更新
+    // リセット関数
+    function resetForm() {
+        previewImage.src = '';
+        previewImage.style.display = 'none';
+        previewEffect.textContent = '';
+        imageInput.value = '';
+        cardNameInput.value = '';
+        currentEffect = '';
+        effectGenerated = false;
+        heartButton.disabled = false;
+        swordButton.disabled = false;
+    }
+
+    // イベントリスナー設定
+    imageInput.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            if (!file.type.startsWith('image/')) {
+                alert('画像ファイルを選択してください。');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // リサイズ処理
+                    const maxWidth = 300;
+                    const maxHeight = 300;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height && width > maxWidth) {
+                        height *= maxWidth / width;
+                        width = maxWidth;
+                    } else if (height > maxHeight) {
+                        width *= maxHeight / height;
+                        height = maxHeight;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // 圧縮した画像をプレビューに設定
+                    const compressedImage = canvas.toDataURL('image/jpeg', 0.7);
+                    previewImage.src = compressedImage;
+                    previewImage.style.display = 'block';
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // ボタンのイベントリスナー
+    heartButton.addEventListener('click', function() {
+        if (!effectGenerated) {
+            generateRandomEffect('heal');
+            disableEffectButtons();
+        }
+    });
+
+    swordButton.addEventListener('click', function() {
+        if (!effectGenerated) {
+            generateRandomEffect('attack');
+            disableEffectButtons();
+        }
+    });
+
     createButton.addEventListener('click', async function() {
         if (!currentEffect) {
             alert('効果を選択してください。');
@@ -165,7 +268,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Firebaseにカードを保存
             const firebaseId = await saveCardToFirebase(newCard);
-            newCard.firebaseId = firebaseId; // FirebaseのドキュメントIDを保存
+            newCard.firebaseId = firebaseId;
 
             cards.push(newCard);
             localStorage.setItem('cards', JSON.stringify(cards));
@@ -184,22 +287,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // その他の既存のイベントリスナーとコードはそのまま維持
-    heartButton.addEventListener('click', function() {
-        if (!effectGenerated) {
-            generateRandomEffect('heal');
-            disableEffectButtons();
-        }
-    });
-
-    swordButton.addEventListener('click', function() {
-        if (!effectGenerated) {
-            generateRandomEffect('attack');
-            disableEffectButtons();
-        }
-    });
-
-    // 初期化
+    // ページ読み込み時の初期化
+    loadCardsFromFirebase();
     updateCardCount();
     showCardList();
 });
