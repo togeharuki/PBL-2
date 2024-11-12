@@ -25,8 +25,10 @@ if (!playerName) {
     window.location.href = 'login.html';
 }
 
-// Card/{playerName}/deck_dreamers のパスでコレクションの参照を作成
-const playerCardsRef = db.collection('Card').doc(encodeURIComponent(playerName)).collection('deck_dreamers');
+// Card/{playerName}/{playerName} のパスでコレクションの参照を作成
+const playerCardsRef = db.collection('Card')
+    .doc(playerName)
+    .collection(playerName);
 
 document.addEventListener('DOMContentLoaded', function() {
     // DOM要素の取得
