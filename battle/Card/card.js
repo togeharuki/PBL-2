@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
 
-            const docRef = await playerDoc.collection('deck_dreamers').add(cardData);
+            const docRef = await playerDoc.add(cardData);
             console.log('カードが保存されました。ID:', docRef.id);
             return docRef.id;
         } catch (error) {
