@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>アカウント作成 - Deck Dreamers</title>
+    <title>アカウント管理 - Deck Dreamers</title>
     <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap" rel="stylesheet">
     <style>
         body {
@@ -101,16 +101,23 @@
             margin-top: 20px;
             background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
         }
+        #playerInfo {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #4ecdc4;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>アカウント作成</h1>
+        <h1>アカウント管理</h1>
+        <div id="playerInfo"></div>
         <div class="input-group">
             <label for="playerName">プレイヤー名</label>
             <input type="text" id="playerName" maxlength="20" placeholder="20文字以内で入力してください">
         </div>
-        <button id="createAccount">アカウント作成</button>
+        <button id="updateAccount">更新</button>
+        <button id="createAccount">新規作成</button>
         <div id="message" class="message"></div>
         <button class="back-button" onclick="location.href='title.html'">戻る</button>
     </div>
@@ -119,7 +126,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     
-    <!-- アカウント作成スクリプト -->
-    <script src="acount.js"></script>
+    <!-- アカウント管理スクリプト -->
+    <script src="account.js"></script>
 </body>
 </html>
