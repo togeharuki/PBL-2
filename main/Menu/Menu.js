@@ -17,6 +17,10 @@ document.getElementById('battleButton').addEventListener('click', function() {
     navigateTo('../../battle/Battle/battle.html');
 });
 
+document.getElementById('gatyaBth').addEventListener('click', function() {
+    navigateTo('../../battle/gatya/gatya.html');
+});
+
 document.getElementById('RuleBtn').addEventListener('click', function() {
     navigateTo('../Rule/Rule.html')
 });
