@@ -17,8 +17,9 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Card/Player_Nameの参照を作成
-const playerCollection = db.collection('Card').doc('Player_Name').collection('保存するもの');
+// Card コレクションの参照を作成
+const cardCollection = db.collection('Card');
+const playerDoc = cardCollection.doc('player_Name');
 
 document.addEventListener('DOMContentLoaded', function() {
     // DOM要素の取得
@@ -66,8 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Firebaseからカードを読み込む関数
     async function loadCardsFromFirebase() {
         try {
-            const snapshot = await playerCollection
-                .orderBy('timestamp', 'desc')
+            const snapshot = await playerDoc.collection('deck_dreamers')
                 .get();
             
             cards = snapshot.docs.map(doc => ({
@@ -90,10 +90,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 name: card.name,
                 image: card.image,
                 effect: card.effect,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
 
-            const docRef = await playerCollection.add(cardData);
+            const docRef = await playerDoc.add(cardData);
             console.log('カードが保存されました。ID:', docRef.id);
             return docRef.id;
         } catch (error) {
@@ -114,15 +113,14 @@ document.addEventListener('DOMContentLoaded', function() {
     async function deleteCard(index) {
         try {
             if (cards[index].firebaseId) {
-                await playerCollection
+                await playerDoc.collection('deck_dreamers')
                     .doc(cards[index].firebaseId)
                     .delete();
-                
-                cards.splice(index, 1);
-                updateCardCount();
-                showCardList();
-                showSuccessMessage('カードを削除しました');
             }
+            cards.splice(index, 1);
+            updateCardCount();
+            showCardList();
+            showSuccessMessage('カードを削除しました');
         } catch (error) {
             console.error('カードの削除に失敗しました:', error);
             alert('カードの削除に失敗しました: ' + error.message);
@@ -223,7 +221,7 @@ document.addEventListener('DOMContentLoaded', function() {
         reader.readAsDataURL(file);
     });
 
-    // ボタンのイベントリスナー
+    // 効果ボタンのイベントリスナー
     heartButton.addEventListener('click', function() {
         if (!effectGenerated) {
             generateRandomEffect('heal');
@@ -238,6 +236,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // カード作成ボタンのイベントリスナー
     createButton.addEventListener('click', async function() {
         if (!currentEffect) {
             alert('効果を選択してください。');
