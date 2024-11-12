@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Firebaseからカードを読み込む関数
     async function loadCardsFromFirebase() {
         try {
-            const snapshot = await db.collection('Card').doc('Card').collection('deck_dreamers')
+            const snapshot = await db.collection('Card')
                 .orderBy('timestamp', 'desc')
                 .get();
             
@@ -94,11 +94,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // カードをFirebaseに保存する関数
     async function saveCardToFirebase(card) {
         try {
-            const docRef = await db.collection('Card').doc('Card').collection('deck_dreamers').add({
+            const docRef = await db.collection('Card').add({
                 name: card.name,
                 image: card.image,
                 effect: card.effect,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+               
             });
             console.log('カードが保存されました。ID:', docRef.id);
             return docRef.id;
