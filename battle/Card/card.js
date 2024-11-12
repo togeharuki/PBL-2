@@ -25,8 +25,8 @@ if (!playerName) {
     window.location.href = 'login.html';
 }
 
-// Cardコレクションの参照を作成
-const playerCardsRef = db.collection('Card').doc(playerName);
+// Card/{playerName}/deck_dreamers のパスでコレクションの参照を作成
+const playerCardsRef = db.collection('Card').doc(encodeURIComponent(playerName)).collection('deck_dreamers');
 
 document.addEventListener('DOMContentLoaded', function() {
     // DOM要素の取得
@@ -74,20 +74,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Firebaseからカードを読み込む関数
     async function loadCardsFromFirebase() {
         try {
-            const snapshot = await playerCardsRef.get();
+            const snapshot = await playerCardsRef
+                .orderBy('timestamp', 'desc')
+                .get();
             
-            if (snapshot.exists) {
-                const data = snapshot.data();
-                cards = Object.entries(data)
-                    .filter(([key, _]) => key !== 'timestamp') // timestampフィールドを除外
-                    .map(([id, cardData]) => ({
-                        firebaseId: id,
-                        ...cardData
-                    }))
-                    .sort((a, b) => b.timestamp - a.timestamp); // タイムスタンプで並び替え
-            } else {
-                cards = [];
-            }
+            cards = snapshot.docs.map(doc => ({
+                firebaseId: doc.id,
+                ...doc.data()
+            }));
             
             updateCardCount();
             showCardList();
@@ -100,7 +94,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // カードをFirebaseに保存する関数
     async function saveCardToFirebase(card) {
         try {
-            const cardId = `card_${Date.now()}`; // ユニークなIDを生成
             const cardData = {
                 name: card.name,
                 image: card.image,
@@ -108,13 +101,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
 
-            // カードデータを直接プレイヤーのドキュメントに追加
-            await playerCardsRef.set({
-                [cardId]: cardData
-            }, { merge: true });
-
-            console.log('カードが保存されました。ID:', cardId);
-            return cardId;
+            const docRef = await playerCardsRef.add(cardData);
+            console.log('カードが保存されました。ID:', docRef.id);
+            return docRef.id;
         } catch (error) {
             console.error('カードの保存に失敗しました:', error);
             throw error;
@@ -132,12 +121,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // カードの削除
     async function deleteCard(index) {
         try {
-            const cardId = cards[index].firebaseId;
-            if (cardId) {
-                // Firebaseからカードを削除
-                await playerCardsRef.update({
-                    [cardId]: firebase.firestore.FieldValue.delete()
-                });
+            if (cards[index].firebaseId) {
+                await playerCardsRef
+                    .doc(cards[index].firebaseId)
+                    .delete();
             }
             cards.splice(index, 1);
             updateCardCount();
@@ -279,8 +266,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const newCard = {
                 name: cardNameInput.value.trim() || 'No Name',
                 image: previewImage.src,
-                effect: currentEffect,
-                timestamp: Date.now() // クライアント側でのソート用タイムスタンプ
+                effect: currentEffect
             };
 
             // Firebaseにカードを保存
