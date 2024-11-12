@@ -68,3 +68,21 @@ h1 {
     transform: translateY(-3px);
     box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
 }
+
+.gatya {
+    font-size: 1.2em;
+    padding: 12px 30px;
+    background: linear-gradient(45deg, #70a1ad, #2d4360);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.gatya:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+}
