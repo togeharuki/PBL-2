@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // カードをFirebaseに保存する関数
     async function saveCardToFirebase(card) {
         try {
-            const docRef = await db.collection('Card').doc('Card').add({
+            const docRef = await db.collection('Card').add({
                 name: card.name,
                 image: card.image,
                 effect: card.effect,
@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function deleteCard(index) {
         try {
             if (cards[index].firebaseId) {
-                await db.collection('Card').doc('Card')
+                await db.collection('Card')
                     .doc(cards[index].firebaseId).delete();
             }
             cards.splice(index, 1);
