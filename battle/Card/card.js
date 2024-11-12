@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // カードをFirebaseに保存する関数
     async function saveCardToFirebase(card) {
         try {
-            const docRef = await db.collection('Card').doc('Card').add({
+            const docRef = await db.collection('Card')({
                 name: card.name,
                 image: card.image,
                 effect: card.effect,
