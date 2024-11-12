@@ -68,7 +68,6 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadCardsFromFirebase() {
         try {
             const snapshot = await playerDoc.collection('deck_dreamers')
-                .orderBy('timestamp', 'desc')
                 .get();
             
             cards = snapshot.docs.map(doc => ({
@@ -91,7 +90,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 name: card.name,
                 image: card.image,
                 effect: card.effect,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
 
             const docRef = await playerDoc.add(cardData);
