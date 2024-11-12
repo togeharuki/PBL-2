@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Demo</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+        }
+        .container {
+            text-align: center;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #message {
+            margin-top: 20px;
+            color: #333;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button id="addButton">こんにちはを追加</button>
+        <div id="message"></div>
+    </div>
+
+    <!-- Firebase SDKの読み込み -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // Firebaseの設定
+        const firebaseConfig = {
+            apiKey: "AIzaSyCGgRBPAF2W0KKw0tX2zwZeyjDGgvv31KM",
+            authDomain: "deck-dreamers.firebaseapp.com",
+            projectId: "deck-dreamers",
+            storageBucket: "deck-dreamers.appspot.com",
+            messagingSenderId: "165933225805",
+            appId: "1:165933225805:web:4e5a3907fc5c7a30a28a6c"
+        };
+
+        // Firebase初期化
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // ボタンクリックイベントの設定
+        document.getElementById('addButton').addEventListener('click', async () => {
+            try {
+                // Firestoreにデータを追加
+                await db.collection('messages').add({
+                    text: 'こんbanha',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // 成功メッセージの表示
+                const messageEl = document.getElementById('message');
+                messageEl.textContent = '「こんにちは」を追加しました！';
+                messageEl.style.color = '#4CAF50';
+                
+                // 3秒後にメッセージを消す
+                setTimeout(() => {
+                    messageEl.textContent = '';
+                }, 3000);
+
+            } catch (error) {
+                console.error('エラーが発生しました:', error);
+                const messageEl = document.getElementById('message');
+                messageEl.textContent = 'エラーが発生しました';
+                messageEl.style.color = '#f44336';
+            }
+        });
+
+        // 起動時の接続確認
+        db.collection('messages').limit(1).get()
+            .then(() => {
+                console.log('Firestore接続成功');
+            })
+            .catch(error => {
+                console.error('Firestore接続エラー:', error);
+            });
+    </script>
+</body>
+</html>
