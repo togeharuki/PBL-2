@@ -91,7 +91,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 name: card.name,
                 image: card.image,
                 effect: card.effect,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
 
             const docRef = await playerDoc.collection('deck_dreamers').add(cardData);
