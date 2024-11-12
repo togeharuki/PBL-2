@@ -36,6 +36,11 @@
             gap: 20px;
             align-items: center;
         }
+        .account-buttons {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
         button {
             font-size: 1.4em;
             padding: 15px 40px;
@@ -69,13 +74,25 @@
         #accountButton {
             background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
         }
+        #loginButton {
+            background: linear-gradient(45deg, #4e94cd, #458eb7);
+        }
+        .account-buttons button {
+            width: 180px;  /* アカウントボタンの幅を調整 */
+        }
+        #startButton {
+            width: 380px;  /* スタートボタンの幅を2つのボタンの合計に合わせる */
+        }
     </style>
     <script src="./Music/bgm.js"></script>
 </head>
 <body>
     <h1>Deck・Dreamers</h1>
     <div class="button-container">
-        <button id="accountButton" onclick="location.href='acount.html'">アカウント作成</button>
+        <div class="account-buttons">
+            <button id="accountButton" onclick="location.href='acount.html'">アカウント作成</button>
+            <button id="loginButton" onclick="location.href='login.html'">ログイン</button>
+        </div>
         <button id="startButton">スタート</button>
     </div>
     <button id="bgmToggleButton">BGM オン</button>
