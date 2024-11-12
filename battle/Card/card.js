@@ -70,62 +70,77 @@ document.addEventListener('DOMContentLoaded', function() {
         return cardElement;
     }
 
-// Firebaseからカードを読み込む関数
-async function loadCardsFromFirebase() {
-    try {
-        const snapshot = await db.collection('Card').doc('Card').collection('deck_dreamers')
-            .orderBy('timestamp', 'desc')
-            .get();
-        
-        cards = snapshot.docs.map(doc => ({
-            firebaseId: doc.id,
-            ...doc.data()
-        }));
-        
-        localStorage.setItem('cards', JSON.stringify(cards));
-        updateCardCount();
-        showCardList();
-    } catch (error) {
-        console.error('カードの読み込みに失敗しました:', error);
-        alert('カードの読み込みに失敗しました: ' + error.message);
-    }
-}
-
-// カードをFirebaseに保存する関数
-async function saveCardToFirebase(card) {
-    try {
-        // Card コレクション > Card ドキュメント > deck_dreamers サブコレクション
-        const docRef = await db.collection('Card').doc('Card').collection('deck_dreamers').add({
-            name: card.name,
-            image: card.image,
-            effect: card.effect,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        console.log('カードが保存されました。ID:', docRef.id);
-        return docRef.id;
-    } catch (error) {
-        console.error('カードの保存に失敗しました:', error);
-        throw error;
-    }
-}
-
-// カードの削除関数も修正
-async function deleteCard(index) {
-    try {
-        if (cards[index].firebaseId) {
-            await db.collection('Card').doc('Card').collection('deck_dreamers')
-                .doc(cards[index].firebaseId).delete();
+    // Firebaseからカードを読み込む関数
+    async function loadCardsFromFirebase() {
+        try {
+            const snapshot = await db.collection('Card')
+                .doc('player_Name')
+                .collection('deck_dreamers')
+                .orderBy('timestamp', 'desc')
+                .get();
+            
+            cards = snapshot.docs.map(doc => ({
+                firebaseId: doc.id,
+                ...doc.data()
+            }));
+            
+            localStorage.setItem('cards', JSON.stringify(cards));
+            updateCardCount();
+            showCardList();
+        } catch (error) {
+            console.error('カードの読み込みに失敗しました:', error);
+            alert('カードの読み込みに失敗しました: ' + error.message);
         }
-        cards.splice(index, 1);
-        localStorage.setItem('cards', JSON.stringify(cards));
-        updateCardCount();
-        showCardList();
-        showSuccessMessage('カードを削除しました');
-    } catch (error) {
-        console.error('カードの削除に失敗しました:', error);
-        alert('カードの削除に失敗しました: ' + error.message);
     }
-}
+
+    // カードをFirebaseに保存する関数
+    async function saveCardToFirebase(card) {
+        try {
+            const docRef = await db.collection('Card')
+                .doc('player_Name')
+                .collection('deck_dreamers')
+                .add({
+                    name: card.name,
+                    image: card.image,
+                    effect: card.effect,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            console.log('カードが保存されました。ID:', docRef.id);
+            return docRef.id;
+        } catch (error) {
+            console.error('カードの保存に失敗しました:', error);
+            throw error;
+        }
+    }
+    // カードリストの表示
+    function showCardList() {
+        cardListGrid.innerHTML = '';
+        cards.forEach((card, index) => {
+            const cardElement = createCardElement(card, index);
+            cardListGrid.appendChild(cardElement);
+        });
+    }
+
+    // カードの削除
+    async function deleteCard(index) {
+        try {
+            if (cards[index].firebaseId) {
+                await db.collection('Card')
+                    .doc('player_Name')
+                    .collection('deck_dreamers')
+                    .doc(cards[index].firebaseId)
+                    .delete();
+            }
+            cards.splice(index, 1);
+            localStorage.setItem('cards', JSON.stringify(cards));
+            updateCardCount();
+            showCardList();
+            showSuccessMessage('カードを削除しました');
+        } catch (error) {
+            console.error('カードの削除に失敗しました:', error);
+            alert('カードの削除に失敗しました: ' + error.message);
+        }
+    }
 
     // ランダム効果の生成
     function generateRandomEffect(type) {
