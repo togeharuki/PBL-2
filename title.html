@@ -30,6 +30,12 @@
             margin-bottom: 40px;
             letter-spacing: 2px;
         }
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
         button {
             font-size: 1.4em;
             padding: 15px 40px;
@@ -42,6 +48,7 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             text-transform: uppercase;
             letter-spacing: 1px;
+            width: 250px;
         }
         button:hover {
             transform: translateY(-3px);
@@ -52,45 +59,41 @@
             box-shadow: 0 3px 4px rgba(0, 0, 0, 0.2);
         }
         #bgmToggleButton {
-            position: absolute; /* 絶対位置を指定 */
-            top: 20px; /* 上からの距離 */
-            right: 20px; /* 右からの距離 */
+            position: absolute;
+            top: 20px;
+            right: 20px;
             font-size: 1em;
             padding: 10px 20px;
-            background: linear-gradient(45deg, #4ecdc4, #45b7a8);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: auto;
+        }
+        #accountButton {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
         }
     </style>
-    <script src="/Music/bgm.js"></script> 
+    <script src="./Music/bgm.js"></script>
 </head>
 <body>
     <h1>Deck・Dreamers</h1>
-    <button id="startButton">スタート</button>
+    <div class="button-container">
+        <button id="accountButton" onclick="location.href='acount.html'">アカウント作成</button>
+        <button id="startButton">スタート</button>
+    </div>
     <button id="bgmToggleButton">BGM オン</button>
     
-        <!-- 音楽プレイヤー追加 -->
-        <audio id="music-player" preload="auto">
-            <source id="music-source" src="path/to/your/music.mp3" type="audio/mp3">
-            Your browser does not support the audio element.
-        </audio>
+    <audio id="music-player" preload="auto">
+        <source id="music-source" src="path/to/your/music.mp3" type="audio/mp3">
+        Your browser does not support the audio element.
+    </audio>
 
     <script>
-
-            // ページ遷移時に音楽の再生時間を保存する
-            document.getElementById('startButton').addEventListener('click', function() {
+        document.getElementById('startButton').addEventListener('click', function() {
             const audioPlayer = document.getElementById('music-player');
             if (!audioPlayer.paused) {
                 localStorage.setItem('currentTime', audioPlayer.currentTime);
             }
             
-            // 0.5秒後に遷移する
             setTimeout(function() {
-                window.location.href = './main/Menu/Menu.html';
+                window.location.href = 'main/Menu/Menu.html';
             }, 500);
         });
     </script>
