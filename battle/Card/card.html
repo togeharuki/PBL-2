@@ -9,9 +9,9 @@
 </head>
 <body>
     <a href="../fight/taisen.html" class="taisen-button">対戦画面へ</a>
-    
+
     <h1>トレーディングカード作成</h1>
-    
+
     <div class="card-creator">
         <div class="card-preview">
             <div class="card-image">
@@ -22,7 +22,7 @@
             </div>
             <div id="preview-effect" class="card-effect"></div>
         </div>
-        
+
         <div class="effect-buttons">
             <div>
                 <button id="heart-button" class="effect-button">❤️</button>
@@ -33,24 +33,22 @@
                 <div class="effect-text">攻撃</div>
             </div>
         </div>
-        
+
         <input type="file" id="card-image" accept="image/*">
-        <button id="create-card">カードを作成</button>
+        <button id="create-card">デッキ編集へ</button>
     </div>
-    
+
     <div id="card-count">作成したカード: 0 / 20</div>
-    
+
     <div id="card-list" class="card-list">
         <h2>作成したカード一覧</h2>
         <div id="card-list-grid" class="card-list-grid"></div>
     </div>
-    
-    <button id="save-deck" class="battle-button">カードを保存</button>
-    
+
     <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
     <!-- メインのJavaScriptファイル -->
     <script src="card.js"></script>
 </body>
