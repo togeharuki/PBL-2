@@ -11,7 +11,7 @@ const cardDatabase = [
         name: "徳田家ののりちゃん",
         image: "写真/徳田家ののりちゃん.jpg",
         effect: "手札を１枚捨てる",
-        rarity: "UR"
+        rarity: "N"
     },
     {
         id: 3,
@@ -40,12 +40,12 @@ const cardDisplay = document.querySelector('.card-display');
 // 新たに追加したボタン要素
 const endGachaButton = document.createElement('button');
 endGachaButton.textContent = 'ガチャを終わる';
-endGachaButton.className = 'end-gacha-button';
+endGachaButton.className = 'gacha-button';
 endGachaButton.style.display = 'none'; // 初期は非表示
 
 const retryButton = document.createElement('button');
 retryButton.textContent = 'もう1回';
-retryButton.className = 'retry-button';
+retryButton.className = 'gacha-button';
 retryButton.style.display = 'none'; // 初期は非表示
 
 document.querySelector('.button-container').appendChild(endGachaButton);
