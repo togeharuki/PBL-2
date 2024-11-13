@@ -11,7 +11,7 @@ const cardDatabase = [
         name: "徳田家ののりちゃん",
         image: "写真/徳田家ののりちゃん.jpg",
         effect: "手札を１枚捨てる",
-        rarity: "n"
+        rarity: "N"
     },
     {
         id: 3,
@@ -36,6 +36,20 @@ const rRate = document.getElementById('r-rate');
 const nRate = document.getElementById('n-rate');
 const cardsContainer = document.querySelector('.cards-container');
 const cardDisplay = document.querySelector('.card-display');
+
+// 新たに追加したボタン要素
+const endGachaButton = document.createElement('button');
+endGachaButton.textContent = 'ガチャを終わる';
+endGachaButton.className = 'end-gacha-button';
+endGachaButton.style.display = 'none'; // 初期は非表示
+
+const retryButton = document.createElement('button');
+retryButton.textContent = 'もう1回';
+retryButton.className = 'retry-button';
+retryButton.style.display = 'none'; // 初期は非表示
+
+document.querySelector('.button-container').appendChild(endGachaButton);
+document.querySelector('.button-container').appendChild(retryButton);
 
 let stats = {
     total: 0,
@@ -151,6 +165,10 @@ async function pullGacha() {
         card.classList.add('flipped');
         createParticles(raritySettings[pulledCard.rarity].color, cardDisplay);
 
+        // カードが回転し終わった後にボタンを表示
+        endGachaButton.style.display = 'block';
+        retryButton.style.display = 'block';
+
         gachaButton.disabled = false;
     };
 
@@ -159,7 +177,6 @@ async function pullGacha() {
         gachaButton.disabled = false;
     };
 }
-
 async function pullGacha10() {
     gachaButton10.disabled = true;
     cardDisplay.style.display = 'none';
@@ -213,6 +230,21 @@ function updateStats(rarity) {
     rRate.textContent = ((stats.r / stats.total) * 100).toFixed(2);
     nRate.textContent = ((stats.n / stats.total) * 100).toFixed(2);
 }
+
+// ボタンのイベントリスナーを追加
+endGachaButton.addEventListener('click', () => {
+    alert('ガチャを終わります。');
+    // 必要に応じて、他の処理を追加
+});
+
+retryButton.addEventListener('click', () => {
+    endGachaButton.style.display = 'none'; // 終了ボタンを非表示
+    retryButton.style.display = 'none'; // もう1回ボタンを非表示
+    card.classList.remove('flipped'); // カードの回転をリセット
+    cardDisplay.style.display = 'none'; // カード表示を非表示
+    cardsContainer.style.display = 'none'; // カードコンテナを非表示
+    gachaButton.disabled = false; // ボタンを有効にする
+});
 
 gachaButton.addEventListener('click', pullGacha);
 gachaButton10.addEventListener('click', pullGacha10);
