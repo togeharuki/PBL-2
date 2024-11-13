@@ -1,54 +1,54 @@
 // デフォルトカードの定義
 const DEFAULT_CARDS = [
     {
-        name: "ファイアソード",
-        image: "/images/default/fire_sword.jpg",
-        effect: "⚡ 攻撃力 8 ⚡"
+        name: "逆転の1手",
+        image: "kizon/逆転.jpg",
+        effect: "山札から１ドロー"
     },
     {
-        name: "ヒールポーション",
-        image: "/images/default/heal_potion.jpg",
-        effect: "✨ 回復魔法 7 ✨"
+        name: "手札足りない",
+        image: "kizon/手札足りない.jpeg",
+        effect: "山札から１ドロー"
     },
     {
-        name: "サンダーアックス",
-        image: "/images/default/thunder_axe.jpg",
-        effect: "⚡ 攻撃力 6 ⚡"
+        name: "のぞき見",
+        image: "kizon/のぞき見.jpeg",
+        effect: "相手の手札を2枚見る"
     },
     {
-        name: "エンジェルブレス",
-        image: "/images/default/angel_bless.jpg",
-        effect: "✨ 回復魔法 5 ✨"
+        name: "パパラッチ",
+        image: "kizon/パパラッチ.jpg",
+        effect: "相手の手札を2枚見る"
     },
     {
-        name: "ダークブレード",
-        image: "/images/default/dark_blade.jpg",
-        effect: "⚡ 攻撃力 9 ⚡"
+        name: "レゴブロック",
+        image: "kizon/レゴブロック.jpg",
+        effect: "数値＋２"
     },
     {
-        name: "ホーリーライト",
-        image: "/images/default/holy_light.jpg",
-        effect: "✨ 回復魔法 8 ✨"
+        name: "ルブタンの財布",
+        image: "kizon/ルブタン.jpg",
+        effect: "数値＋２"
     },
     {
-        name: "フレイムランス",
-        image: "/images/default/flame_lance.jpg",
-        effect: "⚡ 攻撃力 7 ⚡"
+        name: "ちくちく",
+        image: "kizon/ちくちく.jpg",
+        effect: "強制1ダメージ"
     },
     {
-        name: "ネイチャーヒール",
-        image: "/images/default/nature_heal.jpg",
-        effect: "✨ 回復魔法 6 ✨"
+        name: "とげとげ",
+        image: "kizon/とげとげ.jpg",
+        effect: "強制1ダメージ"
     },
     {
-        name: "アイスソード",
-        image: "/images/default/ice_sword.jpg",
-        effect: "⚡ 攻撃力 5 ⚡"
+        name: "リストカット",
+        image: "kizon/りすか.jpg",
+        effect: "両方に2ダメージ"
     },
     {
-        name: "ライフエッセンス",
-        image: "/images/default/life_essence.jpg",
-        effect: "✨ 回復魔法 9 ✨"
+        name: "共倒れの1手",
+        image: "kizon/共倒れ.jpg",
+        effect: "両方に2ダメージ"
     }
 ];
 
