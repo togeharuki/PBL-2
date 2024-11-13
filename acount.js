@@ -71,27 +71,44 @@ const createAccountButton = document.getElementById('createAccount');
 const playerNameInput = document.getElementById('playerName');
 const messageDiv = document.getElementById('message');
 
-// デフォルトカードを倉庫に追加する関数
-async function setupDefaultCards(playerId) {
+// プレイヤー情報とデフォルトカードを保存する関数
+async function createPlayerAndDefaultCards(playerName, playerId) {
     try {
+        // プレイヤー情報のドキュメント参照
+        const playerRef = db.collection('Player').doc();
+        
+        // 倉庫のドキュメント参照
         const soukoRef = db.collection('Souko').doc(playerId.toString());
+
+        // バッチ処理を作成
         const batch = db.batch();
 
-        // デフォルトカードを倉庫に保存
+        // プレイヤー情報を設定
+        batch.set(playerRef, {
+            playerName: playerName,
+            playerId: playerId,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // デフォルトカードのデータを準備
+        const soukoData = {};
         DEFAULT_CARDS.forEach((card, index) => {
             const cardId = `default_card_${index + 1}`;
-            const cardData = {
+            soukoData[cardId] = {
                 ...card,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
-            batch.set(soukoRef, { [cardId]: cardData }, { merge: true });
         });
 
+        // 倉庫にデフォルトカードを設定
+        batch.set(soukoRef, soukoData);
+
+        // バッチ処理を実行
         await batch.commit();
-        console.log('デフォルトカードを倉庫に保存しました');
+        
         return true;
     } catch (error) {
-        console.error('デフォルトカードの設定に失敗しました:', error);
+        console.error('データの保存に失敗しました:', error);
         throw error;
     }
 }
@@ -137,19 +154,8 @@ createAccountButton.addEventListener('click', async () => {
             nextPlayerId = lastPlayerDoc.docs[0].data().playerId + 1;
         }
 
-        // トランザクションで処理を実行
-        await db.runTransaction(async (transaction) => {
-            // プレイヤー情報を保存
-            const playerRef = db.collection('Player').doc();
-            transaction.set(playerRef, {
-                playerName: playerName,
-                playerId: nextPlayerId,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            // デフォルトカードを設定
-            await setupDefaultCards(nextPlayerId);
-        });
+        // プレイヤー情報とデフォルトカードを保存
+        await createPlayerAndDefaultCards(playerName, nextPlayerId);
 
         showMessage(`アカウントを作成しました！\nプレイヤーID: ${nextPlayerId}`, 'success');
 
