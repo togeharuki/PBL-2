@@ -39,7 +39,7 @@ body {
     text-shadow: 0 0 10px rgba(78, 205, 196, 0.5);
 }
 
-/* ガチャボタン */
+/* 共通のボタンスタイル */
 .gacha-button {
     background: linear-gradient(45deg, #4ecdc4, #45b7a8);
     color: white;
