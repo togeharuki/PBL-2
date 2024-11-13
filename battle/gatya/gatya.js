@@ -11,7 +11,7 @@ const cardDatabase = [
         name: "徳田家ののりちゃん",
         image: "写真/徳田家ののりちゃん.jpg",
         effect: "手札を１枚捨てる",
-        rarity: "N"
+        rarity: "UR"
     },
     {
         id: 3,
