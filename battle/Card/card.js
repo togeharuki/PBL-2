@@ -76,7 +76,6 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const doc = await playerCardsRef.get();
             if (doc.exists) {
-                // カードデータをタイムスタンプでソート
                 cards = Object.entries(doc.data() || {})
                     .filter(([key, _]) => key !== 'timestamp')
                     .map(([id, cardData]) => ({
@@ -118,7 +117,6 @@ document.addEventListener('DOMContentLoaded', function() {
             throw error;
         }
     }
-
     // カードリストの表示
     function showCardList() {
         cardListGrid.innerHTML = '';
@@ -127,6 +125,7 @@ document.addEventListener('DOMContentLoaded', function() {
             cardListGrid.appendChild(cardElement);
         });
     }
+
     // カードの削除
     async function deleteCard(index) {
         try {
@@ -291,8 +290,13 @@ document.addEventListener('DOMContentLoaded', function() {
             cardElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             
             updateCardCount();
-            showSuccessMessage();
+            showSuccessMessage('カードを作成しました！デッキ編集へ移動します。');
             resetForm();
+
+            // 1秒後にデッキ編集ページへ遷移
+            setTimeout(() => {
+                window.location.href = '/deck/deck.html';
+            }, 1000);
 
         } catch (error) {
             console.error('カードの作成に失敗しました:', error);
