@@ -1,27 +1,100 @@
-const cardDatabase = [
-    {
-        id: 1,
-        name: "不審者の極み'TOUGE'",
-        image: "写真/touge.jpg",
-        effect: "２ターン数値+5",
-        rarity: "UR"
-    },
-    {
-        id: 2,
-        name: "徳田家ののりちゃん",
-        image: "写真/徳田家ののりちゃん.jpg",
-        effect: "手札を１枚捨てる",
-        rarity: "N"
-    },
-    {
-        id: 3,
-        name: "佐藤家のてんちゃん",
-        image: "写真/佐藤家のてんちゃん.jpg",
-        effect: "数値を+5",
-        rarity: "UR"
-    }
-];
+// Firebase設定と初期化
+import { initializeApp } from "firebase/app";
+import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
 
+// Firebaseの設定
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID"
+};
+
+// Firebase初期化
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// プレイヤー情報の取得
+const playerId = localStorage.getItem('playerId');
+if (!playerId) {
+    console.error('プレイヤー情報が見つかりません');
+    alert('ログインしてください');
+    window.location.href = 'login.html';
+}
+
+// Soukoのパスを指定
+const playerCardsRef = doc(db, 'Card', playerId);
+
+// カードが取得されるまでの初期設定
+let cardDatabase = [];
+
+// カードデータを初期化
+async function initializeCardDatabase() {
+    const cardData = await fetchCardDatabase();
+    cardDatabase = cardData.length > 0 ? cardData : defaultCardDatabase();
+}
+
+// デフォルトのカードデータを返す関数
+function defaultCardDatabase() {
+    return [
+        {
+            id: 1,
+            name: "不審者の極み'TOUGE'",
+            image: "写真/touge.jpg",
+            effect: "２ターン数値+5",
+            rarity: "UR"
+        },
+        {
+            id: 2,
+            name: "徳田家ののりちゃん",
+            image: "写真/徳田家ののりちゃん.jpg",
+            effect: "手札を１枚捨てる",
+            rarity: "N"
+        },
+        {
+            id: 3,
+            name: "佐藤家のてんちゃん",
+            image: "写真/佐藤家のてんちゃん.jpg",
+            effect: "数値を+5",
+            rarity: "UR"
+        }
+    ];
+}
+
+// Firebaseからカードデータを取得する関数
+async function fetchCardDatabase() {
+    const docSnap = await getDoc(playerCardsRef);
+    if (docSnap.exists()) {
+        return docSnap.data().cards || [];
+    } else {
+        console.log("No data available");
+        return [];
+    }
+}
+
+// カードデータをSoukoに追加する関数
+async function addCardToSouko(card) {
+    try {
+        const cardId = `card_${Date.now()}`; // 一意のIDを生成
+        await setDoc(playerCardsRef, {
+            cards: {
+                [cardId]: {
+                    name: card.name,
+                    image: card.image,
+                    effect: card.effect,
+                    timestamp: new Date()
+                }
+            }
+        }, { merge: true });
+        console.log('カードがSoukoに追加されました:', cardId);
+    } catch (error) {
+        console.error('カードの追加に失敗しました:', error);
+    }
+}
+
+// DOM要素の取得
 const gachaButton = document.getElementById('gacha-button');
 const gachaButton10 = document.getElementById('gacha-button-10');
 const card = document.querySelector('.card');
@@ -51,6 +124,7 @@ retryButton.style.display = 'none'; // 初期は非表示
 document.querySelector('.button-container').appendChild(endGachaButton);
 document.querySelector('.button-container').appendChild(retryButton);
 
+// スタッツの初期化
 let stats = {
     total: 0,
     ur: 0,
@@ -66,6 +140,7 @@ const raritySettings = {
     N: { class: 'common', probability: 50, color: '#7f8c8d' }
 };
 
+// パーティクルを生成する関数
 function createParticles(color, container) {
     for (let i = 0; i < 30; i++) {
         const particle = document.createElement('div');
@@ -83,6 +158,7 @@ function createParticles(color, container) {
     }
 }
 
+// ミニカードを作成する関数
 function createMiniCard() {
     const miniCardContainer = document.createElement('div');
     miniCardContainer.className = 'mini-card';
@@ -133,7 +209,6 @@ function createMiniCard() {
         card: cardElement
     };
 }
-
 let isFirstPull = true;
 
 async function pullGacha() {
@@ -154,7 +229,7 @@ async function pullGacha() {
     const pulledCard = cardDatabase[randomIndex];
 
     cardImage.src = pulledCard.image;
-    cardImage.onload = () => {
+    cardImage.onload = async () => {
         cardName.textContent = pulledCard.name;
         cardEffect.textContent = pulledCard.effect;
         rarityDisplay.textContent = pulledCard.rarity;
@@ -164,6 +239,9 @@ async function pullGacha() {
         
         card.classList.add('flipped');
         createParticles(raritySettings[pulledCard.rarity].color, cardDisplay);
+
+        // カードをSoukoに追加
+        await addCardToSouko(pulledCard);
 
         // カードが回転し終わった後にボタンを表示
         endGachaButton.style.display = 'block';
@@ -177,6 +255,7 @@ async function pullGacha() {
         gachaButton.disabled = false;
     };
 }
+
 async function pullGacha10() {
     gachaButton10.disabled = true;
     cardDisplay.style.display = 'none';
@@ -195,13 +274,16 @@ async function pullGacha10() {
         cardsContainer.appendChild(miniCard.container);
 
         miniCard.image.src = pulledCard.image;
-        miniCard.image.onload = () => {
+        miniCard.image.onload = async () => {
             miniCard.name.textContent = pulledCard.name;
             miniCard.effect.textContent = pulledCard.effect;
             miniCard.rarity.textContent = pulledCard.rarity;
             miniCard.rarity.className = `rarity ${raritySettings[pulledCard.rarity].class}`;
 
             updateStats(pulledCard.rarity);
+
+            // Soukoにカードを追加
+            await addCardToSouko(pulledCard);
 
             setTimeout(() => {
                 miniCard.card.classList.add('flipped');
