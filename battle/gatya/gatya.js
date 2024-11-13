@@ -2,29 +2,28 @@ const cardDatabase = [
     {
         id: 1,
         name: "不審者の極み'TOUGE'",
-        image: "C:\\Users\\t-kyuna\\Downloads\\Image_20241025_154102_693.jpeg",
+        image: "写真/Image_20241025_154102_693.jpeg",
         effect: "SP回復：1",
         rarity: "UR"
     },
     {
         id: 2,
         name: "ハートキャッチ大和",
-        image: "C:\\Users\\t-kyuna\\Pictures\\169003429868aaa3.jpg",
+        image: "写真/169003429868aaa3.jpg",
         effect: "HP回復：10",
         rarity: "SR"
     },
     {
         id: 3,
         name: "てんちゃん",
-        image: "C:\\Users\\t-kyuna\\Downloads\\1000001585.jpg",
+        image: "写真/1000001585.jpg",
         effect: "HP回復：99",
         rarity: "UR"
-    }
-    ,
+    },
     {
         id: 4,
         name: "てんちゃん",
-        image: "C:\\Users\\t-kyuna\\Downloads\\1000001585.jpg",
+        image: "写真/1000001585.jpg",
         effect: "HP回復：99",
         rarity: "UR"
     } 
@@ -88,7 +87,7 @@ function createMiniCard() {
     const cardFront = document.createElement('div');
     cardFront.className = 'card-front';
     const frontImg = document.createElement('img');
-    frontImg.src = "C:\\Users\\t-kyuna\\Downloads\\13791242-トランプのカードの裏面.jpg";
+    frontImg.src = "写真/カードの裏面.jpg";
     cardFront.appendChild(frontImg);
 
     // カード裏面
@@ -127,6 +126,7 @@ function createMiniCard() {
         card: cardElement
     };
 }
+
 let isFirstPull = true;
 
 async function pullGacha() {
