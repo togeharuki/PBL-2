@@ -1,57 +1,3 @@
-// デフォルトカードの定義
-const DEFAULT_CARDS = [
-    {
-        name: "ファイアソード",
-        image: "/images/default/fire_sword.jpg",
-        effect: "⚡ 攻撃力 8 ⚡"
-    },
-    {
-        name: "ヒールポーション",
-        image: "/images/default/heal_potion.jpg",
-        effect: "✨ 回復魔法 7 ✨"
-    },
-    {
-        name: "サンダーアックス",
-        image: "/images/default/thunder_axe.jpg",
-        effect: "⚡ 攻撃力 6 ⚡"
-    },
-    {
-        name: "エンジェルブレス",
-        image: "/images/default/angel_bless.jpg",
-        effect: "✨ 回復魔法 5 ✨"
-    },
-    {
-        name: "ダークブレード",
-        image: "/images/default/dark_blade.jpg",
-        effect: "⚡ 攻撃力 9 ⚡"
-    },
-    {
-        name: "ホーリーライト",
-        image: "/images/default/holy_light.jpg",
-        effect: "✨ 回復魔法 8 ✨"
-    },
-    {
-        name: "フレイムランス",
-        image: "/images/default/flame_lance.jpg",
-        effect: "⚡ 攻撃力 7 ⚡"
-    },
-    {
-        name: "ネイチャーヒール",
-        image: "/images/default/nature_heal.jpg",
-        effect: "✨ 回復魔法 6 ✨"
-    },
-    {
-        name: "アイスソード",
-        image: "/images/default/ice_sword.jpg",
-        effect: "⚡ 攻撃力 5 ⚡"
-    },
-    {
-        name: "ライフエッセンス",
-        image: "/images/default/life_essence.jpg",
-        effect: "✨ 回復魔法 9 ✨"
-    }
-];
-
 // Firebaseの設定
 const firebaseConfig = {
     apiKey: "AIzaSyCGgRBPAF2W0KKw0tX2zwZeyjDGgvv31KM",
@@ -71,18 +17,13 @@ const createAccountButton = document.getElementById('createAccount');
 const playerNameInput = document.getElementById('playerName');
 const messageDiv = document.getElementById('message');
 
-// メッセージ表示関数
-function showMessage(text, type) {
-    messageDiv.textContent = text;
-    messageDiv.className = `message ${type} show`;
-}
-
 // プレイヤー名の入力チェック
 playerNameInput.addEventListener('input', function() {
     if (this.value.length > 20) {
         this.value = this.value.slice(0, 20);
     }
 });
+
 // アカウント作成処理
 createAccountButton.addEventListener('click', async () => {
     const playerName = playerNameInput.value.trim();
@@ -94,7 +35,7 @@ createAccountButton.addEventListener('click', async () => {
 
     try {
         createAccountButton.disabled = true;
-
+        
         // 既存のプレイヤー名をチェック
         const existingPlayer = await db.collection('Player')
             .where('playerName', '==', playerName)
@@ -117,28 +58,11 @@ createAccountButton.addEventListener('click', async () => {
             nextPlayerId = lastPlayerDoc.docs[0].data().playerId + 1;
         }
 
-        // Playerコレクションにデータを追加
+        // 新しいプレイヤーを追加
         await db.collection('Player').add({
             playerName: playerName,
             playerId: nextPlayerId,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        // Soukoコレクションにデフォルトカードを追加
-        const soukoRef = db.collection('Souko').doc(nextPlayerId.toString());
-        const cardData = {};
-        DEFAULT_CARDS.forEach((card, index) => {
-            cardData[`default_card_${index + 1}`] = {
-                ...card,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            };
-        });
-        await soukoRef.set(cardData);
-
-        console.log('アカウント作成成功:', {
-            playerName: playerName,
-            playerId: nextPlayerId,
-            cardData: cardData
         });
 
         showMessage(`アカウントを作成しました！\nプレイヤーID: ${nextPlayerId}`, 'success');
@@ -154,22 +78,13 @@ createAccountButton.addEventListener('click', async () => {
 
     } catch (error) {
         console.error('アカウント作成エラー:', error);
-        showMessage('アカウントの作成に失敗しました: ' + error.message, 'error');
+        showMessage('アカウントの作成に失敗しました', 'error');
         createAccountButton.disabled = false;
     }
 });
 
-// エラーハンドリング
-window.addEventListener('error', function(event) {
-    console.error('グローバルエラー:', event.error);
-});
-
-// DOMの読み込み完了時の処理
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM読み込み完了');
-    // 既存のローカルストレージデータをチェック
-    const existingPlayerId = localStorage.getItem('playerId');
-    if (existingPlayerId) {
-        console.log('既存のプレイヤーID検出:', existingPlayerId);
-    }
-});
+// メッセージ表示関数
+function showMessage(text, type) {
+    messageDiv.textContent = text;
+    messageDiv.className = `message ${type} show`;
+}
