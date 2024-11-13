@@ -39,15 +39,27 @@ document.addEventListener('DOMContentLoaded', function() {
     const cardNameInput = document.getElementById('card-name-input');
     const cardCountDisplay = document.getElementById('card-count');
     const cardListGrid = document.getElementById('card-list-grid');
-    const saveDeckButton = document.getElementById('save-deck');
+    const deckEditButton = document.getElementById('go-to-deck-edit');
+    const deckEditContainer = document.getElementById('deck-edit-button-container');
 
-    // カード数の更新
+    // カード数の更新とデッキ編集ボタンの表示制御
     function updateCardCount() {
         const count = cards.length;
         cardCountDisplay.textContent = `作成したカード: ${count} / 20`;
         createButton.disabled = count >= 20;
+        
+        // 20枚になったらデッキ編集ボタンを表示
+        if (count >= 20) {
+            deckEditContainer.style.display = 'block';
+        } else {
+            deckEditContainer.style.display = 'none';
+        }
     }
 
+    // デッキ編集ボタンのイベントリスナー
+    deckEditButton.addEventListener('click', function() {
+        window.location.href = 'https://togeharuki.github.io/Card/deck/deck.html';
+    });
     // カード要素を作成する関数
     function createCardElement(card, index) {
         const cardElement = document.createElement('div');
@@ -117,6 +129,7 @@ document.addEventListener('DOMContentLoaded', function() {
             throw error;
         }
     }
+
     // カードリストの表示
     function showCardList() {
         cardListGrid.innerHTML = '';
@@ -167,7 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 成功メッセージの表示
-    function showSuccessMessage(message = 'カードを作成しました！', duration = 3000) {
+    function showSuccessMessage(message = 'カードを保存しました！', duration = 3000) {
         const messageElement = document.createElement('div');
         messageElement.className = 'success-message';
         messageElement.innerHTML = `
@@ -290,13 +303,8 @@ document.addEventListener('DOMContentLoaded', function() {
             cardElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             
             updateCardCount();
-            showSuccessMessage('カードを作成しました！デッキ編集へ移動します。');
+            showSuccessMessage();
             resetForm();
-
-            // 1秒後にデッキ編集ページへ遷移
-            setTimeout(() => {
-                window.location.href = '/deck/deck.html';
-            }, 1000);
 
         } catch (error) {
             console.error('カードの作成に失敗しました:', error);
