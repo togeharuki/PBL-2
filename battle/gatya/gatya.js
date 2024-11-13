@@ -2,31 +2,24 @@ const cardDatabase = [
     {
         id: 1,
         name: "不審者の極み'TOUGE'",
-        image: "写真/Image_20241025_154102_693.jpeg",
-        effect: "SP回復：1",
+        image: "写真/touge.jpg",
+        effect: "２ターン数値+5",
         rarity: "UR"
     },
     {
         id: 2,
-        name: "ハートキャッチ大和",
-        image: "写真/169003429868aaa3.jpg",
-        effect: "HP回復：10",
-        rarity: "SR"
+        name: "徳田家ののりちゃん",
+        image: "写真/徳田家ののりちゃん.jpg",
+        effect: "手札を１枚捨てる",
+        rarity: "n"
     },
     {
         id: 3,
-        name: "てんちゃん",
-        image: "写真/1000001585.jpg",
-        effect: "HP回復：99",
+        name: "佐藤家のてんちゃん",
+        image: "写真/佐藤家のてんちゃん.jpg",
+        effect: "数値を+5",
         rarity: "UR"
-    },
-    {
-        id: 4,
-        name: "てんちゃん",
-        image: "写真/1000001585.jpg",
-        effect: "HP回復：99",
-        rarity: "UR"
-    } 
+    }
 ];
 
 const gachaButton = document.getElementById('gacha-button');
