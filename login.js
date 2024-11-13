@@ -41,6 +41,13 @@ window.addEventListener('load', () => {
 loginButton.addEventListener('click', async () => {
     const playerName = playerNameInput.value.trim();
 
+    // すでにログインしている場合
+    const savedPlayerId = localStorage.getItem('playerId');
+    if (savedPlayerId) {
+        showMessage('すでにログインしています', 'error');
+        return;
+    }
+
     if (!playerName) {
         showMessage('プレイヤー名を入力してください', 'error');
         return;
