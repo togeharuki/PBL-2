@@ -1,3 +1,57 @@
+// デフォルトカードの定義
+const DEFAULT_CARDS = [
+    {
+        name: "ファイアソード",
+        image: "/images/default/fire_sword.jpg",
+        effect: "⚡ 攻撃力 8 ⚡"
+    },
+    {
+        name: "ヒールポーション",
+        image: "/images/default/heal_potion.jpg",
+        effect: "✨ 回復魔法 7 ✨"
+    },
+    {
+        name: "サンダーアックス",
+        image: "/images/default/thunder_axe.jpg",
+        effect: "⚡ 攻撃力 6 ⚡"
+    },
+    {
+        name: "エンジェルブレス",
+        image: "/images/default/angel_bless.jpg",
+        effect: "✨ 回復魔法 5 ✨"
+    },
+    {
+        name: "ダークブレード",
+        image: "/images/default/dark_blade.jpg",
+        effect: "⚡ 攻撃力 9 ⚡"
+    },
+    {
+        name: "ホーリーライト",
+        image: "/images/default/holy_light.jpg",
+        effect: "✨ 回復魔法 8 ✨"
+    },
+    {
+        name: "フレイムランス",
+        image: "/images/default/flame_lance.jpg",
+        effect: "⚡ 攻撃力 7 ⚡"
+    },
+    {
+        name: "ネイチャーヒール",
+        image: "/images/default/nature_heal.jpg",
+        effect: "✨ 回復魔法 6 ✨"
+    },
+    {
+        name: "アイスソード",
+        image: "/images/default/ice_sword.jpg",
+        effect: "⚡ 攻撃力 5 ⚡"
+    },
+    {
+        name: "ライフエッセンス",
+        image: "/images/default/life_essence.jpg",
+        effect: "✨ 回復魔法 9 ✨"
+    }
+];
+
 // Firebaseの設定
 const firebaseConfig = {
     apiKey: "AIzaSyCGgRBPAF2W0KKw0tX2zwZeyjDGgvv31KM",
@@ -17,6 +71,31 @@ const createAccountButton = document.getElementById('createAccount');
 const playerNameInput = document.getElementById('playerName');
 const messageDiv = document.getElementById('message');
 
+// デフォルトカードを倉庫に追加する関数
+async function setupDefaultCards(playerId) {
+    try {
+        const soukoRef = db.collection('Souko').doc(playerId.toString());
+        const batch = db.batch();
+
+        // デフォルトカードを倉庫に保存
+        DEFAULT_CARDS.forEach((card, index) => {
+            const cardId = `default_card_${index + 1}`;
+            const cardData = {
+                ...card,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            batch.set(soukoRef, { [cardId]: cardData }, { merge: true });
+        });
+
+        await batch.commit();
+        console.log('デフォルトカードを倉庫に保存しました');
+        return true;
+    } catch (error) {
+        console.error('デフォルトカードの設定に失敗しました:', error);
+        throw error;
+    }
+}
+
 // プレイヤー名の入力チェック
 playerNameInput.addEventListener('input', function() {
     if (this.value.length > 20) {
@@ -35,7 +114,7 @@ createAccountButton.addEventListener('click', async () => {
 
     try {
         createAccountButton.disabled = true;
-        
+
         // 既存のプレイヤー名をチェック
         const existingPlayer = await db.collection('Player')
             .where('playerName', '==', playerName)
@@ -58,11 +137,18 @@ createAccountButton.addEventListener('click', async () => {
             nextPlayerId = lastPlayerDoc.docs[0].data().playerId + 1;
         }
 
-        // 新しいプレイヤーを追加
-        await db.collection('Player').add({
-            playerName: playerName,
-            playerId: nextPlayerId,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        // トランザクションで処理を実行
+        await db.runTransaction(async (transaction) => {
+            // プレイヤー情報を保存
+            const playerRef = db.collection('Player').doc();
+            transaction.set(playerRef, {
+                playerName: playerName,
+                playerId: nextPlayerId,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            // デフォルトカードを設定
+            await setupDefaultCards(nextPlayerId);
         });
 
         showMessage(`アカウントを作成しました！\nプレイヤーID: ${nextPlayerId}`, 'success');
