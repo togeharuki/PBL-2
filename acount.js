@@ -71,21 +71,25 @@ const createAccountButton = document.getElementById('createAccount');
 const playerNameInput = document.getElementById('playerName');
 const messageDiv = document.getElementById('message');
 
-// プレイヤー情報とデフォルトカードを保存する関数
-async function createPlayerAndCards(playerName, playerId) {
+// プレイヤー情報を保存する関数
+async function createPlayer(playerName, playerId) {
     try {
-        const batch = db.batch();
-
-        // プレイヤー情報を保存 (Player/{playerId})
-        const playerRef = db.collection('Player').doc(playerId.toString());
-        batch.set(playerRef, {
+        await db.collection('Player').doc(playerId.toString()).set({
             playerName: playerName,
             playerId: playerId,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
+        console.log('プレイヤー情報を保存しました');
+        return true;
+    } catch (error) {
+        console.error('プレイヤー情報の保存に失敗しました:', error);
+        throw error;
+    }
+}
 
-        // デフォルトカードを倉庫に保存 (Souko/{playerId})
-        const soukoRef = db.collection('Souko').doc(playerId.toString());
+// デフォルトカードを倉庫に保存する関数
+async function createSoukoCards(playerId) {
+    try {
         const cardData = {};
         DEFAULT_CARDS.forEach((card, index) => {
             cardData[`default_card_${index + 1}`] = {
@@ -93,14 +97,12 @@ async function createPlayerAndCards(playerName, playerId) {
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
         });
-        batch.set(soukoRef, cardData);
 
-        // バッチ処理を実行
-        await batch.commit();
-        console.log('プレイヤー情報とデフォルトカードを保存しました');
+        await db.collection('Souko').doc(playerId.toString()).set(cardData);
+        console.log('デフォルトカードを倉庫に保存しました');
         return true;
     } catch (error) {
-        console.error('データの保存に失敗しました:', error);
+        console.error('倉庫へのカード保存に失敗しました:', error);
         throw error;
     }
 }
@@ -146,19 +148,38 @@ createAccountButton.addEventListener('click', async () => {
             nextPlayerId = lastPlayerDoc.docs[0].data().playerId + 1;
         }
 
-        // プレイヤー情報とデフォルトカードを保存
-        await createPlayerAndCards(playerName, nextPlayerId);
+        try {
+            // プレイヤー情報を保存
+            await createPlayer(playerName, nextPlayerId);
 
-        showMessage(`アカウントを作成しました！\nプレイヤーID: ${nextPlayerId}`, 'success');
+            // デフォルトカードを倉庫に保存
+            await createSoukoCards(nextPlayerId);
 
-        // ローカルストレージにプレイヤー情報を保存
-        localStorage.setItem('playerName', playerName);
-        localStorage.setItem('playerId', nextPlayerId);
+            showMessage(`アカウントを作成しました！\nプレイヤーID: ${nextPlayerId}`, 'success');
 
-        // 3秒後にタイトル画面に戻る
-        setTimeout(() => {
-            window.location.href = 'title.html';
-        }, 3000);
+            // ローカルストレージにプレイヤー情報を保存
+            localStorage.setItem('playerName', playerName);
+            localStorage.setItem('playerId', nextPlayerId);
+
+            // 3秒後にタイトル画面に戻る
+            setTimeout(() => {
+                window.location.href = 'title.html';
+            }, 3000);
+
+        } catch (error) {
+            // エラーが発生した場合、両方のコレクションをクリーンアップ
+            try {
+                if (db.collection('Player').doc(nextPlayerId.toString())) {
+                    await db.collection('Player').doc(nextPlayerId.toString()).delete();
+                }
+                if (db.collection('Souko').doc(nextPlayerId.toString())) {
+                    await db.collection('Souko').doc(nextPlayerId.toString()).delete();
+                }
+            } catch (cleanupError) {
+                console.error('クリーンアップに失敗:', cleanupError);
+            }
+            throw error;
+        }
 
     } catch (error) {
         console.error('アカウント作成エラー:', error);
