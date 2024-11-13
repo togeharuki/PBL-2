@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>デッキ一覧 - Deck Dreamers</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="deck.css">
+</head>
+<body>
+    <div class="deck-container">
+        <h1>デッキ一覧</h1>
+        <div id="player-info" class="player-info">
+            <span id="player-name"></span>
+            <span id="player-id"></span>
+        </div>
+
+        <div class="deck-grid" id="deck-grid">
+            <!-- カードはJavaScriptで動的に追加されます -->
+        </div>
+
+        <div class="button-container">
+            <button onclick="location.href='title.html'" class="back-button">戻る</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="deck.js"></script>
+</body>
+</html>
