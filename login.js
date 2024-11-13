@@ -41,13 +41,6 @@ window.addEventListener('load', () => {
 loginButton.addEventListener('click', async () => {
     const playerName = playerNameInput.value.trim();
 
-    // すでにログインしている場合
-    const savedPlayerId = localStorage.getItem('playerId');
-    if (savedPlayerId) {
-        showMessage('すでにログインしています', 'error');
-        return;
-    }
-
     if (!playerName) {
         showMessage('プレイヤー名を入力してください', 'error');
         return;
@@ -55,6 +48,15 @@ loginButton.addEventListener('click', async () => {
 
     try {
         loginButton.disabled = true;
+
+        // 現在のログイン状態を確認
+        const currentLoginDoc = await db.collection('CurrentLogin').doc('active').get();
+        if (currentLoginDoc.exists) {
+            const currentPlayerId = currentLoginDoc.data().playerId;
+            showMessage(`現在、プレイヤーID: ${currentPlayerId} がログイン中です。`, 'error');
+            loginButton.disabled = false;
+            return;
+        }
 
         // プレイヤー名で検索
         const playerQuery = await db.collection('Player')
@@ -74,6 +76,9 @@ loginButton.addEventListener('click', async () => {
         // ローカルストレージに保存
         localStorage.setItem('playerName', playerName);
         localStorage.setItem('playerId', playerId);
+
+        // 現在のログイン状態をFirestoreに保存
+        await db.collection('CurrentLogin').doc('active').set({ playerId });
 
         // プレイヤー情報を表示
         playerInfoDiv.style.display = 'block';
