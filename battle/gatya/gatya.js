@@ -214,6 +214,10 @@ async function pullGacha10() {
         };
     }
 
+    // 10連ガチャでもボタンを表示
+    endGachaButton.style.display = 'block';
+    retryButton.style.display = 'block';
+
     gachaButton10.disabled = false;
 }
 
@@ -241,9 +245,11 @@ retryButton.addEventListener('click', () => {
     endGachaButton.style.display = 'none'; // 終了ボタンを非表示
     retryButton.style.display = 'none'; // もう1回ボタンを非表示
     card.classList.remove('flipped'); // カードの回転をリセット
+    cardImage.src = "写真/カードの裏面.jpg"; // 裏面画像を設定
     cardDisplay.style.display = 'none'; // カード表示を非表示
     cardsContainer.style.display = 'none'; // カードコンテナを非表示
     gachaButton.disabled = false; // ボタンを有効にする
+    gachaButton10.disabled = false; // 10連ボタンも有効にする
 });
 
 gachaButton.addEventListener('click', pullGacha);
