@@ -76,20 +76,16 @@ async function createPlayerAndCards(playerName, playerId) {
     try {
         const batch = db.batch();
 
-        // プレイヤー情報のドキュメント参照を作成
-        const playerDocRef = db.collection('Player').doc(playerId.toString());
-
-        // プレイヤー基本情報をプレイヤードキュメントに保存
-        batch.set(playerDocRef, {
-            info: {
-                playerName: playerName,
-                playerId: playerId,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            }
+        // プレイヤー情報を保存 (Player/{playerId})
+        const playerRef = db.collection('Player').doc(playerId.toString());
+        batch.set(playerRef, {
+            playerName: playerName,
+            playerId: playerId,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        // Soukoサブコレクションにデフォルトカードを保存
-        const soukoDocRef = playerDocRef.collection('Souko').doc('default_cards');
+        // デフォルトカードを倉庫に保存 (Souko/{playerId})
+        const soukoRef = db.collection('Souko').doc(playerId.toString());
         const cardData = {};
         DEFAULT_CARDS.forEach((card, index) => {
             cardData[`default_card_${index + 1}`] = {
@@ -97,7 +93,7 @@ async function createPlayerAndCards(playerName, playerId) {
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
         });
-        batch.set(soukoDocRef, cardData);
+        batch.set(soukoRef, cardData);
 
         // バッチ処理を実行
         await batch.commit();
@@ -129,22 +125,25 @@ createAccountButton.addEventListener('click', async () => {
         createAccountButton.disabled = true;
 
         // 既存のプレイヤー名をチェック
-        const existingPlayers = await db.collection('Player').get();
-        const playerExists = Array.from(existingPlayers.docs).some(doc => 
-            doc.data().info?.playerName === playerName
-        );
+        const existingPlayer = await db.collection('Player')
+            .where('playerName', '==', playerName)
+            .get();
 
-        if (playerExists) {
+        if (!existingPlayer.empty) {
             showMessage('このプレイヤー名は既に使用されています', 'error');
             createAccountButton.disabled = false;
             return;
         }
 
         // 最新のプレイヤーIDを取得
+        const lastPlayerDoc = await db.collection('Player')
+            .orderBy('playerId', 'desc')
+            .limit(1)
+            .get();
+
         let nextPlayerId = 1;
-        if (!existingPlayers.empty) {
-            const playerIds = existingPlayers.docs.map(doc => doc.data().info?.playerId || 0);
-            nextPlayerId = Math.max(...playerIds) + 1;
+        if (!lastPlayerDoc.empty) {
+            nextPlayerId = lastPlayerDoc.docs[0].data().playerId + 1;
         }
 
         // プレイヤー情報とデフォルトカードを保存
