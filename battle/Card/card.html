@@ -35,7 +35,7 @@
         </div>
 
         <input type="file" id="card-image" accept="image/*">
-        <button id="create-card">デッキ編集へ</button>
+        <button id="create-card">カードを保存</button>
     </div>
 
     <div id="card-count">作成したカード: 0 / 20</div>
@@ -43,6 +43,10 @@
     <div id="card-list" class="card-list">
         <h2>作成したカード一覧</h2>
         <div id="card-list-grid" class="card-list-grid"></div>
+    </div>
+
+    <div id="deck-edit-button-container" style="display: none; text-align: center; margin: 20px 0;">
+        <button id="go-to-deck-edit" class="battle-button">デッキ編集画面へ</button>
     </div>
 
     <!-- Firebase SDKs -->
