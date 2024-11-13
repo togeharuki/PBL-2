@@ -71,13 +71,18 @@ const createAccountButton = document.getElementById('createAccount');
 const playerNameInput = document.getElementById('playerName');
 const messageDiv = document.getElementById('message');
 
+// メッセージ表示関数
+function showMessage(text, type) {
+    messageDiv.textContent = text;
+    messageDiv.className = `message ${type} show`;
+}
+
 // プレイヤー名の入力チェック
 playerNameInput.addEventListener('input', function() {
     if (this.value.length > 20) {
         this.value = this.value.slice(0, 20);
     }
 });
-
 // アカウント作成処理
 createAccountButton.addEventListener('click', async () => {
     const playerName = playerNameInput.value.trim();
@@ -112,14 +117,14 @@ createAccountButton.addEventListener('click', async () => {
             nextPlayerId = lastPlayerDoc.docs[0].data().playerId + 1;
         }
 
-        // プレイヤー情報を保存
+        // Playerコレクションにデータを追加
         await db.collection('Player').add({
             playerName: playerName,
             playerId: nextPlayerId,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        // 倉庫にデフォルトカードを保存
+        // Soukoコレクションにデフォルトカードを追加
         const soukoRef = db.collection('Souko').doc(nextPlayerId.toString());
         const cardData = {};
         DEFAULT_CARDS.forEach((card, index) => {
@@ -129,6 +134,12 @@ createAccountButton.addEventListener('click', async () => {
             };
         });
         await soukoRef.set(cardData);
+
+        console.log('アカウント作成成功:', {
+            playerName: playerName,
+            playerId: nextPlayerId,
+            cardData: cardData
+        });
 
         showMessage(`アカウントを作成しました！\nプレイヤーID: ${nextPlayerId}`, 'success');
 
@@ -143,13 +154,22 @@ createAccountButton.addEventListener('click', async () => {
 
     } catch (error) {
         console.error('アカウント作成エラー:', error);
-        showMessage('アカウントの作成に失敗しました', 'error');
+        showMessage('アカウントの作成に失敗しました: ' + error.message, 'error');
         createAccountButton.disabled = false;
     }
 });
 
-// メッセージ表示関数
-function showMessage(text, type) {
-    messageDiv.textContent = text;
-    messageDiv.className = `message ${type} show`;
-}
+// エラーハンドリング
+window.addEventListener('error', function(event) {
+    console.error('グローバルエラー:', event.error);
+});
+
+// DOMの読み込み完了時の処理
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM読み込み完了');
+    // 既存のローカルストレージデータをチェック
+    const existingPlayerId = localStorage.getItem('playerId');
+    if (existingPlayerId) {
+        console.log('既存のプレイヤーID検出:', existingPlayerId);
+    }
+});
