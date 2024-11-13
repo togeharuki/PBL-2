@@ -39,8 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const cardNameInput = document.getElementById('card-name-input');
     const cardCountDisplay = document.getElementById('card-count');
     const cardListGrid = document.getElementById('card-list-grid');
-    const deckEditButton = document.getElementById('go-to-deck-edit');
-    const deckEditContainer = document.getElementById('deck-edit-button-container');
+    const deckEditContainer = document.getElementById('deck-edit-container');
 
     // カード数の更新とデッキ編集ボタンの表示制御
     function updateCardCount() {
@@ -51,15 +50,15 @@ document.addEventListener('DOMContentLoaded', function() {
         // 20枚になったらデッキ編集ボタンを表示
         if (count >= 20) {
             deckEditContainer.style.display = 'block';
+            // スムーズにスクロール
+            setTimeout(() => {
+                deckEditContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }, 100);
         } else {
             deckEditContainer.style.display = 'none';
         }
     }
 
-    // デッキ編集ボタンのイベントリスナー
-    deckEditButton.addEventListener('click', function() {
-        window.location.href = 'https://togeharuki.github.io/Card/deck/deck.html';
-    });
     // カード要素を作成する関数
     function createCardElement(card, index) {
         const cardElement = document.createElement('div');
@@ -82,7 +81,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         return cardElement;
     }
-
     // Firebaseからカードを読み込む関数
     async function loadCardsFromFirebase() {
         try {
@@ -137,6 +135,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const cardElement = createCardElement(card, index);
             cardListGrid.appendChild(cardElement);
         });
+        updateCardCount();
     }
 
     // カードの削除
@@ -193,132 +192,141 @@ document.addEventListener('DOMContentLoaded', function() {
             messageElement.remove();
         }, duration);
     }
+// リセット関数
+function resetForm() {
+    previewImage.src = '';
+    previewImage.style.display = 'none';
+    previewEffect.textContent = '';
+    imageInput.value = '';
+    cardNameInput.value = '';
+    currentEffect = '';
+    effectGenerated = false;
+    heartButton.disabled = false;
+    swordButton.disabled = false;
+}
 
-    // リセット関数
-    function resetForm() {
-        previewImage.src = '';
-        previewImage.style.display = 'none';
-        previewEffect.textContent = '';
-        imageInput.value = '';
-        cardNameInput.value = '';
-        currentEffect = '';
-        effectGenerated = false;
-        heartButton.disabled = false;
-        swordButton.disabled = false;
+// イベントリスナー設定
+imageInput.addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+        alert('画像ファイルを選択してください。');
+        return;
     }
 
-    // イベントリスナー設定
-    imageInput.addEventListener('change', function(event) {
-        const file = event.target.files[0];
-        if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // リサイズ処理
+            const maxWidth = 300;
+            const maxHeight = 300;
+            let width = img.width;
+            let height = img.height;
 
-        if (!file.type.startsWith('image/')) {
-            alert('画像ファイルを選択してください。');
-            return;
-        }
+            if (width > height && width > maxWidth) {
+                height *= maxWidth / width;
+                width = maxWidth;
+            } else if (height > maxHeight) {
+                width *= maxHeight / height;
+                height = maxHeight;
+            }
 
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const img = new Image();
-            img.onload = function() {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                
-                // リサイズ処理
-                const maxWidth = 300;
-                const maxHeight = 300;
-                let width = img.width;
-                let height = img.height;
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
 
-                if (width > height && width > maxWidth) {
-                    height *= maxWidth / width;
-                    width = maxWidth;
-                } else if (height > maxHeight) {
-                    width *= maxHeight / height;
-                    height = maxHeight;
-                }
-
-                canvas.width = width;
-                canvas.height = height;
-                ctx.drawImage(img, 0, 0, width, height);
-
-                // 圧縮した画像をプレビューに設定
-                const compressedImage = canvas.toDataURL('image/jpeg', 0.7);
-                previewImage.src = compressedImage;
-                previewImage.style.display = 'block';
-            };
-            img.src = e.target.result;
+            // 圧縮した画像をプレビューに設定
+            const compressedImage = canvas.toDataURL('image/jpeg', 0.7);
+            previewImage.src = compressedImage;
+            previewImage.style.display = 'block';
         };
-        reader.readAsDataURL(file);
-    });
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+});
 
-    // 効果ボタンのイベントリスナー
-    heartButton.addEventListener('click', function() {
-        if (!effectGenerated) {
-            generateRandomEffect('heal');
-            disableEffectButtons();
-        }
-    });
+// 効果ボタンのイベントリスナー
+heartButton.addEventListener('click', function() {
+    if (!effectGenerated) {
+        generateRandomEffect('heal');
+        disableEffectButtons();
+    }
+});
 
-    swordButton.addEventListener('click', function() {
-        if (!effectGenerated) {
-            generateRandomEffect('attack');
-            disableEffectButtons();
-        }
-    });
+swordButton.addEventListener('click', function() {
+    if (!effectGenerated) {
+        generateRandomEffect('attack');
+        disableEffectButtons();
+    }
+});
 
-    // カード作成ボタンのイベントリスナー
-    createButton.addEventListener('click', async function() {
-        if (!currentEffect) {
-            alert('効果を選択してください。');
-            return;
-        }
+// カード作成ボタンのイベントリスナー
+createButton.addEventListener('click', async function() {
+    if (!currentEffect) {
+        alert('効果を選択してください。');
+        return;
+    }
 
-        if (!previewImage.src || previewImage.style.display === 'none') {
-            alert('画像を選択してください。');
-            return;
-        }
+    if (!previewImage.src || previewImage.style.display === 'none') {
+        alert('画像を選択してください。');
+        return;
+    }
 
+    if (cards.length >= 20) {
+        alert('最大20枚までしか作成できません。');
+        return;
+    }
+
+    try {
+        const newCard = {
+            name: cardNameInput.value.trim() || 'No Name',
+            image: previewImage.src,
+            effect: currentEffect,
+            timestamp: new Date()
+        };
+
+        // Firebaseにカードを保存
+        const firebaseId = await saveCardToFirebase(newCard);
+        newCard.firebaseId = firebaseId;
+
+        cards.push(newCard);
+        
+        const cardElement = createCardElement(newCard, cards.length - 1);
+        cardListGrid.appendChild(cardElement);
+        cardElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        
+        updateCardCount();
+        showSuccessMessage();
+        resetForm();
+
+        // カードが20枚になったらデッキ編集ボタンを表示してスクロール
         if (cards.length >= 20) {
-            alert('最大20枚までしか作成できません。');
-            return;
+            setTimeout(() => {
+                document.getElementById('deck-edit-container').scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+            }, 500);
         }
 
-        try {
-            const newCard = {
-                name: cardNameInput.value.trim() || 'No Name',
-                image: previewImage.src,
-                effect: currentEffect,
-                timestamp: new Date()
-            };
+    } catch (error) {
+        console.error('カードの作成に失敗しました:', error);
+        alert('カードの作成に失敗しました: ' + error.message);
+    }
+});
 
-            // Firebaseにカードを保存
-            const firebaseId = await saveCardToFirebase(newCard);
-            newCard.firebaseId = firebaseId;
-
-            cards.push(newCard);
-            
-            const cardElement = createCardElement(newCard, cards.length - 1);
-            cardListGrid.appendChild(cardElement);
-            cardElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            
-            updateCardCount();
-            showSuccessMessage();
-            resetForm();
-
-        } catch (error) {
-            console.error('カードの作成に失敗しました:', error);
-            alert('カードの作成に失敗しました: ' + error.message);
-        }
-    });
-
-    // ページ読み込み時の初期化
-    loadCardsFromFirebase();
-    updateCardCount();
-    showCardList();
+// ページ読み込み時の初期化
+loadCardsFromFirebase();
+updateCardCount();
+showCardList();
 });
 
 // エラーハンドリング
 window.addEventListener('error', function(event) {
-    console.error('エラーが発生しました:', event.error);
+console.error('エラーが発生しました:', event.error);
 });
