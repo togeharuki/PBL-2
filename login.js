@@ -14,6 +14,7 @@ const db = firebase.firestore();
 
 // DOM要素の取得
 const loginButton = document.getElementById('loginButton');
+const logoutButton = document.getElementById('logoutButton');
 const playerNameInput = document.getElementById('playerName');
 const messageDiv = document.getElementById('message');
 const playerInfoDiv = document.getElementById('playerInfo');
@@ -32,8 +33,10 @@ window.addEventListener('load', () => {
     
     if (savedPlayerId && savedPlayerName) {
         playerInfoDiv.textContent = `現在のログイン: ${savedPlayerName} (ID: ${savedPlayerId})`;
+        logoutButton.style.display = 'block'; // ログアウトボタンを表示
     } else {
         playerInfoDiv.style.display = 'none';
+        logoutButton.style.display = 'none'; // ログアウトボタンを非表示
     }
 });
 
@@ -86,6 +89,9 @@ loginButton.addEventListener('click', async () => {
         
         showMessage('ログインしました', 'success');
 
+        // ログアウトボタンを表示
+        logoutButton.style.display = 'block';
+
         // 3秒後にタイトル画面に戻る
         setTimeout(() => {
             window.location.href = 'title.html';
@@ -98,9 +104,34 @@ loginButton.addEventListener('click', async () => {
         loginButton.disabled = false;
     }
 });
+// ログアウト処理
+logoutButton.addEventListener('click', async () => {
+    try {
+        // Firestoreから現在のログイン情報を削除
+        await db.collection('CurrentLogin').doc('active').delete();
+        
+        // ローカルストレージからプレイヤー情報を削除
+        localStorage.removeItem('playerName');
+        localStorage.removeItem('playerId');
+
+        // UIを更新
+        playerInfoDiv.style.display = 'none';
+        logoutButton.style.display = 'none';
+
+        showMessage('ログアウトしました', 'success');
+    } catch (error) {
+        console.error('ログアウトエラー:', error);
+        showMessage('ログアウトに失敗しました', 'error');
+    }
+});
 
 // メッセージ表示関数
 function showMessage(text, type) {
     messageDiv.textContent = text;
     messageDiv.className = `message ${type} show`;
 }
+
+// エラーハンドリング
+window.addEventListener('error', function(event) {
+    console.error('グローバルエラー:', event.error);
+});
