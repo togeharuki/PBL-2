@@ -2,52 +2,52 @@
 const DEFAULT_CARDS = [
     {
         name: "逆転の1手",
-        image: "kizon/逆転.jpg",
+        image: "kyuna2190/Deck-Dreamers/kizon/逆転.jpg",
         effect: "山札から１ドロー"
     },
     {
         name: "手札足りない",
-        image: "kizon/手札足りない.jpeg",
+        image: "kyuna2190/Deck-Dreamers/kizon/手札足りない.jpeg",
         effect: "山札から１ドロー"
     },
     {
         name: "のぞき見",
-        image: "kizon/のぞき見.jpeg",
+        image: "kyuna2190/Deck-Dreamers/kizon/のぞき見.jpeg",
         effect: "相手の手札を2枚見る"
     },
     {
         name: "パパラッチ",
-        image: "kizon/パパラッチ.jpg",
+        image: "kyuna2190/Deck-Dreamers/kizon/パパラッチ.jpg",
         effect: "相手の手札を2枚見る"
     },
     {
         name: "レゴブロック",
-        image: "kizon/レゴブロック.jpg",
+        image: "kyuna2190/Deck-Dreamers/kizon/レゴブロック.jpg",
         effect: "数値＋２"
     },
     {
         name: "ルブタンの財布",
-        image: "kizon/ルブタン.jpg",
+        image: "kyuna2190/Deck-Dreamers/kizon/ルブタン.jpg",
         effect: "数値＋２"
     },
     {
         name: "ちくちく",
-        image: "kizon/ちくちく.jpg",
+        image: "kyuna2190/Deck-Dreamers/kizon/ちくちく.jpg",
         effect: "強制1ダメージ"
     },
     {
         name: "とげとげ",
-        image: "kizon/とげとげ.jpg",
+        image: "kyuna2190/Deck-Dreamers/kizon/とげとげ.jpg",
         effect: "強制1ダメージ"
     },
     {
         name: "リストカット",
-        image: "kizon/りすか.jpg",
+        image: "kyuna2190/Deck-Dreamers/kizon/りすか.jpg",
         effect: "両方に2ダメージ"
     },
     {
         name: "共倒れの1手",
-        image: "kizon/共倒れ.jpg",
+        image: "kyuna2190/Deck-Dreamers/kizon/共倒れ.jpg",
         effect: "両方に2ダメージ"
     }
 ];
