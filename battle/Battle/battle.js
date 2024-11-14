@@ -14,3 +14,8 @@ document.getElementById('createCardButton').addEventListener('click', function()
 document.getElementById('backToMenuButton').addEventListener('click', function() {
     navigateTo('../Room/room.html');
 });
+
+// デッキ編集ボタンのイベントリスナーを追加
+document.getElementById('editDeckButton').addEventListener('click', function() {
+    navigateTo('Card/deck/deck.html'); // デッキ編集ページへのナビゲーション
+});
