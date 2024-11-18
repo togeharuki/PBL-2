@@ -61,9 +61,31 @@ async function loadDeckCards() {
                 .sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0))
                 .forEach(card => {
                     // 画像の相対パスを指定
-                    card.image = `kizon/${card.name}.jpg`; // 例: kizon/ちくちく.jpg
-                    const cardElement = createCardElement(card);
-                    deckGrid.appendChild(cardElement);
+                    const cardName = card.name;
+                    card.image = `kizon/${cardName}.jpg`; // JPG形式の画像
+                    const jpegImage = `kizon/${cardName}.jpeg`; // JPEG形式の画像
+
+                    // 画像の存在チェック（簡易版）
+                    const img = new Image();
+                    img.src = card.image;
+                    img.onload = function() {
+                        // JPGが存在する場合
+                        const cardElement = createCardElement(card);
+                        deckGrid.appendChild(cardElement);
+                    };
+                    img.onerror = function() {
+                        // JPGが存在しない場合、JPEGを試す
+                        img.src = jpegImage;
+                        img.onload = function() {
+                            // JPEGが存在する場合
+                            const cardElement = createCardElement(card);
+                            deckGrid.appendChild(cardElement);
+                        };
+                        img.onerror = function() {
+                            // どちらも存在しない場合
+                            console.log(`画像が見つかりません: ${card.image}, ${jpegImage}`);
+                        };
+                    };
                 });
         } else {
             console.log('デッキが見つかりません');
