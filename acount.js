@@ -2,52 +2,52 @@
 const DEFAULT_CARDS = [
     {
         name: "逆転の1手",
-        image: "https://togeharuki.github.io/Deck-Dreamers/kizon/逆転.jpg",
+        image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/逆転.jpg",
         effect: "山札から１ドロー"
     },
     {
         name: "手札足りない",
-        image: "https://togeharuki.github.io/Deck-Dreamers/kizon/手札足りない.jpeg",
+        image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/手札足りない.jpeg",
         effect: "山札から１ドロー"
     },
     {
         name: "のぞき見",
-        image: "https://togeharuki.github.io/Deck-Dreamers/kizon/のぞき見.jpeg",
+        image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/のぞき見.jpeg",
         effect: "相手の手札を2枚見る"
     },
     {
         name: "パパラッチ",
-        image: "https://togeharuki.github.io/Deck-Dreamers/kizon/パパラッチ.jpg",
+        image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/パパラッチ.jpg",
         effect: "相手の手札を2枚見る"
     },
     {
         name: "レゴブロック",
-        image: "https://togeharuki.github.io/Deck-Dreamers/kizon/レゴブロック.jpg",
+        image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/レゴブロック.jpg",
         effect: "数値＋２"
     },
     {
         name: "ルブタンの財布",
-        image: "https://togeharuki.github.io/Deck-Dreamers/kizon/ルブタン.jpg",
+        image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/ルブタン.jpg",
         effect: "数値＋２"
     },
     {
         name: "ちくちく",
-        image: "https://togeharuki.github.io/Deck-Dreamers/kizon/ちくちく.jpg",
+        image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/ちくちく.jpg",
         effect: "強制1ダメージ"
     },
     {
         name: "とげとげ",
-        image: "https://togeharuki.github.io/Deck-Dreamers/kizon/とげとげ.jpg",
+        image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/とげとげ.jpg",
         effect: "強制1ダメージ"
     },
     {
         name: "リストカット",
-        image: "https://togeharuki.github.io/Deck-Dreamers/kizon/りすか.jpg",
+        image: "https://togeharuki.github.io/Deck-/battle/Card/deck/kizon/りすか.jpg",
         effect: "両方に2ダメージ"
     },
     {
         name: "共倒れの1手",
-        image: "https://togeharuki.github.io/Deck-Dreamers/kizon/共倒れ.jpg",
+        image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/共倒れ.jpg",
         effect: "両方に2ダメージ"
     }
 ];
