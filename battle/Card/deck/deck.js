@@ -60,6 +60,8 @@ async function loadDeckCards() {
             Object.values(cardData)
                 .sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0))
                 .forEach(card => {
+                    // 画像の相対パスを指定
+                    card.image = `kizon/${card.name}.jpg`; // 例: kizon/ちくちく.jpg
                     const cardElement = createCardElement(card);
                     deckGrid.appendChild(cardElement);
                 });
