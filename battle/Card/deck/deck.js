@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     if (!playerId) {
         alert('ログインしてください');
-        window.location.href = 'login.html';
+        window.location.href = '../login.html';
         return;
     }
 
