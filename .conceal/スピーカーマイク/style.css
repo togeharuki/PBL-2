@@ -1,0 +1,43 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background-color: #f0f0f0;
+}
+
+.volume-control {
+  position: fixed; /* 画面上に固定 */
+  top: 15px; /* 上からの距離 */
+  right: 15px; /* 右からの距離 */
+
+  /* 
+  下に置きたい場合
+  bottom: 15px;
+
+  左に置きたい場合
+  left: 0px;
+  */
+
+  display: flex;
+  align-items: center; /* 垂直方向に中央揃え */
+  justify-content: center; /* 水平方向に中央揃え */
+  cursor: pointer;
+  z-index: 1000; /* 他の要素の上に表示 */
+  background-color: none;
+  border-radius: 15px; /* 角を丸くする */
+  border: 2px solid rgb(59, 58, 58); /* 外枠を黒に設定 */
+}
+
+.speaker-icon {
+  width: 35px;
+  height: 35px;
+  display: flex; /* 子要素を中央揃えにするためにflexを使う */
+  align-items: center; /* 垂直方向に中央揃え */
+  justify-content: center; /* 水平方向に中央揃え */
+  border-radius: 15px; /* 角を丸くする */
+  overflow: hidden; /* 画像がはみ出さないようにする */
+}
+
+.speaker-icon img {
+  width: 40%;
+  height: 40%;
+}
