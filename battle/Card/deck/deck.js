@@ -62,7 +62,7 @@ async function loadDeckCards() {
 
             const cardPromises = cards.map(async (card) => {
                 const cardName = encodeURIComponent(card.name); // カード名をURLエンコード
-                const basePath = `https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/${cardName}`; // ベースパス
+                const basePath = `${cardName}`; // ベースパス
                 const imagePath = `${basePath}.jpg`; // JPG形式の画像
                 const jpegPath = `${basePath}.jpeg`; // JPEG形式の画像
 
@@ -104,10 +104,11 @@ function checkImageExistence(jpgPath, jpegPath) {
             img.src = jpegPath;
             img.onload = () => resolve(jpegPath); // JPEGが存在する場合
             img.onerror = () => {
-                // JPEGも存在しない場合、数字の羅列がある場合を考慮
-                const numberPath = jpgPath.replace(/\.jpg$/, '_123456.jpg'); // 例として123456を追加
+                // JPEGも存在しない場合、ランダムな数字の羅列を考慮
+                const randomNumber = Math.floor(Math.random() * 1000000); // 0から999999のランダムな数字
+                const numberPath = jpgPath.replace(/\.jpg$/, `_${randomNumber}.jpg`); // 数字を追加
                 img.src = numberPath;
-                img.onload = () => resolve(numberPath); // 数字の羅列がある場合
+                img.onload = () => resolve(numberPath); // ランダムな数字の画像パス
                 img.onerror = () => resolve(null); // どちらも存在しない場合
             };
         };
