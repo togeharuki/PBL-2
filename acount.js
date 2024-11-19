@@ -193,6 +193,36 @@ function showMessage(text, type) {
     messageDiv.textContent = text;
     messageDiv.className = `message ${type} show`;
 }
+
+// デッキのカードを読み込む関数
+async function loadDeckCards() {
+    try {
+        const playerId = localStorage.getItem('playerId');
+        const soukoRef = db.collection('Souko').doc(playerId.toString());
+        const doc = await soukoRef.get();
+
+        if (doc.exists) {
+            const deckGrid = document.getElementById('deck-grid');
+            deckGrid.innerHTML = ''; // 既存のカードをクリア
+
+            const cardData = doc.data();
+            const cardPromises = Object.values(cardData).map(async (card) => {
+                const imagePath = await checkImageExistence(card.image); // 既に定義された画像URLを使う
+
+                if (imagePath) {
+                    card.image = imagePath; // 存在する画像パスをセット
+                    return createCardElement(card); // カード要素を作成
+                } else {
+                    console.log(`画像が見つかりません: ${card.image}`);
+                    return null; // 画像が見つからない場合はnullを返す
+                }
+            });
+
+            // すべてのカード要素を取得
+            const cardElements = await Promise.all(cardPromises);
+            // nullでないカード要素だけをデッキグリッドに追加
+            cardElements.forEach(cardElement => {
+               
                 if (cardElement) {
                     deckGrid.appendChild(cardElement);
                 }
