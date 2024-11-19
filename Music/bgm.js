@@ -22,8 +22,19 @@ window.addEventListener('DOMContentLoaded', () => {
         playMusic(musicFiles[selectedMusic]); // 初期化時に再生を試みる
     }
 
+    // localStorageからミュート状態を取得
+    const storedMuteState = localStorage.getItem('isMuted');
+    if (storedMuteState !== null) {
+        isMuted = storedMuteState === 'true'; // 文字列を真偽値に変換
+    }
+
     // スピーカーアイコンを初期化
     updateSpeakerIcon();
+
+    // ミュートが解除されていれば音楽を再生
+    if (!isMuted && selectedMusic && selectedMusic !== 'none') {
+        musicPlayer.play();
+    }
 });
 
 // 音楽選択が変更されたときの処理
@@ -53,6 +64,9 @@ function toggleVolume() {
         }
     }
 
+    // ミュート状態をlocalStorageに保存
+    localStorage.setItem('isMuted', isMuted);
+
     // スピーカーアイコンを更新
     updateSpeakerIcon();
 
@@ -79,9 +93,9 @@ function stopMusic() {
 // スピーカーアイコンを更新する関数
 function updateSpeakerIcon() {
     if (isMuted) {
-        speakerIcon.innerHTML = '<img src="syasin/offBth.png" alt="音量オフ">';
+        speakerIcon.innerHTML = '<img src="Music/syasin/offBth.png" alt="音量オフ">';
     } else {
-        speakerIcon.innerHTML = '<img src="syasin/onBth.png" alt="音量オン">';
+        speakerIcon.innerHTML = '<img src="Music/syasin/onBth.png" alt="音量オン">';
     }
 }
 
