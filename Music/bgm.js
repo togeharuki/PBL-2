@@ -13,7 +13,7 @@ const speakerIcon = document.createElement('div'); // 音量アイコンを動�
 document.body.appendChild(speakerIcon);
 
 speakerIcon.id = 'speaker-icon';
-speakerIcon.innerHTML = '<img src="写真/offBth.png" alt="音量オフ">'; // 初期状態
+speakerIcon.innerHTML = '<img src="syasin/offBth.png" alt="音量オフ">'; // 初期状態
 
 let isMuted = true; // 初期状態を音量オフに設定
 
@@ -87,9 +87,9 @@ function stopMusic() {
 // スピーカーアイコンを更新する関数
 function updateSpeakerIcon() {
     if (isMuted) {
-        speakerIcon.innerHTML = '<img src="写真/offBth.png" alt="音量オフ">';
+        speakerIcon.innerHTML = '<img src="syasin/offBth.png" alt="音量オフ">';
     } else {
-        speakerIcon.innerHTML = '<img src="写真/onBth.png" alt="音量オン">';
+        speakerIcon.innerHTML = '<img src="syasin/onBth.png" alt="音量オン">';
     }
 }
 
