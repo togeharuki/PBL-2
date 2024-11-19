@@ -57,38 +57,30 @@ async function loadDeckCards() {
             deckGrid.innerHTML = ''; // 既存のカードをクリア
 
             const cardData = doc.data();
-            Object.values(cardData)
-                .sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0))
-                .forEach(card => {
-                    // 画像の相対パスを指定
-                    const cardName = card.name;
-                    const jpgPath = `kizon/${cardName}.jpg`; // JPG形式の画像
-                    const jpegPath = `kizon/${cardName}.jpeg`; // JPEG形式の画像
+            const cardPromises = Object.values(cardData).map(async (card) => {
+                const cardName = card.name;
+                const jpgPath = `kizon/${cardName}.jpg`; // JPG形式の画像
+                const jpegPath = `kizon/${cardName}.jpeg`; // JPEG形式の画像
 
-                    // 画像の存在チェック（簡易版）
-                    const img = new Image();
-                    img.src = jpgPath;
-                    img.onload = function() {
-                        // JPGが存在する場合
-                        card.image = jpgPath;
-                        const cardElement = createCardElement(card);
-                        deckGrid.appendChild(cardElement);
-                    };
-                    img.onerror = function() {
-                        // JPGが存在しない場合、JPEGを試す
-                        img.src = jpegPath;
-                        img.onload = function() {
-                            // JPEGが存在する場合
-                            card.image = jpegPath;
-                            const cardElement = createCardElement(card);
-                            deckGrid.appendChild(cardElement);
-                        };
-                        img.onerror = function() {
-                            // どちらも存在しない場合
-                            console.log(`画像が見つかりません: ${jpgPath} または ${jpegPath}`);
-                        };
-                    };
-                });
+                // 画像の存在チェック
+                const imagePath = await checkImageExistence(jpgPath, jpegPath);
+                if (imagePath) {
+                    card.image = imagePath; // 存在する画像パスをセット
+                    return createCardElement(card); // カード要素を作成
+                } else {
+                    console.log(`画像が見つかりません: ${jpgPath} または ${jpegPath}`);
+                    return null; // 画像が見つからない場合はnullを返す
+                }
+            });
+
+            // すべてのカード要素を取得
+            const cardElements = await Promise.all(cardPromises);
+            // nullでないカード要素だけをデッキグリッドに追加
+            cardElements.forEach(cardElement => {
+                if (cardElement) {
+                    deckGrid.appendChild(cardElement);
+                }
+            });
         } else {
             console.log('デッキが見つかりません');
         }
@@ -96,6 +88,20 @@ async function loadDeckCards() {
         console.error('デッキの読み込みに失敗しました:', error);
         alert('デッキの読み込みに失敗しました: ' + error.message);
     }
+}
+// 画像の存在チェックを行う関数
+function checkImageExistence(jpgPath, jpegPath) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.src = jpgPath;
+        img.onload = () => resolve(jpgPath); // JPGが存在する場合
+        img.onerror = () => {
+            // JPGが存在しない場合、JPEGを試す
+            img.src = jpegPath;
+            img.onload = () => resolve(jpegPath); // JPEGが存在する場合
+            img.onerror = () => resolve(null); // どちらも存在しない場合
+        };
+    });
 }
 
 // エラーハンドリング
