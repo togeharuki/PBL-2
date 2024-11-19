@@ -44,7 +44,6 @@ function createCardElement(card) {
     `;
     return cardElement;
 }
-
 // デッキのカードを読み込む関数
 async function loadDeckCards() {
     try {
@@ -57,7 +56,10 @@ async function loadDeckCards() {
             deckGrid.innerHTML = ''; // 既存のカードをクリア
 
             const cardData = doc.data();
-            const cardPromises = Object.values(cardData).map(async (card) => {
+            // カードデータがサブオブジェクトではなく配列の場合の処理
+            const cards = Array.isArray(cardData.cards) ? cardData.cards : Object.values(cardData);
+
+            const cardPromises = cards.map(async (card) => {
                 const cardName = card.name;
                 const jpgPath = `kizon/${cardName}.jpg`; // JPG形式の画像
                 const jpegPath = `kizon/${cardName}.jpeg`; // JPEG形式の画像
@@ -89,6 +91,7 @@ async function loadDeckCards() {
         alert('デッキの読み込みに失敗しました: ' + error.message);
     }
 }
+
 // 画像の存在チェックを行う関数
 function checkImageExistence(jpgPath, jpegPath) {
     return new Promise((resolve) => {
