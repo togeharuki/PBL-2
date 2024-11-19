@@ -62,8 +62,8 @@ async function loadDeckCards() {
 
             const cardPromises = cards.map(async (card) => {
                 const cardName = encodeURIComponent(card.name); // カード名をURLエンコード
-                const imagePath = `https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/${cardName}.jpg`; // JPG形式の画像
-                const jpegPath = `https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/${cardName}.jpeg`; // JPEG形式の画像
+                const imagePath = `${cardName}.jpg`; // JPG形式の画像
+                const jpegPath = `${cardName}.jpeg`; // JPEG形式の画像
 
                 // 画像の存在チェック
                 const validImagePath = await checkImageExistence(imagePath, jpegPath);
@@ -106,6 +106,7 @@ function checkImageExistence(jpgPath, jpegPath) {
         };
     });
 }
+
 // エラーハンドリング
 window.addEventListener('error', function(event) {
     console.error('エラーが発生しました:', event.error);
