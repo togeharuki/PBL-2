@@ -104,11 +104,11 @@ function checkImageExistence(jpgPath, jpegPath) {
             img.src = jpegPath;
             img.onload = () => resolve(jpegPath); // JPEGが存在する場合
             img.onerror = () => {
-                // JPEGも存在しない場合、ランダムな数字の羅列を考慮
-                const randomNumber = Math.floor(Math.random() * 1000000); // 0から999999のランダムな数字
-                const numberPath = jpgPath.replace(/\.jpg$/, `_${randomNumber}.jpg`); // 数字を追加
-                img.src = numberPath;
-                img.onload = () => resolve(numberPath); // ランダムな数字の画像パス
+                // JPEGも存在しない場合、謎の文字列を考慮
+                const numberPath = jpgPath.replace(/\.jpg$/, '.jpg'); // 拡張子を保持し、謎の文字列を追加する
+                const randomString = Math.random().toString(36).substring(2, 10); // ランダムな文字列を生成
+                img.src = numberPath.replace(/\.jpg$/, `_${randomString}.jpg`); // 謎の文字列を追加
+                img.onload = () => resolve(img.src); // ランダムな文字列の画像パス
                 img.onerror = () => resolve(null); // どちらも存在しない場合
             };
         };
