@@ -1,49 +1,96 @@
+<!-- battle.html -->
 <!DOCTYPE html>
 <html lang="ja">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Deck・Dreamers Battle Screen</title>
-        <link href="taisen.css" rel="stylesheet"> 
-    </head>
-    <body>
-        <div class="game-board">
-            <!-- プレイヤー1情報 -->
-            <div id="player1-info" class="player-info">
-                <div>プレイヤー1 HP: <span id="player1-hp">10000</span></div>
-                <button id="player1-create-card" class="create-card-btn">神の一手</button>
-            </div>
-            <div id="player1-count" class="card-count">デッキ: <span id="player1-deck-count">30</span></div>
-
-            <!-- プレイヤー1手札 -->
-            <div class="player-hand player1-hand" id="player1-hand">
-                <!-- カードは動的に追加 -->
-            </div>
-
-            <!-- バトルゾーンとタイマーのコンテナ -->
-            <div class="battle-container">
-                <div class="battle-zone" id="battle-zone">
-                    <div id="player1-battle-zone" class="player-battle-zone"></div>
-                    <div id="player2-battle-zone" class="player-battle-zone"></div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deck Dreamers - Battle</title>
+    <link rel="stylesheet" href="taisen.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- プレイヤー1の情報 -->
+        <div class="player-info">
+            <div class="player-stats">
+                <div id="player1-name">プレイヤー1</div>
+                <div class="hp-container">
+                    <div class="hp-bar">
+                        <div class="hp-fill" id="player1-hp"></div>
+                    </div>
+                    <div class="hp-text">HP: <span id="player1-hp-value">10</span>/10</div>
                 </div>
-                <div id="timer">60</div>
             </div>
-
-            <!-- バトル結果表示用の要素を追加 -->
-            <div id="battle-result"></div>
-
-            <!-- プレイヤー2手札 -->
-            <div class="player-hand player2-hand" id="player2-hand">
-                <!-- カードは動的に追加 -->
-            </div>
-
-            <!-- プレイヤー2情報 -->
-            <div id="player2-info" class="player-info">
-                <div>プレイヤー2 HP: <span id="player2-hp">10000</span></div>
-                <button id="player2-create-card" class="create-card-btn">神の一手</button>
-            </div>
-            <div id="player2-count" class="card-count">デッキ: <span id="player2-deck-count">30</span></div>
+            <div class="deck-count">山札: <span id="player1-deck-count">30</span></div>
         </div>
-    </body>
-    <script src="taisen.js"></script>
+
+        <!-- バトルエリア -->
+        <div class="battle-area">
+            <!-- 墓地1 -->
+            <div class="graveyard graveyard-p1" id="player1-graveyard">†</div>
+
+            <!-- プレイヤー1の手札 -->
+            <div class="hand" id="player1-hand"></div>
+
+            <!-- ターンカウンター -->
+            <div class="turn-counter">
+                <div class="turn-number" id="turn-number">1</div>
+                <div class="timer" id="turn-timer">60</div>
+            </div>
+
+            <!-- バトルゾーン -->
+            <div class="battle-zones">
+                <div class="battle-zone" id="player1-battle-zone"></div>
+                <div class="battle-zone" id="player2-battle-zone"></div>
+            </div>
+
+            <!-- プレイヤー2の手札 -->
+            <div class="hand" id="player2-hand"></div>
+
+            <!-- 墓地2 -->
+            <div class="graveyard graveyard-p2" id="player2-graveyard">†</div>
+        </div>
+
+        <!-- プレイヤー2の情報 -->
+        <div class="player-info">
+            <div class="player-stats">
+                <div id="player2-name">プレイヤー2</div>
+                <div class="hp-container">
+                    <div class="hp-bar">
+                        <div class="hp-fill" id="player2-hp"></div>
+                    </div>
+                    <div class="hp-text">HP: <span id="player2-hp-value">10</span>/10</div>
+                </div>
+            </div>
+            <div class="deck-count">山札: <span id="player2-deck-count">30</span></div>
+        </div>
+
+        <!-- 神の一手 -->
+        <div class="divine-move">
+            <button class="divine-move-btn" id="divine-move-1" data-move-type="increaseDamage">神の一手①</button>
+            <button class="divine-move-btn" id="divine-move-2" data-move-type="nullifyDamage">神の一手②</button>
+        </div>
+    </div>
+
+    <!-- カードテンプレート（非表示） -->
+    <template id="card-template">
+        <div class="card" draggable="true">
+            <div class="card-inner">
+                <div class="card-value"></div>
+                <div class="card-type"></div>
+                <div class="card-name"></div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-database.js"></script>
+    
+    <!-- ゲームスクリプト -->
+    <script src="cardEffects.js" type="module"></script>
+    <script src="battleManager.js" type="module"></script>
+    <script src="uiManager.js" type="module"></script>
+    <script src="taisen.js" type="module"></script>
+</body>
 </html>
