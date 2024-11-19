@@ -1,8 +1,8 @@
 // 音楽ファイルのパスを指定
 const musicFiles = {
     bgm1: 'path/to/Sample.mp3', // 正確なパスを指定
-    bgm2: 'path/to/bgm2.mp3',
-    bgm3: 'path/to/bgm3.mp3'
+    bgm2: 'path/to/神の一手.mp3',
+    bgm3: 'path/to/フリー音源1.mp3'
 };
 
 // HTML要素を取得
@@ -93,9 +93,9 @@ function stopMusic() {
 // スピーカーアイコンを更新する関数
 function updateSpeakerIcon() {
     if (isMuted) {
-        speakerIcon.innerHTML = '<img src="Music/syasin/offBth.png" alt="音量オフ">';
+        speakerIcon.innerHTML = '<img src="syasin/offBth.png" alt="音量オフ">';
     } else {
-        speakerIcon.innerHTML = '<img src="Music/syasin/onBth.png" alt="音量オン">';
+        speakerIcon.innerHTML = '<img src="syasin/onBth.png" alt="音量オン">';
     }
 }
 
