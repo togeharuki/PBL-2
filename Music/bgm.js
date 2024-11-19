@@ -1,6 +1,6 @@
 // 音楽ファイルのパスを指定
 const musicFiles = {
-    bgm1: 'path/to/Sample.mp3', // 各音楽ファイルのパスを正確に指定してください
+    bgm1: 'path/to/Sample.mp3', // 正確なパスを指定
     bgm2: 'path/to/bgm2.mp3',
     bgm3: 'path/to/bgm3.mp3'
 };
@@ -23,11 +23,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const selectedMusic = localStorage.getItem('selectedMusic');
     if (selectedMusic && selectedMusic !== 'none') {
         musicSelect.value = selectedMusic;
-        musicSource.src = musicFiles[selectedMusic];
-        musicPlayer.load();
-        if (!isMuted) {
-            musicPlayer.play(); // ミュート解除状態なら再生
-        }
+        playMusic(musicFiles[selectedMusic]); // 初期化時に再生を試みる
     }
 
     // スピーカーアイコンを初期化
