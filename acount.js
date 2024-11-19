@@ -42,7 +42,7 @@ const DEFAULT_CARDS = [
     },
     {
         name: "リストカット",
-        image: "https://togeharuki.github.io/Deck-Dreamers-/battle/Card/deck/kizon/りすか.jpg",
+        image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/りすか.jpg",
         effect: "両方に2ダメージ"
     },
     {
