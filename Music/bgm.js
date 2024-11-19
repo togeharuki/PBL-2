@@ -1,78 +1,90 @@
-// BGMの状態を管理する変数
-let bgmPlaying = JSON.parse(localStorage.getItem('bgmPlaying')) || false;
+// 音楽ファイルのパスを指定
+const musicFiles = {
+    bgm1: 'path/to/sample.mp3', // 各音楽ファイルのパスを正確に指定してください
+    bgm2: 'path/to/bgm2.mp3',
+    bgm3: 'path/to/bgm3.mp3'
+};
 
-const audioPlayer = document.getElementById('music-player');
+// HTML要素を取得
+const musicSelect = document.getElementById('music-select');
+const musicPlayer = document.getElementById('music-player');
 const musicSource = document.getElementById('music-source');
+const speakerIcon = document.createElement('div'); // スピーカーアイコンを動的に追加
+document.body.appendChild(speakerIcon);
 
-// 選択された音楽の再生と保存を行う関数
-function playSelectedMusic(selectedMusic) {
-    switch (selectedMusic) {
-        case 'bgm1':
-            musicSource.src = "./audio/maou_game_medley02.mp3";
-            break;
-        case 'bgm2':
-            musicSource.src = "./audio/upbeat.mp3";
-            break;
-        case 'bgm3':
-            musicSource.src = "./audio/classic.mp3";
-            break;
-        default:
-            musicSource.src = "";
+speakerIcon.id = 'speaker-icon';
+speakerIcon.innerHTML = '<img src="写真/offBth.png" alt="音量オフ">'; // 初期状態はオフ
+
+let isMuted = true; // 初期状態を音量オフに設定
+
+// ページ読み込み時の処理
+window.addEventListener('DOMContentLoaded', () => {
+    // localStorageから選択されたBGMを取得
+    const selectedMusic = localStorage.getItem('selectedMusic');
+    if (selectedMusic && selectedMusic !== 'none') {
+        musicSelect.value = selectedMusic;
+        musicSource.src = musicFiles[selectedMusic];
+        musicPlayer.load();
+        if (!isMuted) {
+            musicPlayer.play(); // ミュートが解除されていれば再生
+        }
+        musicPlayer.style.display = 'block'; // プレイヤーを表示
     }
 
-    audioPlayer.load();
-    if (bgmPlaying) {
-        audioPlayer.play();
+    // スピーカーアイコンを初期化
+    updateSpeakerIcon();
+});
+
+// 音楽選択が変更されたときの処理
+musicSelect.addEventListener('change', () => {
+    const selectedValue = musicSelect.value;
+
+    if (selectedValue === 'none') {
+        musicPlayer.pause();
+        musicPlayer.style.display = 'none'; // プレイヤーを非表示
+        musicSource.src = '';
+    } else {
+        musicSource.src = musicFiles[selectedValue];
+        musicPlayer.load();
+        musicPlayer.style.display = 'block'; // プレイヤーを表示
+        if (!isMuted) {
+            musicPlayer.play(); // ミュートが解除されていれば再生
+        }
     }
-    localStorage.setItem('selectedMusic', selectedMusic);
+
+    // 選択をlocalStorageに保存
+    localStorage.setItem('selectedMusic', selectedValue);
+});
+
+// 音量オン/オフの切り替え
+function toggleVolume() {
+    isMuted = !isMuted; // ミュート状態を反転
+
+    if (isMuted) {
+        musicPlayer.pause(); // 音楽を停止
+    } else {
+        // 音楽を再生（選択されている場合のみ）
+        if (musicSelect.value !== 'none' && musicSource.src) {
+            musicPlayer.play();
+        }
+    }
+
+    // スピーカーアイコンを更新
+    updateSpeakerIcon();
+
+    // 現在時刻を取得し、コンソールに表示
+    const currentTime = new Date().toLocaleTimeString();
+    console.log(isMuted ? `音量オフ: ${currentTime}` : `音量オン: ${currentTime}`);
 }
 
-// ページ読み込み時に音楽を再開する
-window.addEventListener('load', function () {
-    let selectedMusic = localStorage.getItem('selectedMusic');
-    let currentTime = localStorage.getItem('currentTime');
-
-    if (selectedMusic) {
-        playSelectedMusic(selectedMusic);
-
-        if (currentTime) {
-            audioPlayer.currentTime = currentTime;
-        }
-
-        if (bgmPlaying) {
-            audioPlayer.play();
-        } else {
-            audioPlayer.pause();
-        }
+// スピーカーアイコンを更新する関数
+function updateSpeakerIcon() {
+    if (isMuted) {
+        speakerIcon.innerHTML = '<img src="写真/offBth.png" alt="音量オフ">';
+    } else {
+        speakerIcon.innerHTML = '<img src="写真/onBth.png" alt="音量オン">';
     }
-});
-
-// 音楽選択コンボボックスのイベントハンドラ
-document.getElementById('music-select').addEventListener('change', function () {
-    let selectedMusic = this.value;
-    playSelectedMusic(selectedMusic);
-});
-
-// 別ページのオン/オフボタン用の設定（このコードはボタンがある別ページでも機能）
-const bgmToggleButton = document.getElementById('bgmToggleButton');
-if (bgmToggleButton) {
-    bgmToggleButton.addEventListener('click', function () {
-        bgmPlaying = !bgmPlaying;
-        localStorage.setItem('bgmPlaying', bgmPlaying);
-
-        if (bgmPlaying) {
-            audioPlayer.play();
-            bgmToggleButton.textContent = "BGM オフ";
-        } else {
-            audioPlayer.pause();
-            bgmToggleButton.textContent = "BGM オン";
-        }
-    });
 }
 
-// ページ遷移時に再生時間を保存
-window.addEventListener('beforeunload', function () {
-    if (!audioPlayer.paused) {
-        localStorage.setItem('currentTime', audioPlayer.currentTime);
-    }
-});
+// スピーカーアイコンをクリックすると音量を切り替える
+speakerIcon.addEventListener('click', toggleVolume);
