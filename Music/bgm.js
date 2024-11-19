@@ -79,9 +79,9 @@ function stopMusic() {
 // スピーカーアイコンを更新する関数
 function updateSpeakerIcon() {
     if (isMuted) {
-        speakerIcon.innerHTML = '<img src="Music/syasin/offBth.png" alt="音量オフ">';
+        speakerIcon.innerHTML = '<img src="syasin/offBth.png" alt="音量オフ">';
     } else {
-        speakerIcon.innerHTML = '<img src="Music/syasin/onBth.png" alt="音量オン">';
+        speakerIcon.innerHTML = '<img src="syasin/onBth.png" alt="音量オン">';
     }
 }
 
