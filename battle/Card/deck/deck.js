@@ -12,8 +12,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-let selectedCards = []; // 選択されたカードを保存する配列
-
 document.addEventListener('DOMContentLoaded', async function() {
     // プレイヤー情報の取得
     const playerId = localStorage.getItem('playerId');
@@ -43,7 +41,6 @@ function createCardElement(card) {
         </div>
         <div class="card-name">${card.name}</div>
         <div class="card-effect">${card.effect}</div>
-        <input type="checkbox" class="select-card" data-name="${card.name}" data-image="${card.image}" data-effect="${card.effect}">
     `;
     return cardElement;
 }
@@ -109,35 +106,6 @@ function checkImageExistence(jpgPath, jpegPath) {
         };
     });
 }
-
-// 設定ボタンのイベントリスナー
-document.getElementById('save-deck-button').addEventListener('click', async function() {
-    const selectedCheckboxes = document.querySelectorAll('.select-card:checked');
-    selectedCards = Array.from(selectedCheckboxes).map(checkbox => ({
-        name: checkbox.getAttribute('data-name'),
-        image: checkbox.getAttribute('data-image'),
-        effect: checkbox.getAttribute('data-effect')
-    }));
-
-    if (selectedCards.length === 0) {
-        alert('保存するカードを選択してください。');
-        return;
-    }
-
-    try {
-        const playerId = localStorage.getItem('playerId');
-        const deckRef = db.collection('Deck').doc(playerId.toString());
-
-        await deckRef.set({
-            cards: selectedCards
-        });
-
-        alert('デッキが保存されました！');
-    } catch (error) {
-        console.error('デッキの保存に失敗しました:', error);
-        alert('デッキの保存に失敗しました: ' + error.message);
-    }
-});
 
 // エラーハンドリング
 window.addEventListener('error', function(event) {
