@@ -32,7 +32,64 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // カード一覧を表示
     await loadDeckCards();
+    // 作成したカードを表示
+    await loadCreatedCards();
 });
+
+// 作成したカードを表示する関数
+async function loadCreatedCards() {
+    try {
+        const playerId = localStorage.getItem('playerId');
+        const cardRef = db.collection('Card').doc(playerId.toString());
+        const doc = await cardRef.get();
+
+        if (doc.exists) {
+            const cardData = doc.data();
+            const createdCardsSection = document.createElement('div');
+            createdCardsSection.className = 'deck-container';
+            createdCardsSection.innerHTML = `
+                <h2 style="color: #4ecdc4; text-align: center; margin: 30px 0;">作成したカード一覧</h2>
+                <div class="deck-grid" id="created-cards-grid"></div>
+            `;
+            
+            // deck-containerの後に挿入
+            document.querySelector('.deck-container').after(createdCardsSection);
+
+            const createdCardsGrid = document.getElementById('created-cards-grid');
+            
+            // カードデータを配列に変換して新しい順にソート
+            const cardsArray = Object.entries(cardData)
+                .filter(([key, _]) => key !== 'timestamp')
+                .map(([id, card]) => ({
+                    ...card,
+                    id
+                }))
+                .sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+
+            const cardPromises = cardsArray.map(async (card) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card-item';
+                cardElement.innerHTML = `
+                    <div class="card-image">
+                        <img src="${card.image}" alt="${card.name}">
+                    </div>
+                    <div class="card-name">${card.name}</div>
+                    <div class="card-effect">${card.effect}</div>
+                `;
+                return cardElement;
+            });
+
+            const cardElements = await Promise.all(cardPromises);
+            cardElements.forEach(cardElement => {
+                if (cardElement) {
+                    createdCardsGrid.appendChild(cardElement);
+                }
+            });
+        }
+    } catch (error) {
+        console.error('作成したカードの読み込みに失敗しました:', error);
+    }
+}
 
 // カードを表示する関数
 function createCardElement(card) {
@@ -74,7 +131,6 @@ function updateSaveButton() {
     const saveButton = document.getElementById('save-deck-button');
     saveButton.disabled = selectedCards.length !== 10;
 }
-
 // デッキを保存する関数
 async function saveDeck() {
     if (selectedCards.length !== 10) {
@@ -104,6 +160,7 @@ async function saveDeck() {
         alert('デッキの保存に失敗しました: ' + error.message);
     }
 }
+
 // デッキのカードを読み込む関数
 async function loadDeckCards() {
     try {
