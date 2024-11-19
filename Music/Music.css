@@ -64,6 +64,7 @@ button:active {
     display: none;
 }
 #speaker-icon {
+    color: #ff6b6b;
     position: fixed;
     bottom: 20px;
     right: 20px;
