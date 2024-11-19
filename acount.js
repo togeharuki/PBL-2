@@ -2,7 +2,7 @@
 const DEFAULT_CARDS = [
     {
         name: "逆転の1手",
-        image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/逆転.jpg",
+        image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/逆転の１手.jpg",
         effect: "山札から１ドロー"
     },
     {
@@ -27,7 +27,7 @@ const DEFAULT_CARDS = [
     },
     {
         name: "ルブタンの財布",
-        image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/ルブタン.jpg",
+        image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/ルブタンの財布.jpg",
         effect: "数値＋２"
     },
     {
@@ -41,13 +41,13 @@ const DEFAULT_CARDS = [
         effect: "強制1ダメージ"
     },
     {
-        name: "リストカット",
-        image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/りすか.jpg",
+        name: "リストキャット",
+        image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/リストキャット.jpg",
         effect: "両方に2ダメージ"
     },
     {
         name: "共倒れの1手",
-        image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/共倒れ.jpg",
+        image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/共倒れの１手.jpg",
         effect: "両方に2ダメージ"
     }
 ];
