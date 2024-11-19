@@ -193,8 +193,54 @@ function showMessage(text, type) {
     messageDiv.textContent = text;
     messageDiv.className = `message ${type} show`;
 }
+if (cardElement) {
+    deckGrid.appendChild(cardElement);
+}
+});
+} else {
+console.log('デッキが見つかりません');
+}
+} catch (error) {
+console.error('デッキの読み込みに失敗しました:', error);
+alert('デッキの読み込みに失敗しました: ' + error.message);
+}
+}
+
+// 画像の存在チェックを行う関数
+function checkImageExistence(imageUrl) {
+const extensions = ['.jpg', '.jpeg', '.png']; // 対応する画像形式
+return new Promise((resolve) => {
+const checkNext = (index) => {
+if (index >= extensions.length) {
+resolve(null); // すべての拡張子で画像が見つからなかった場合
+return;
+}
+
+const img = new Image();
+img.src = imageUrl.replace(/\.(jpg|jpeg|png)$/, extensions[index]); // 拡張子を変更
+img.onload = () => resolve(img.src); // 画像が存在する場合
+img.onerror = () => checkNext(index + 1); // 次の拡張子をチェック
+};
+
+checkNext(0); // 最初の拡張子からチェック開始
+});
+}
+
+// カードを表示する関数
+function createCardElement(card) {
+const cardElement = document.createElement('div');
+cardElement.className = 'card-item';
+cardElement.innerHTML = `
+<div class="card-image">
+<img src="${card.image}" alt="${card.name}">
+</div>
+<div class="card-name">${card.name}</div>
+<div class="card-effect">${card.effect}</div>
+`;
+return cardElement;
+}
 
 // エラーハンドリング
 window.addEventListener('error', function(event) {
-    console.error('グローバルエラー:', event.error);
+console.error('エラーが発生しました:', event.error);
 });
