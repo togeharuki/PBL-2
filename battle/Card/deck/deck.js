@@ -44,7 +44,6 @@ function createCardElement(card) {
     `;
     return cardElement;
 }
-
 // デッキのカードを読み込む関数
 async function loadDeckCards() {
     try {
@@ -61,17 +60,17 @@ async function loadDeckCards() {
             const cards = Array.isArray(cardData.cards) ? cardData.cards : Object.values(cardData);
 
             const cardPromises = cards.map(async (card) => {
-                const cardName = encodeURIComponent(card.name); // カード名をURLエンコード
-                const imagePath = `${cardName}.jpg`; // JPG形式の画像
-                const jpegPath = `${cardName}.jpeg`; // JPEG形式の画像
+                const cardName = card.name;
+                const jpgPath = `kizon/${cardName}.jpg`; // JPG形式の画像
+                const jpegPath = `kizon/${cardName}.jpeg`; // JPEG形式の画像
 
                 // 画像の存在チェック
-                const validImagePath = await checkImageExistence(imagePath, jpegPath);
-                if (validImagePath) {
-                    card.image = validImagePath; // 存在する画像パスをセット
+                const imagePath = await checkImageExistence(jpgPath, jpegPath);
+                if (imagePath) {
+                    card.image = imagePath; // 存在する画像パスをセット
                     return createCardElement(card); // カード要素を作成
                 } else {
-                    console.log(`画像が見つかりません: ${imagePath} または ${jpegPath}`);
+                    console.log(`画像が見つかりません: ${jpgPath} または ${jpegPath}`);
                     return null; // 画像が見つからない場合はnullを返す
                 }
             });
@@ -92,6 +91,7 @@ async function loadDeckCards() {
         alert('デッキの読み込みに失敗しました: ' + error.message);
     }
 }
+
 // 画像の存在チェックを行う関数
 function checkImageExistence(jpgPath, jpegPath) {
     return new Promise((resolve) => {
