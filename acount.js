@@ -193,54 +193,83 @@ function showMessage(text, type) {
     messageDiv.textContent = text;
     messageDiv.className = `message ${type} show`;
 }
-if (cardElement) {
-    deckGrid.appendChild(cardElement);
-}
-});
-} else {
-console.log('デッキが見つかりません');
-}
-} catch (error) {
-console.error('デッキの読み込みに失敗しました:', error);
-alert('デッキの読み込みに失敗しました: ' + error.message);
-}
+
+// デッキのカードを読み込む関数
+async function loadDeckCards() {
+    try {
+        const playerId = localStorage.getItem('playerId');
+        const soukoRef = db.collection('Souko').doc(playerId.toString());
+        const doc = await soukoRef.get();
+
+        if (doc.exists) {
+            const deckGrid = document.getElementById('deck-grid');
+            deckGrid.innerHTML = ''; // 既存のカードをクリア
+
+            const cardData = doc.data();
+            const cardPromises = Object.values(cardData).map(async (card) => {
+                const imagePath = await checkImageExistence(card.image); // 既に定義された画像URLを使う
+
+                if (imagePath) {
+                    card.image = imagePath; // 存在する画像パスをセット
+                    return createCardElement(card); // カード要素を作成
+                } else {
+                    console.log(`画像が見つかりません: ${card.image}`);
+                    return null; // 画像が見つからない場合はnullを返す
+                }
+            });
+
+            // すべてのカード要素を取得
+            const cardElements = await Promise.all(cardPromises);
+            // nullでないカード要素だけをデッキグリッドに追加
+            cardElements.forEach(cardElement => {
+                if (cardElement) {
+                    deckGrid.appendChild(cardElement);
+                }
+            });
+        } else {
+            console.log('デッキが見つかりません');
+        }
+    } catch (error) {
+        console.error('デッキの読み込みに失敗しました:', error);
+        alert('デッキの読み込みに失敗しました: ' + error.message);
+    }
 }
 
 // 画像の存在チェックを行う関数
 function checkImageExistence(imageUrl) {
-const extensions = ['.jpg', '.jpeg', '.png']; // 対応する画像形式
-return new Promise((resolve) => {
-const checkNext = (index) => {
-if (index >= extensions.length) {
-resolve(null); // すべての拡張子で画像が見つからなかった場合
-return;
-}
+    const extensions = ['.jpg', '.jpeg', '.png']; // 対応する画像形式
+    return new Promise((resolve) => {
+        const checkNext = (index) => {
+            if (index >= extensions.length) {
+                resolve(null); // すべての拡張子で画像が見つからなかった場合
+                return;
+            }
 
-const img = new Image();
-img.src = imageUrl.replace(/\.(jpg|jpeg|png)$/, extensions[index]); // 拡張子を変更
-img.onload = () => resolve(img.src); // 画像が存在する場合
-img.onerror = () => checkNext(index + 1); // 次の拡張子をチェック
-};
+            const img = new Image();
+            img.src = imageUrl.replace(/\.(jpg|jpeg|png)$/, extensions[index]); // 拡張子を変更
+            img.onload = () => resolve(img.src); // 画像が存在する場合
+            img.onerror = () => checkNext(index + 1); // 次の拡張子をチェック
+        };
 
-checkNext(0); // 最初の拡張子からチェック開始
-});
+        checkNext(0); // 最初の拡張子からチェック開始
+    });
 }
 
 // カードを表示する関数
 function createCardElement(card) {
-const cardElement = document.createElement('div');
-cardElement.className = 'card-item';
-cardElement.innerHTML = `
-<div class="card-image">
-<img src="${card.image}" alt="${card.name}">
-</div>
-<div class="card-name">${card.name}</div>
-<div class="card-effect">${card.effect}</div>
-`;
-return cardElement;
+    const cardElement = document.createElement('div');
+    cardElement.className = 'card-item';
+    cardElement.innerHTML = `
+        <div class="card-image">
+            <img src="${card.image}" alt="${card.name}">
+        </div>
+        <div class="card-name">${card.name}</div>
+        <div class="card-effect">${card.effect}</div>
+    `;
+    return cardElement;
 }
 
 // エラーハンドリング
 window.addEventListener('error', function(event) {
-console.error('エラーが発生しました:', event.error);
+    console.error('エラーが発生しました:', event.error);
 });
