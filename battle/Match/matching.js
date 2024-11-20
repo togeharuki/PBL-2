@@ -47,26 +47,14 @@ document.addEventListener('DOMContentLoaded', function() {
         table.addEventListener('click', async function() {
             const tableNumber = this.dataset.table;
             const playerId = localStorage.getItem('playerId');
+            const playerName = localStorage.getItem('playerName'); // LocalStorageから直接playerNameを取得
             
-            if (!playerId) {
+            if (!playerId || !playerName) {
                 alert('ログインしてください');
                 return;
             }
 
             try {
-                // Playerコレクションからプレイヤー情報を取得
-                const playerQuery = await db.collection('Player')
-                    .where('playerId', '==', playerId)
-                    .get();
-
-                if (playerQuery.empty) {
-                    alert('プレイヤー情報が見つかりません');
-                    return;
-                }
-
-                const playerData = playerQuery.docs[0].data();
-                const playerName = playerData.playerName;
-
                 // 既に別のテーブルにいる場合は、その位置から削除
                 if (tablePositions[playerId]) {
                     const oldTable = document.querySelector(`[data-table="${tablePositions[playerId]}"]`);
