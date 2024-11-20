@@ -256,6 +256,11 @@ imageInput.addEventListener('change', function(event) {
 
 // 効果ボタンのイベントリスナー
 heartButton.addEventListener('click', function() {
+    const healCardCount = cards.filter(card => card.effect.startsWith('✨ 回復魔法')).length;
+    if (healCardCount >= 4) {
+        alert('回復カードは最大4枚までしか作成できません。');
+        return; // カード作成を中止
+    }
     if (!effectGenerated) {
         generateRandomEffect('heal');
         disableEffectButtons();
@@ -272,27 +277,29 @@ swordButton.addEventListener('click', function() {
 // カード作成ボタンのイベントリスナー
 createButton.addEventListener('click', async function() {
     if (!currentEffect) {
-        showMessage('効果を選択してください。', 'error');
+        alert('効果を選択してください。');
         return;
     }
 
     if (!previewImage.src || previewImage.style.display === 'none') {
-        showMessage('画像を選択してください。', 'error');
+        alert('画像を選択してください。');
         return;
     }
 
     if (cards.length >= 20) {
-        showMessage('最大20枚までしか作成できません。', 'error');
+        alert('最大20枚までしか作成できません。');
         return;
     }
 
     // 回復カードの枚数をカウント
     const healCardCount = cards.filter(card => card.effect.startsWith('✨ 回復魔法')).length;
+
+    // 回復カードの制限チェック
     if (currentEffect.startsWith('✨ 回復魔法') && healCardCount >= 4) {
-        showMessage('回復カードは最大4枚までしか作成できません。', 'error');
-        // 効果をリセットしてボタンを再度有効にする
+        alert('回復カードは最大4枚までしか作成できません。');
+        // 効果をリセットしてボタンを再度押せるようにする
         resetEffect();
-        return;
+        return; // カード作成を中止
     }
 
     try {
@@ -329,7 +336,7 @@ createButton.addEventListener('click', async function() {
 
     } catch (error) {
         console.error('カードの作成に失敗しました:', error);
-        showMessage('カードの作成に失敗しました: ' + error.message, 'error');
+        alert('カードの作成に失敗しました: ' + error.message);
     }
 });
 
@@ -337,15 +344,20 @@ createButton.addEventListener('click', async function() {
 function resetEffect() {
     currentEffect = '';
     effectGenerated = false;
+    previewEffect.textContent = '';
     heartButton.disabled = false;
     swordButton.disabled = false;
-    previewEffect.textContent = ''; // プレビュー効果をクリア
 }
 
 // ページ読み込み時の初期化
 loadCardsFromFirebase();
 updateCardCount();
 showCardList();
+
+// 戻るボタンのイベントリスナー
+const backButton = document.getElementById('backButton');
+backButton.addEventListener('click', function() {
+    window.location.href = 'battle/Battle/battle.html'; // 戻る画面のURL
 });
 
 // エラーハンドリング
