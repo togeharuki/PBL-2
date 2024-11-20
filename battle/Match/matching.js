@@ -1,3 +1,20 @@
+// Firebaseの設定
+const firebaseConfig = {
+    apiKey: "AIzaSyCGgRBPAF2W0KKw0tX2zwZeyjDGgvv31KM",
+    authDomain: "deck-dreamers.firebaseapp.com",
+    projectId: "deck-dreamers",
+    storageBucket: "deck-dreamers.appspot.com",
+    messagingSenderId: "165933225805",
+    appId: "1:165933225805:web:4e5a3907fc5c7a30a28a6c"
+};
+
+// Firebase初期化
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// プレイヤーの位置を追跡するオブジェクト
+const playerPositions = {};
+
 document.addEventListener('DOMContentLoaded', function() {
     // 既存のコード
     const urlParams = new URLSearchParams(window.location.search);
@@ -12,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // プレイヤー数を更新
     if (maxPlayers) {
         document.getElementById('playerCapacity').textContent = maxPlayers;
-        
+
         // メンバー数に応じてテーブルの表示を制御
         const matchTables = document.querySelectorAll('.match-table');
         matchTables.forEach((table, index) => {
@@ -24,19 +41,61 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 退室ボタンのイベントリスナー
-    document.querySelector('.exit-button').addEventListener('click', function() {
-        if (confirm('本当に退室しますか？')) {
-            window.location.href = '../Room/room.html';
-        }
-    });
-
     // エントリーボックスのクリックイベント
     const entryBoxes = document.querySelectorAll('.entry-box');
     entryBoxes.forEach(box => {
-        box.addEventListener('click', function() {
-            console.log('Entry box clicked');
+        box.addEventListener('click', async function() {
+            const position = this.dataset.position;
+            const playerId = localStorage.getItem('playerId');
+            
+            if (!playerId) {
+                alert('ログインしてください');
+                return;
+            }
+
+            try {
+                // プレイヤー情報を取得
+                const playerDoc = await db.collection('users').doc(playerId).get();
+                if (!playerDoc.exists) {
+                    alert('プレイヤー情報が見つかりません');
+                    return;
+                }
+
+                const playerData = playerDoc.data();
+                const playerName = playerData.name;
+
+                // 既に別の位置にいる場合は、その位置から削除
+                if (playerPositions[playerId]) {
+                    const oldBox = document.querySelector(`[data-position="${playerPositions[playerId]}"]`);
+                    if (oldBox) {
+                        oldBox.querySelector('.player-name').textContent = '';
+                    }
+                }
+
+                // 新しい位置に名前を表示
+                this.querySelector('.player-name').textContent = playerName;
+                playerPositions[playerId] = position;
+
+                console.log(`プレイヤー ${playerName} が ${position} に配置されました`);
+            } catch (error) {
+                console.error('エラー:', error);
+                alert('エラーが発生しました');
+            }
         });
+    });
+    // 退室ボタンのイベントリスナー
+    document.querySelector('.exit-button').addEventListener('click', function() {
+        if (confirm('本当に退室しますか？')) {
+            // 退室時に自分の名前を消去
+            const playerId = localStorage.getItem('playerId');
+            if (playerId && playerPositions[playerId]) {
+                const myBox = document.querySelector(`[data-position="${playerPositions[playerId]}"]`);
+                if (myBox) {
+                    myBox.querySelector('.player-name').textContent = '';
+                }
+            }
+            window.location.href = '../Room/room.html';
+        }
     });
 
     // 対戦開始ボタンのイベント
@@ -59,7 +118,7 @@ document.addEventListener('DOMContentLoaded', function() {
         item.addEventListener('click', function(e) {
             e.preventDefault();
             const text = item.textContent.trim();
-            
+
             // 現在のURLパラメータを維持するための処理
             const params = new URLSearchParams(window.location.search);
             const paramString = params.toString();
@@ -79,4 +138,31 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // 定期的に各エントリーボックスの状態をチェックし、対戦開始ボタンの有効/無効を設定
+    function updateStartButtons() {
+        const matchTables = document.querySelectorAll('.match-table');
+        matchTables.forEach((table, index) => {
+            const entryBoxes = table.querySelectorAll('.entry-box');
+            const startButton = table.querySelector('.start-button');
+            
+            // 両方のエントリーボックスにプレイヤー名が入っているかチェック
+            const isFull = Array.from(entryBoxes).every(box => 
+                box.querySelector('.player-name').textContent.trim() !== ''
+            );
+            
+            startButton.disabled = !isFull;
+        });
+    }
+
+    // 定期的な更新を設定
+    setInterval(updateStartButtons, 1000);
+
+    // ページ読み込み時に一度実行
+    updateStartButtons();
+});
+
+// エラーハンドリング
+window.addEventListener('error', function(event) {
+    console.error('エラーが発生しました:', event.error);
 });
