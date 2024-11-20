@@ -159,11 +159,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ランダム効果の生成
     function generateRandomEffect(type) {
-        const value = Math.floor(Math.random() * 8) + 3;
+        let value;
         let effectText;
         if (type === 'heal') {
+            // 回復効果の値を1から3の間で生成
+            value = Math.floor(Math.random() * 3) + 1; // 1から3の範囲
             effectText = `✨ 回復魔法 ${value} ✨`;
-        } else {
+        } else if (type === 'attack') {
+            // 攻撃力の値を3から10の間で生成
+            value = Math.floor(Math.random() * 8) + 3; // 3から10の範囲
             effectText = `⚡ 攻撃力 ${value} ⚡`;
         }
         
@@ -268,24 +272,26 @@ swordButton.addEventListener('click', function() {
 // カード作成ボタンのイベントリスナー
 createButton.addEventListener('click', async function() {
     if (!currentEffect) {
-        alert('効果を選択してください。');
+        showMessage('効果を選択してください。', 'error');
         return;
     }
 
     if (!previewImage.src || previewImage.style.display === 'none') {
-        alert('画像を選択してください。');
+        showMessage('画像を選択してください。', 'error');
         return;
     }
 
     if (cards.length >= 20) {
-        alert('最大20枚までしか作成できません。');
+        showMessage('最大20枚までしか作成できません。', 'error');
         return;
     }
 
     // 回復カードの枚数をカウント
     const healCardCount = cards.filter(card => card.effect.startsWith('✨ 回復魔法')).length;
     if (currentEffect.startsWith('✨ 回復魔法') && healCardCount >= 4) {
-        alert('回復カードは最大4枚までしか作成できません。');
+        showMessage('回復カードは最大4枚までしか作成できません。', 'error');
+        // 効果をリセットしてボタンを再度有効にする
+        resetEffect();
         return;
     }
 
@@ -323,9 +329,18 @@ createButton.addEventListener('click', async function() {
 
     } catch (error) {
         console.error('カードの作成に失敗しました:', error);
-        alert('カードの作成に失敗しました: ' + error.message);
+        showMessage('カードの作成に失敗しました: ' + error.message, 'error');
     }
 });
+
+// 効果をリセットする関数
+function resetEffect() {
+    currentEffect = '';
+    effectGenerated = false;
+    heartButton.disabled = false;
+    swordButton.disabled = false;
+    previewEffect.textContent = ''; // プレビュー効果をクリア
+}
 
 // ページ読み込み時の初期化
 loadCardsFromFirebase();
