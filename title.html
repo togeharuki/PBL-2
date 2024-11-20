@@ -116,7 +116,8 @@
         };
         firebase.initializeApp(firebaseConfig);
 
-        document.getElementById('startButton').addEventListener('click', async function() {
+        // スタートボタンのクリックイベント
+        document.getElementById('startButton').addEventListener('click', function() {
             const user = firebase.auth().currentUser; // 現在のユーザーを取得
             if (!user) {
                 alert('ログインしていないため、スタートできません。ログインしてください。');
@@ -128,9 +129,17 @@
                 localStorage.setItem('currentTime', audioPlayer.currentTime);
             }
             
-            setTimeout(function() {
-                window.location.href = 'main/Menu/Menu.html';
-            }, 500);
+            // メニュー画面に遷移
+            window.location.href = 'main/Menu/Menu.html';
+        });
+
+        // ユーザーのログイン状態を監視
+        firebase.auth().onAuthStateChanged(function(user) {
+            if (user) {
+                console.log('ユーザーがログインしています:', user);
+            } else {
+                console.log('ユーザーはログインしていません');
+            }
         });
     </script>
 </body>
