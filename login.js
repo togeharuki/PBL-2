@@ -67,15 +67,25 @@ loginButton.addEventListener('click', async () => {
         const playerData = playerQuery.docs[0].data();
         const playerId = playerData.playerId;
 
+        // 現在のログイン状態を確認
+        const currentLoginDoc = await db.collection('CurrentLogin').doc('active').get();
+        if (currentLoginDoc.exists) {
+            const currentPlayerIds = currentLoginDoc.data().playerIds;
+
+            // 既にログイン中のプレイヤーがいる場合、ログインを拒否
+            if (currentPlayerIds.includes(playerId)) {
+                showMessage('このアカウントはすでにログインしています。', 'error');
+                loginButton.disabled = false;
+                return;
+            }
+        }
+
         // ローカルストレージに保存
         localStorage.setItem('playerName', playerName);
         localStorage.setItem('playerId', playerId);
 
         // 現在のログイン状態をFirestoreに保存
-        const currentLoginDoc = await db.collection('CurrentLogin').doc('active').get();
         let currentPlayerIds = currentLoginDoc.exists ? currentLoginDoc.data().playerIds : [];
-        
-        // プレイヤーIDを追加（重複チェックなし）
         currentPlayerIds.push(playerId);
         await db.collection('CurrentLogin').doc('active').set({ playerIds: currentPlayerIds });
 
