@@ -88,16 +88,13 @@
         <button id="startButton">スタート</button>
     </div>
 
+
+
     <script>
-        document.getElementById('startButton').addEventListener('click', function() {
-            const audioPlayer = document.getElementById('music-player');
-            if (!audioPlayer.paused) {
-                localStorage.setItem('currentTime', audioPlayer.currentTime);
-            }
-            
+                document.getElementById('startButton').addEventListener('click', function() {
             setTimeout(function() {
                 window.location.href = 'main/Menu/Menu.html';
-            }, 500);
+            }, 500); // 遷移の遅延（0.5秒）
         });
     </script>
 </body>
