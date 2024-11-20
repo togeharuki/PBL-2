@@ -22,7 +22,7 @@ const playerId = localStorage.getItem('playerId');
 if (!playerId) {
     console.error('プレイヤー情報が見つかりません');
     alert('ログインしてください');
-    window.location.href = '../login.html';
+    window.location.href = '../../login.html';
 }
 
 // Card/{playerId} のパスでコレクションの参照を作成
