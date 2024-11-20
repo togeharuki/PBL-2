@@ -84,6 +84,8 @@
             width: 380px;  /* スタートボタンの幅を2つのボタンの合計に合わせる */
         }
     </style>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
     <script src="./Music/bgm.js"></script>
 </head>
 <body>
@@ -103,7 +105,24 @@
     </audio>
 
     <script>
-        document.getElementById('startButton').addEventListener('click', function() {
+        // Firebaseの初期化
+        const firebaseConfig = {
+            apiKey: "AIzaSyCGgRBPAF2W0KKw0tX2zwZeyjDGgvv31KM",
+            authDomain: "deck-dreamers.firebaseapp.com",
+            projectId: "deck-dreamers",
+            storageBucket: "deck-dreamers.appspot.com",
+            messagingSenderId: "165933225805",
+            appId: "1:165933225805:web:4e5a3907fc5c7a30a28a6c"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        document.getElementById('startButton').addEventListener('click', async function() {
+            const user = firebase.auth().currentUser; // 現在のユーザーを取得
+            if (!user) {
+                alert('ログインしていないため、スタートできません。ログインしてください。');
+                return; // ログインしていない場合は処理を終了
+            }
+
             const audioPlayer = document.getElementById('music-player');
             if (!audioPlayer.paused) {
                 localStorage.setItem('currentTime', audioPlayer.currentTime);
