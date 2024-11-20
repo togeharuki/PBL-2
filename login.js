@@ -124,7 +124,13 @@ logoutButton.addEventListener('click', async () => {
 
             // プレイヤーIDを削除
             currentPlayerIds = currentPlayerIds.filter(id => id !== playerId);
-            await db.collection('CurrentLogin').doc('active').set({ playerIds: currentPlayerIds });
+
+            // プレイヤーIDが空の場合、ドキュメントを削除する
+            if (currentPlayerIds.length === 0) {
+                await db.collection('CurrentLogin').doc('active').delete();
+            } else {
+                await db.collection('CurrentLogin').doc('active').set({ playerIds: currentPlayerIds });
+            }
         }
 
         // ローカルストレージからプレイヤー情報を削除
