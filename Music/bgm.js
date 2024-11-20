@@ -13,14 +13,21 @@ const musicSource = document.getElementById('music-source');
 const speakerIcon = document.getElementById('speaker-icon');
 const titleButton = document.getElementById('titleButton'); // タイトルボタンを取得
 
-let isMuted = true;
+let isMuted = true; // 初期状態
 
 // ページ読み込み時の処理
 window.addEventListener('DOMContentLoaded', () => {
+    // ローカルストレージからBGM選択状態を復元
     const selectedMusic = localStorage.getItem('selectedMusic');
+    const storedMuteState = localStorage.getItem('isMuted');
+
+    // ミュート状態を復元
+    isMuted = storedMuteState === 'true'; // 文字列を真偽値に変換
+
+    // 選択されたBGMがあれば再生を試みる
     if (selectedMusic && selectedMusic !== 'none') {
-musicSelect.value = selectedMusic;
-playMusic(musicFiles[selectedMusic]);
+        musicSelect.value = selectedMusic;
+        playMusic(musicFiles[selectedMusic]);
     }
 
     // スピーカーアイコンを初期化
@@ -32,11 +39,12 @@ musicSelect.addEventListener('change', () => {
     const selectedValue = musicSelect.value;
 
     if (selectedValue === 'none') {
-stopMusic();
+        stopMusic();
     } else {
-playMusic(musicFiles[selectedValue]);
+        playMusic(musicFiles[selectedValue]);
     }
 
+    // BGM選択をローカルストレージに保存
     localStorage.setItem('selectedMusic', selectedValue);
 });
 
@@ -45,23 +53,28 @@ function toggleVolume() {
     isMuted = !isMuted;
 
     if (isMuted) {
-stopMusic();
+        stopMusic();
     } else {
-if (musicSelect.value !== 'none' && musicSource.src) {
-    musicPlayer.play();
-}
+        // 音楽を再生（選択されている場合のみ）
+        if (musicSelect.value !== 'none' && musicSource.src) {
+            musicPlayer.play();
+        }
     }
 
+    // ミュート状態をローカルストレージに保存
     localStorage.setItem('isMuted', isMuted);
+
+    // スピーカーアイコンを更新
     updateSpeakerIcon();
 }
 
 // 音楽を再生
 function playMusic(src) {
-    musicSource.src = src;
+    // ファイルパスのURLエンコードが必要ならエンコードを適用
+    musicSource.src = encodeURI(src); // encodeURIで日本語ファイル名を扱えるようにする
     musicPlayer.load();
     if (!isMuted) {
-musicPlayer.play();
+        musicPlayer.play();
     }
 }
 
@@ -74,9 +87,9 @@ function stopMusic() {
 // スピーカーアイコンを更新する関数
 function updateSpeakerIcon() {
     if (isMuted) {
-speakerIcon.innerHTML = '<img src="syasin/off.png" alt="音量オフ">';
+        speakerIcon.innerHTML = '<img src="syasin/off.png" alt="音量オフ">';
     } else {
-speakerIcon.innerHTML = '<img src="syasin/on.png" alt="音量オン">';
+        speakerIcon.innerHTML = '<img src="syasin/on.png" alt="音量オン">';
     }
 }
 
