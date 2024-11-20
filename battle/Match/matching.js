@@ -12,10 +12,10 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// プレイヤーの位置を追跡するオブジェクト
-const playerPositions = {};
-
 document.addEventListener('DOMContentLoaded', function() {
+    // プレイヤーのテーブル位置を追跡するオブジェクト
+    const tablePositions = {};
+
     // 既存のコード
     const urlParams = new URLSearchParams(window.location.search);
     const roomId = urlParams.get('roomId');
@@ -41,11 +41,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // エントリーボックスのクリックイベント
-    const entryBoxes = document.querySelectorAll('.entry-box');
-    entryBoxes.forEach(box => {
-        box.addEventListener('click', async function() {
-            const position = this.dataset.position;
+    // マッチングテーブルのクリックイベント
+    const matchTables = document.querySelectorAll('.match-table');
+    matchTables.forEach(table => {
+        table.addEventListener('click', async function() {
+            const tableNumber = this.dataset.table;
             const playerId = localStorage.getItem('playerId');
             
             if (!playerId) {
@@ -64,19 +64,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 const playerData = playerDoc.data();
                 const playerName = playerData.name;
 
-                // 既に別の位置にいる場合は、その位置から削除
-                if (playerPositions[playerId]) {
-                    const oldBox = document.querySelector(`[data-position="${playerPositions[playerId]}"]`);
-                    if (oldBox) {
-                        oldBox.querySelector('.player-name').textContent = '';
+                // 既に別のテーブルにいる場合は、その位置から削除
+                if (tablePositions[playerId]) {
+                    const oldTable = document.querySelector(`[data-table="${tablePositions[playerId]}"]`);
+                    if (oldTable) {
+                        oldTable.querySelector('.player-name').textContent = '';
                     }
                 }
 
-                // 新しい位置に名前を表示
+                // 新しいテーブルに名前を表示
                 this.querySelector('.player-name').textContent = playerName;
-                playerPositions[playerId] = position;
+                tablePositions[playerId] = tableNumber;
 
-                console.log(`プレイヤー ${playerName} が ${position} に配置されました`);
+                // 対戦開始ボタンの有効化を更新
+                updateStartButtons();
+
+                console.log(`プレイヤー ${playerName} がテーブル ${tableNumber} に配置されました`);
             } catch (error) {
                 console.error('エラー:', error);
                 alert('エラーが発生しました');
@@ -86,12 +89,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // 退室ボタンのイベントリスナー
     document.querySelector('.exit-button').addEventListener('click', function() {
         if (confirm('本当に退室しますか？')) {
-            // 退室時に自分の名前を消去
             const playerId = localStorage.getItem('playerId');
-            if (playerId && playerPositions[playerId]) {
-                const myBox = document.querySelector(`[data-position="${playerPositions[playerId]}"]`);
-                if (myBox) {
-                    myBox.querySelector('.player-name').textContent = '';
+            if (playerId && tablePositions[playerId]) {
+                const myTable = document.querySelector(`[data-table="${tablePositions[playerId]}"]`);
+                if (myTable) {
+                    myTable.querySelector('.player-name').textContent = '';
                 }
             }
             window.location.href = '../Room/room.html';
@@ -139,19 +141,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 定期的に各エントリーボックスの状態をチェックし、対戦開始ボタンの有効/無効を設定
+    // 対戦開始ボタンの状態更新関数
     function updateStartButtons() {
         const matchTables = document.querySelectorAll('.match-table');
-        matchTables.forEach((table, index) => {
-            const entryBoxes = table.querySelectorAll('.entry-box');
+        matchTables.forEach(table => {
+            const playerName = table.querySelector('.player-name').textContent;
             const startButton = table.querySelector('.start-button');
-            
-            // 両方のエントリーボックスにプレイヤー名が入っているかチェック
-            const isFull = Array.from(entryBoxes).every(box => 
-                box.querySelector('.player-name').textContent.trim() !== ''
-            );
-            
-            startButton.disabled = !isFull;
+            startButton.disabled = !playerName;
         });
     }
 
