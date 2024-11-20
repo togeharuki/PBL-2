@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const backButton = document.getElementById('backButton');
     if (backButton) {
         backButton.addEventListener('click', function() {
-            window.location.href = 'battle/Battle/battle.html'; // 戻る画面のURL
+            window.location.href = '../Battle/battle.html'; // 戻る画面のURL
         });
     }
 
