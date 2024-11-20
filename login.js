@@ -27,7 +27,7 @@ playerNameInput.addEventListener('input', function() {
 });
 
 // ページ読み込み時の処理
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
     const savedPlayerId = localStorage.getItem('playerId');
     const savedPlayerName = localStorage.getItem('playerName');
     
@@ -52,15 +52,6 @@ loginButton.addEventListener('click', async () => {
     try {
         loginButton.disabled = true;
 
-        // 現在のログイン状態を確認
-        const currentLoginDoc = await db.collection('CurrentLogin').doc('active').get();
-        if (currentLoginDoc.exists) {
-            const currentPlayerId = currentLoginDoc.data().playerId;
-            showMessage(`現在、プレイヤーID: ${currentPlayerId} がログイン中です。`, 'error');
-            loginButton.disabled = false;
-            return;
-        }
-
         // プレイヤー名で検索
         const playerQuery = await db.collection('Player')
             .where('playerName', '==', playerName)
@@ -81,7 +72,14 @@ loginButton.addEventListener('click', async () => {
         localStorage.setItem('playerId', playerId);
 
         // 現在のログイン状態をFirestoreに保存
-        await db.collection('CurrentLogin').doc('active').set({ playerId });
+        const currentLoginDoc = await db.collection('CurrentLogin').doc('active').get();
+        let currentPlayerIds = currentLoginDoc.exists ? currentLoginDoc.data().playerIds : [];
+        
+        // プレイヤーIDが既に存在しない場合のみ追加
+        if (!currentPlayerIds.includes(playerId)) {
+            currentPlayerIds.push(playerId);
+            await db.collection('CurrentLogin').doc('active').set({ playerIds: currentPlayerIds });
+        }
 
         // プレイヤー情報を表示
         playerInfoDiv.style.display = 'block';
@@ -104,12 +102,23 @@ loginButton.addEventListener('click', async () => {
         loginButton.disabled = false;
     }
 });
+
 // ログアウト処理
 logoutButton.addEventListener('click', async () => {
     try {
-        // Firestoreから現在のログイン情報を削除
-        await db.collection('CurrentLogin').doc('active').delete();
+        const playerId = localStorage.getItem('playerId');
+
+        // Firestoreから現在のログイン情報を取得
+        const currentLoginDoc = await db.collection('CurrentLogin').doc('active').get();
         
+        if (currentLoginDoc.exists) {
+            let currentPlayerIds = currentLoginDoc.data().playerIds;
+
+            // プレイヤーIDを削除
+            currentPlayerIds = currentPlayerIds.filter(id => id !== playerId);
+            await db.collection('CurrentLogin').doc('active').set({ playerIds: currentPlayerIds });
+        }
+
         // ローカルストレージからプレイヤー情報を削除
         localStorage.removeItem('playerName');
         localStorage.removeItem('playerId');

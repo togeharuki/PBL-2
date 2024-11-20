@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>スピーカーマイク</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="volume-control">
+    <div class="speaker-icon" id="speaker-icon">
+      <!-- 初期状態を音量オフに変更 -->
+      <img src="写真/offBth.png" alt="音量オフ">
+    </div>
+  </div>
+
+  <!-- 音楽の音源 "src"の中身を.mp3に変えるだけ-->
+  <audio id="audio" src="音楽/Test.mp3" loop></audio> <!-- ループを有効にする場合 -->
+  
+  <script src="script.js"></script>
+</body>
+</html>

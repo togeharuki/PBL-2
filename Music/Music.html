@@ -9,7 +9,6 @@
 </head>
 <body>
     <h2>Deck・Dreamers BGM</h2>
-    
     <!-- 音楽選択オプション（コンボボックス） -->
     <div class="option-container">
         <label for="music-select">音楽を選択:</label>
@@ -18,33 +17,35 @@
             <option value="bgm1">BGM1</option>
             <option value="bgm2">BGM2</option>
             <option value="bgm3">BGM3</option>
+            <option value="oic">oic</option>
         </select>
     </div>
 
-    <!-- オーディオプレイヤーの追加 -->
-    <audio id="music-player" controls style="display:none">
+    <!-- オーディオプレイヤーの追加（ループ再生） -->
+    <audio id="music-player" loop style="display:none">
         <source id="music-source" src="">
         お使いのブラウザはaudioタグをサポートしていません。
     </audio>
-    
-    <button id="titleButton">タイトル</button>
 
-    <script src="bgm.js"></script>
+    <!-- 音量アイコン -->
+    <div id="speaker-icon">
+        <img src="syasin/offBth.png" alt="音量オフ">
+        <img src="syasin/off.png" alt="音量オン">
+    </div>
+
+    <button id="titleButton">戻る</button>
+
     <script>
-        // 音楽の選択が変更された際に、選択されたBGMをlocalStorageに保存
-        document.getElementById('music-select').addEventListener('change', function() {
-            localStorage.setItem('selectedMusic', this.value);
-        });
-
-        // タイトルボタンの処理（前のページに戻る）
-        document.getElementById('titleButton').addEventListener('click', function() {
+                // タイトルボタンの処理（前のページに戻る）
+                document.getElementById('titleButton').addEventListener('click', function() {
             document.body.style.transition = 'opacity 0.5s';
             document.body.style.opacity = '0';
 
             setTimeout(function() {
-                window.location.href = '../title.html';
+                window.location.href = '../main/Menu/Menu.html';
             }, 500);
         });
     </script>
 </body>
+    <script src="bgm.js"></script>
 </html>
