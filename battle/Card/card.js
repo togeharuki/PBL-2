@@ -353,6 +353,11 @@ function resetEffect() {
 loadCardsFromFirebase();
 updateCardCount();
 showCardList();
+
+// 戻るボタンのイベントリスナー
+const backButton = document.getElementById('backButton');
+backButton.addEventListener('click', function() {
+    window.location.href = 'battle/Battle/battle.html'; // 戻る画面のURL
 });
 
 // エラーハンドリング
