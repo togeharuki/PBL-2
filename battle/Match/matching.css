@@ -77,6 +77,12 @@ body {
     padding: 15px;
     margin-bottom: 20px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.match-table:hover {
+    transform: translateY(-2px);
 }
 
 .match-header {
@@ -86,6 +92,12 @@ body {
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.match-header .player-name {
+    color: #4ecdc4;
+    font-weight: bold;
+    margin-left: 10px;
 }
 
 .match-content {
@@ -101,24 +113,11 @@ body {
     border-radius: 5px;
     padding: 40px;
     text-align: center;
-    cursor: pointer;
     transition: background-color 0.3s;
-    position: relative;
 }
 
 .entry-box:hover {
     background: #4a4a6e;
-}
-
-.player-name {
-    position: absolute;
-    bottom: 10px;
-    left: 0;
-    right: 0;
-    text-align: center;
-    color: #4ecdc4;
-    font-weight: bold;
-    padding: 5px;
 }
 
 .vs-badge {
@@ -179,4 +178,22 @@ body {
     background: #3a3a5e;
     border-radius: 5px;
     display: inline-block;
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 15px;
+    }
+
+    .room-id {
+        font-size: 20px;
+    }
+
+    .match-content {
+        flex-direction: column;
+    }
+
+    .entry-box {
+        padding: 20px;
+    }
 }
