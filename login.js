@@ -75,11 +75,9 @@ loginButton.addEventListener('click', async () => {
         const currentLoginDoc = await db.collection('CurrentLogin').doc('active').get();
         let currentPlayerIds = currentLoginDoc.exists ? currentLoginDoc.data().playerIds : [];
         
-        // プレイヤーIDが既に存在しない場合のみ追加
-        if (!currentPlayerIds.includes(playerId)) {
-            currentPlayerIds.push(playerId);
-            await db.collection('CurrentLogin').doc('active').set({ playerIds: currentPlayerIds });
-        }
+        // プレイヤーIDを追加（重複チェックなし）
+        currentPlayerIds.push(playerId);
+        await db.collection('CurrentLogin').doc('active').set({ playerIds: currentPlayerIds });
 
         // プレイヤー情報を表示
         playerInfoDiv.style.display = 'block';
