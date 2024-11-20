@@ -54,15 +54,18 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             try {
-                // プレイヤー情報を取得
-                const playerDoc = await db.collection('users').doc(playerId).get();
-                if (!playerDoc.exists) {
+                // Playerコレクションからプレイヤー情報を取得
+                const playerQuery = await db.collection('Player')
+                    .where('playerId', '==', playerId)
+                    .get();
+
+                if (playerQuery.empty) {
                     alert('プレイヤー情報が見つかりません');
                     return;
                 }
 
-                const playerData = playerDoc.data();
-                const playerName = playerData.name;
+                const playerData = playerQuery.docs[0].data();
+                const playerName = playerData.playerName;
 
                 // 既に別のテーブルにいる場合は、その位置から削除
                 if (tablePositions[playerId]) {
@@ -103,13 +106,24 @@ document.addEventListener('DOMContentLoaded', function() {
     // 対戦開始ボタンのイベント
     const startButtons = document.querySelectorAll('.start-button');
     startButtons.forEach((button, index) => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', async function() {
             if (!button.disabled) {
-                const taisenUrl = new URL('../fight/taisen.html', window.location.href);
-                taisenUrl.searchParams.set('roomId', roomId);
-                taisenUrl.searchParams.set('maxPlayers', maxPlayers);
-                taisenUrl.searchParams.set('tableNumber', index + 1);
-                window.location.href = taisenUrl.toString();
+                try {
+                    const playerId = localStorage.getItem('playerId');
+                    if (!playerId) {
+                        alert('プレイヤー情報が見つかりません');
+                        return;
+                    }
+
+                    const taisenUrl = new URL('../fight/taisen.html', window.location.href);
+                    taisenUrl.searchParams.set('roomId', roomId);
+                    taisenUrl.searchParams.set('maxPlayers', maxPlayers);
+                    taisenUrl.searchParams.set('tableNumber', index + 1);
+                    window.location.href = taisenUrl.toString();
+                } catch (error) {
+                    console.error('対戦開始エラー:', error);
+                    alert('対戦開始に失敗しました');
+                }
             }
         });
     });
