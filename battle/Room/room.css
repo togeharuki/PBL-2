@@ -155,6 +155,49 @@ input[type="text"] {
     color: white;
 }
 
+.generated-room-id {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #3a3a5e;
+    border-radius: 8px;
+}
+
+.generated-room-id p {
+    margin: 0 0 10px 0;
+    font-weight: bold;
+}
+
+.room-id-display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+#generatedRoomId {
+    font-size: 24px;
+    font-weight: bold;
+    color: #4ecdc4;
+}
+
+.room-id-display .copy-button {
+    padding: 5px 15px;
+    background-color: #4ecdc4;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.room-id-display .copy-button:hover {
+    background-color: #45b7af;
+}
+
+.room-id-display .copy-button.success {
+    background-color: #45b7af;
+}
+
 .player-count-selector {
     margin-bottom: 20px;
 }

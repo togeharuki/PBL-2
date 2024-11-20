@@ -23,18 +23,27 @@ function copyRoomId() {
     });
 }
 
-function createRoom() {
-    const roomId = generateRoomId();
-    document.querySelector('.room-id').textContent = roomId;
-    const copyButton = document.querySelector('.copy-button');
-    copyButton.textContent = 'コピー';
-    copyButton.classList.remove('success');
+function copyGeneratedRoomId() {
+    const roomId = document.getElementById('generatedRoomId').textContent;
+    navigator.clipboard.writeText(roomId).then(() => {
+        const copyButton = document.querySelector('.room-id-display .copy-button');
+        copyButton.textContent = 'コピー完了!';
+        copyButton.classList.add('success');
+        
+        setTimeout(() => {
+            copyButton.textContent = 'コピー';
+            copyButton.classList.remove('success');
+        }, 1000);
+    }).catch(err => {
+        alert('コピーに失敗しました');
+        console.error('コピーに失敗:', err);
+    });
+}
 
+function createRoom() {
+    const roomId = document.getElementById('generatedRoomId').textContent;
     const newRoom = new GameRoom(roomId, selectedPlayerCount);
     rooms.set(roomId, newRoom);
-
-    // 表示を更新
-    updateRoomDisplay(newRoom);
     console.log(`${selectedPlayerCount}人用のルーム ${roomId} が作成されました`);
 }
 
@@ -44,6 +53,8 @@ function updateRoomDisplay(room) {
 }
 
 function showCreateRoomModal() {
+    const roomId = generateRoomId();
+    document.getElementById('generatedRoomId').textContent = roomId;
     document.getElementById('createRoomModal').style.display = 'block';
     document.querySelector('[data-count="2"]').classList.add('selected');
 }
