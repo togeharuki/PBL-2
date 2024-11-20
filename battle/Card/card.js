@@ -282,6 +282,13 @@ createButton.addEventListener('click', async function() {
         return;
     }
 
+    // 回復カードの枚数をカウント
+    const healCardCount = cards.filter(card => card.effect.startsWith('✨ 回復魔法')).length;
+    if (currentEffect.startsWith('✨ 回復魔法') && healCardCount >= 4) {
+        alert('回復カードは最大4枚までしか作成できません。');
+        return;
+    }
+
     try {
         const newCard = {
             name: cardNameInput.value.trim() || 'No Name',
