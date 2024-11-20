@@ -129,6 +129,7 @@ logoutButton.addEventListener('click', async () => {
             if (currentPlayerIds.length === 0) {
                 await db.collection('CurrentLogin').doc('active').delete();
             } else {
+                // プレイヤーIDが削除された後の配列をFirestoreに保存
                 await db.collection('CurrentLogin').doc('active').set({ playerIds: currentPlayerIds });
             }
         }
