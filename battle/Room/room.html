@@ -14,8 +14,8 @@
             <h2>ルーム作成</h2>
             <div class="room-info">
                 <div class="room-id-container">
-                    <p class="room-id">123-4567</p>
-                    <button class="copy-button" onclick="copyRoomId()">コピー</button>
+                    <p class="room-id"></p>
+                    <button class="copy-button" onclick="copyRoomId()" style="display: none;">コピー</button>
                 </div>
                 <div class="member-count">
                     メンバー <span id="currentPlayers">0</span>/<span id="playerCapacity">2</span>
@@ -43,6 +43,13 @@
                 <h2>ルーム作成</h2>
             </div>
             <div class="modal-body">
+                <div class="generated-room-id">
+                    <p>ルームID:</p>
+                    <div class="room-id-display">
+                        <span id="generatedRoomId"></span>
+                        <button class="copy-button" onclick="copyGeneratedRoomId()">コピー</button>
+                    </div>
+                </div>
                 <div class="player-count-selector">
                     <label>プレイ人数を選択:</label>
                     <div class="player-count-buttons">
