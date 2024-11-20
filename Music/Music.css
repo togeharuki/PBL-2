@@ -42,7 +42,7 @@ input[type="radio"] {
 button {
     font-size: 1.4em;
     padding: 15px 40px;
-    background: linear-gradient(45deg, #4ecdc4, #45b7a8);
+    background: linear-gradient(45deg, #ffa41b, #ff5151);
     color: white;
     border: none;
     border-radius: 50px;

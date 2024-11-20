@@ -52,19 +52,6 @@ loginButton.addEventListener('click', async () => {
     try {
         loginButton.disabled = true;
 
-        // 現在のログイン状態を確認
-        const currentLoginDoc = await db.collection('CurrentLogin').doc('active').get();
-        if (currentLoginDoc.exists) {
-            const currentPlayerIds = currentLoginDoc.data().playerIds;
-
-            // 既にログイン中のプレイヤーがいる場合、ログインを拒否
-            if (currentPlayerIds.length > 0) {
-                showMessage('現在、他のプレイヤーがログイン中です。', 'error');
-                loginButton.disabled = false;
-                return;
-            }
-        }
-
         // プレイヤー名で検索
         const playerQuery = await db.collection('Player')
             .where('playerName', '==', playerName)
@@ -79,6 +66,19 @@ loginButton.addEventListener('click', async () => {
         // プレイヤー情報を取得
         const playerData = playerQuery.docs[0].data();
         const playerId = playerData.playerId;
+
+        // 現在のログイン状態を確認
+        const currentLoginDoc = await db.collection('CurrentLogin').doc('active').get();
+        if (currentLoginDoc.exists) {
+            const currentPlayerIds = currentLoginDoc.data().playerIds;
+
+            // 既にログイン中のプレイヤーがいる場合、ログインを拒否
+            if (currentPlayerIds.includes(playerId)) {
+                showMessage('このアカウントはすでにログインしています。', 'error');
+                loginButton.disabled = false;
+                return;
+            }
+        }
 
         // ローカルストレージに保存
         localStorage.setItem('playerName', playerName);
@@ -124,7 +124,13 @@ logoutButton.addEventListener('click', async () => {
 
             // プレイヤーIDを削除
             currentPlayerIds = currentPlayerIds.filter(id => id !== playerId);
-            await db.collection('CurrentLogin').doc('active').set({ playerIds: currentPlayerIds });
+
+            // プレイヤーIDが空の場合、ドキュメントを削除する
+            if (currentPlayerIds.length === 0) {
+                await db.collection('CurrentLogin').doc('active').delete();
+            } else {
+                await db.collection('CurrentLogin').doc('active').set({ playerIds: currentPlayerIds });
+            }
         }
 
         // ローカルストレージからプレイヤー情報を削除
