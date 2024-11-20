@@ -63,14 +63,6 @@
             transform: translateY(-1px);
             box-shadow: 0 3px 4px rgba(0, 0, 0, 0.2);
         }
-        #bgmToggleButton {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 1em;
-            padding: 10px 20px;
-            width: auto;
-        }
         #accountButton {
             background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
         }
@@ -95,12 +87,6 @@
         </div>
         <button id="startButton">スタート</button>
     </div>
-    <button id="bgmToggleButton">BGM オン</button>
-    
-    <audio id="music-player" preload="auto">
-        <source id="music-source" src="path/to/your/music.mp3" type="audio/mp3">
-        Your browser does not support the audio element.
-    </audio>
 
     <script>
         document.getElementById('startButton').addEventListener('click', function() {
