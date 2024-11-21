@@ -1,96 +1,108 @@
-<!-- battle.html -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deck Dreamers - Battle</title>
     <link rel="stylesheet" href="taisen.css">
 </head>
 <body>
-    <div class="game-container">
-        <!-- プレイヤー1の情報 -->
-        <div class="player-info">
-            <div class="player-stats">
-                <div id="player1-name">プレイヤー1</div>
-                <div class="hp-container">
-                    <div class="hp-bar">
-                        <div class="hp-fill" id="player1-hp"></div>
-                    </div>
-                    <div class="hp-text">HP: <span id="player1-hp-value">10</span>/10</div>
+    <div class="battle-container">
+        <!-- 対戦相手エリア -->
+        <div class="player-area">
+            <div class="player-info">
+                <div class="hp-display">
+                    HP: <div class="hp-bar"><div class="hp-fill" style="width: 80%;"></div></div>
+                    <span>8/10</span>
+                </div>
+                <div class="deck-count">山札: 25枚</div>
+            </div>
+            <div class="graveyard">
+                ♰
+                <div class="graveyard-count">3</div>
+            </div>
+        </div>
+
+        <!-- 相手の手札エリア -->
+        <div class="hand-area" id="opponent-hand">
+            <div class="card">
+                <div class="card-content">
+                    <div class="card-value">?</div>
+                    <div class="card-type">不明</div>
                 </div>
             </div>
-            <div class="deck-count">山札: <span id="player1-deck-count">30</span></div>
         </div>
 
-        <!-- バトルエリア -->
-        <div class="battle-area">
-            <!-- 墓地1 -->
-            <div class="graveyard graveyard-p1" id="player1-graveyard">†</div>
+        <!-- バトルゾーン -->
+        <div class="battle-zone">
+            <div class="card-slot" id="opponent-battle-slot"></div>
+            <div class="timer">60</div>
+            <div class="card-slot" id="player-battle-slot"></div>
 
-            <!-- プレイヤー1の手札 -->
-            <div class="hand" id="player1-hand"></div>
-
-            <!-- ターンカウンター -->
-            <div class="turn-counter">
-                <div class="turn-number" id="turn-number">1</div>
-                <div class="timer" id="turn-timer">60</div>
-            </div>
-
-            <!-- バトルゾーン -->
-            <div class="battle-zones">
-                <div class="battle-zone" id="player1-battle-zone"></div>
-                <div class="battle-zone" id="player2-battle-zone"></div>
-            </div>
-
-            <!-- プレイヤー2の手札 -->
-            <div class="hand" id="player2-hand"></div>
-
-            <!-- 墓地2 -->
-            <div class="graveyard graveyard-p2" id="player2-graveyard">†</div>
-        </div>
-
-        <!-- プレイヤー2の情報 -->
-        <div class="player-info">
-            <div class="player-stats">
-                <div id="player2-name">プレイヤー2</div>
-                <div class="hp-container">
-                    <div class="hp-bar">
-                        <div class="hp-fill" id="player2-hp"></div>
+            <!-- 神の一手ゾーン -->
+            <div class="god-hand-zone">
+                <div class="god-hand-title">神の一手</div>
+                <!-- ダメージ+5の神の一手 -->
+                <div class="card god-hand" draggable="true" data-type="god" data-effect="damage_up">
+                    <div class="card-content">
+                        <div class="card-value">神</div>
+                        <div class="card-type">ダメージ+5</div>
                     </div>
-                    <div class="hp-text">HP: <span id="player2-hp-value">10</span>/10</div>
+                </div>
+                <!-- 手札を1枚破棄の神の一手 -->
+                <div class="card god-hand" draggable="true" data-type="god" data-effect="discard">
+                    <div class="card-content">
+                        <div class="card-value">神</div>
+                        <div class="card-type">手札破棄</div>
+                    </div>
+                </div>
+                <div class="god-hand-remaining">残り使用回数: 2</div>
+            </div>
+        </div>
+
+        <!-- プレイヤーの手札エリア -->
+        <div class="hand-area" id="player-hand">
+            <!-- 攻撃カード -->
+            <div class="card attack" draggable="true" data-type="attack" data-value="5">
+                <div class="card-content">
+                    <div class="card-value">5</div>
+                    <div class="card-type">攻撃</div>
                 </div>
             </div>
-            <div class="deck-count">山札: <span id="player2-deck-count">30</span></div>
+            <!-- 回復カード -->
+            <div class="card heal" draggable="true" data-type="heal" data-value="3">
+                <div class="card-content">
+                    <div class="card-value">3</div>
+                    <div class="card-type">回復</div>
+                </div>
+            </div>
+            <!-- 効果カード -->
+            <div class="card effect" draggable="true" data-type="effect" data-effect="draw">
+                <div class="card-content">
+                    <div class="card-value">効果</div>
+                    <div class="card-type">ドロー</div>
+                </div>
+            </div>
         </div>
 
-        <!-- 神の一手 -->
-        <div class="divine-move">
-            <button class="divine-move-btn" id="divine-move-1" data-move-type="increaseDamage">神の一手①</button>
-            <button class="divine-move-btn" id="divine-move-2" data-move-type="nullifyDamage">神の一手②</button>
+        <!-- プレイヤーエリア -->
+        <div class="player-area">
+            <div class="player-info">
+                <div class="hp-display">
+                    HP: <div class="hp-bar"><div class="hp-fill" style="width: 100%;"></div></div>
+                    <span>10/10</span>
+                </div>
+                <div class="deck-count">山札: 23枚</div>
+            </div>
+            <div class="graveyard">
+                ♰
+                <div class="graveyard-count">5</div>
+            </div>
         </div>
     </div>
 
-    <!-- カードテンプレート（非表示） -->
-    <template id="card-template">
-        <div class="card" draggable="true">
-            <div class="card-inner">
-                <div class="card-value"></div>
-                <div class="card-type"></div>
-                <div class="card-name"></div>
-            </div>
-        </div>
-    </template>
+    <!-- カード詳細表示用のポップアップ -->
+    <div class="card-popup"></div>
 
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-database.js"></script>
-    
-    <!-- ゲームスクリプト -->
-    <script src="cardEffects.js" type="module"></script>
-    <script src="battleManager.js" type="module"></script>
-    <script src="uiManager.js" type="module"></script>
-    <script src="taisen.js" type="module"></script>
+    <script src="taisen.js"></script>
 </body>
 </html>
