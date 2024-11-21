@@ -1,78 +1,87 @@
 <!DOCTYPE html>
 <html lang="ja">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>対戦マッチング</title>
-        <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap" rel="stylesheet">
-        <link href="matching.css" rel="stylesheet">
-    </head>
-    <body>
-        <div class="room-info">
-            <div class="room-id">ルームID: 4573467</div>
-            <div class="member-count">
-                メンバー <span id="currentPlayers">0</span>/<span id="playerCapacity">2</span>
-            </div>
-            <button class="exit-button">退室する</button>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>対戦マッチング</title>
+    <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap" rel="stylesheet">
+    <link href="matching.css" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <div class="room-info">
+        <div class="room-id">ルームID: 4573467</div>
+        <div class="member-count">
+            メンバー <span id="currentPlayers">0</span>/<span id="playerCapacity">2</span>
         </div>
-        <div class="match-container">
-            <div class="match-table" data-table="1">
-                <div class="match-header">
-                    <span>room1</span>
-                    <div class="player-name"></div>
-                </div>
-                <div class="match-content">
-                    <div class="entry-box" data-position="後攻1">
+        <button class="exit-button">退室する</button>
+    </div>
+    <div class="match-container">
+        <div class="match-table" data-table="1">
+            <div class="match-header">
+                <span>room1</span>
+            </div>
+            <div class="match-content">
+                <div class="entry-box" data-position="後攻">
+                    <div class="entry-text">
                         ENTRY<br>TAP<br>
                         <small>後攻</small>
                     </div>
-                    <div class="vs-badge">VS</div>
-                    <div class="entry-box" data-position="先攻1">
+                    <div class="player-name-display"></div>
+                </div>
+                <div class="vs-badge">VS</div>
+                <div class="entry-box" data-position="先攻">
+                    <div class="entry-text">
                         ENTRY<br>TAP<br>
                         <small>先攻</small>
                     </div>
+                    <div class="player-name-display"></div>
                 </div>
-                <button class="start-button">対戦開始</button>
             </div>
+            <button class="start-button">対戦開始</button>
+        </div>
 
-            <div class="match-table" data-table="2">
-                <div class="match-header">
-                    <span>room2</span>
-                    <div class="player-name"></div>
-                </div>
-                <div class="match-content">
-                    <div class="entry-box" data-position="後攻2">
+        <div class="match-table" data-table="2">
+            <div class="match-header">
+                <span>room2</span>
+            </div>
+            <div class="match-content">
+                <div class="entry-box" data-position="後攻">
+                    <div class="entry-text">
                         ENTRY<br>TAP<br>
                         <small>後攻</small>
                     </div>
-                    <div class="vs-badge">VS</div>
-                    <div class="entry-box" data-position="先攻2">
+                    <div class="player-name-display"></div>
+                </div>
+                <div class="vs-badge">VS</div>
+                <div class="entry-box" data-position="先攻">
+                    <div class="entry-text">
                         ENTRY<br>TAP<br>
                         <small>先攻</small>
                     </div>
+                    <div class="player-name-display"></div>
                 </div>
-                <button class="start-button" disabled>対戦開始</button>
             </div>
+            <button class="start-button" disabled>対戦開始</button>
         </div>
+    </div>
 
-        <div class="menu-bar">
-            <a href="#" class="menu-item">
-                <div class="menu-icon"></div>
-                設定
-            </a>
-            <a href="#" class="menu-item">
-                <div class="menu-icon"></div>
-                ルール説明
-            </a>
-            <a href="#" class="menu-item">
-                <div class="menu-icon"></div>
-                メニュー
-            </a>
-        </div>
-
-        <!-- Firebase SDK -->
-        <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-        <script src="matching.js"></script>
-    </body>
+    <div class="menu-bar">
+        <a href="#" class="menu-item">
+            <div class="menu-icon"></div>
+            設定
+        </a>
+        <a href="#" class="menu-item">
+            <div class="menu-icon"></div>
+            ルール説明
+        </a>
+        <a href="#" class="menu-item">
+            <div class="menu-icon"></div>
+            メニュー
+        </a>
+    </div>
+    <script src="matching.js"></script>
+</body>
 </html>

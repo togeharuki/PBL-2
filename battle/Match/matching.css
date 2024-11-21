@@ -77,12 +77,6 @@ body {
     padding: 15px;
     margin-bottom: 20px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    cursor: pointer;
-    transition: transform 0.3s ease;
-}
-
-.match-table:hover {
-    transform: translateY(-2px);
 }
 
 .match-header {
@@ -94,12 +88,6 @@ body {
     border-bottom: 1px solid rgba(255,255,255,0.2);
 }
 
-.match-header .player-name {
-    color: #4ecdc4;
-    font-weight: bold;
-    margin-left: 10px;
-}
-
 .match-content {
     display: flex;
     justify-content: space-between;
@@ -108,16 +96,51 @@ body {
 }
 
 .entry-box {
+    position: relative;
     flex: 1;
     background: #3a3a5e;
     border-radius: 5px;
     padding: 40px;
     text-align: center;
+    cursor: pointer;
     transition: background-color 0.3s;
+    min-height: 100px;
 }
 
 .entry-box:hover {
     background: #4a4a6e;
+}
+
+.entry-text {
+    transition: opacity 0.3s ease;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+}
+
+.entry-text.hidden {
+    opacity: 0;
+    display: none;
+}
+
+.player-name-display {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    text-align: center;
+    color: #4ecdc4;
+    font-weight: bold;
+    font-size: 1.2em;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.player-name-display.visible {
+    opacity: 1;
 }
 
 .vs-badge {
@@ -180,13 +203,9 @@ body {
     display: inline-block;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
     .container {
         padding: 15px;
-    }
-
-    .room-id {
-        font-size: 20px;
     }
 
     .match-content {
@@ -195,5 +214,10 @@ body {
 
     .entry-box {
         padding: 20px;
+    }
+
+    .vs-badge {
+        margin: 10px 0;
+        justify-content: center;
     }
 }
