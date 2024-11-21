@@ -1,338 +1,121 @@
-// Firebase設定と初期化
-import { initializeApp } from "firebase/app";
-import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
+const cardContainer = document.getElementById('card-container'); // カードコンテナを取得
+const singleGachaButton = document.getElementById('single-gacha'); // 1連引くボタンを取得
+const multiGachaButton = document.getElementById('multi-gacha'); // 10連引くボタンを取得
 
-// Firebaseの設定
-const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+// カードのリスト（レアリティと画像のパスを確認）
+const cardList = [
+    { imageFront: '写真/徳田家ののりちゃん.png', imageBack: '写真/カードの裏面.png', rarity: 'N' },
+    { imageFront: '写真/金田家のしょうちゃん.png', imageBack: '写真/カードの裏面.png', rarity: 'N' },
+    { imageFront: '写真/佐藤家のてんちゃん.png', imageBack: '写真/カードの裏面.png', rarity: 'R' },
+    { imageFront: '写真/二郎系.png', imageBack: '写真/カードの裏面.png', rarity: 'SR' },
+    { imageFront: '写真/佐藤家のやまちゃん.png', imageBack: '写真/カードの裏面.png', rarity: 'UR' }
+];
+
+// レアリティごとの排出率を設定
+const rarityWeights = {
+    'N': 60,   // 60%
+    'R': 40,   // 30%
+    'SR': 10,   // 7%
+    'UR': 1     // 3%
 };
 
-// Firebase初期化
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+// カードをランダムに引く関数
+function drawCard() {
+    const randomValue = Math.random() * 100; // 0から100の乱数を生成
+    let cumulativeWeight = 0;
 
-// プレイヤー情報の取得
-const playerId = localStorage.getItem('playerId');
-if (!playerId) {
-    console.error('プレイヤー情報が見つかりません');
-    alert('ログインしてください');
-    window.location.href = 'login.html';
-}
-
-// Soukoのパスを指定
-const playerCardsRef = doc(db, 'Card', playerId);
-
-// カードが取得されるまでの初期設定
-let cardDatabase = [];
-
-// カードデータを初期化
-async function initializeCardDatabase() {
-    const cardData = await fetchCardDatabase();
-    cardDatabase = cardData.length > 0 ? cardData : defaultCardDatabase();
-}
-
-// デフォルトのカードデータを返す関数
-function defaultCardDatabase() {
-    return [
-        {
-            id: 1,
-            name: "不審者の極み'TOUGE'",
-            image: "写真/touge.jpg",
-            effect: "２ターン数値+5",
-            rarity: "UR"
-        },
-        {
-            id: 2,
-            name: "徳田家ののりちゃん",
-            image: "写真/徳田家ののりちゃん.jpg",
-            effect: "手札を１枚捨てる",
-            rarity: "N"
-        },
-        {
-            id: 3,
-            name: "佐藤家のてんちゃん",
-            image: "写真/佐藤家のてんちゃん.jpg",
-            effect: "数値を+5",
-            rarity: "UR"
-        }
-    ];
-}
-
-// Firebaseからカードデータを取得する関数
-async function fetchCardDatabase() {
-    const docSnap = await getDoc(playerCardsRef);
-    if (docSnap.exists()) {
-        return docSnap.data().cards || [];
-    } else {
-        console.log("No data available");
-        return [];
-    }
-}
-
-// カードデータをSoukoに追加する関数
-async function addCardToSouko(card) {
-    try {
-        const cardId = `card_${Date.now()}`; // 一意のIDを生成
-        await setDoc(playerCardsRef, {
-            cards: {
-                [cardId]: {
-                    name: card.name,
-                    image: card.image,
-                    effect: card.effect,
-                    timestamp: new Date()
-                }
-            }
-        }, { merge: true });
-        console.log('カードがSoukoに追加されました:', cardId);
-    } catch (error) {
-        console.error('カードの追加に失敗しました:', error);
-    }
-}
-
-// DOM要素の取得
-const gachaButton = document.getElementById('gacha-button');
-const gachaButton10 = document.getElementById('gacha-button-10');
-const card = document.querySelector('.card');
-const cardImage = document.querySelector('.card-back .card-image img');
-const cardName = document.querySelector('.card-back .card-name');
-const cardEffect = document.querySelector('.card-back .card-effect');
-const rarityDisplay = document.querySelector('.rarity');
-const pullCount = document.getElementById('pull-count');
-const urRate = document.getElementById('ur-rate');
-const srRate = document.getElementById('sr-rate');
-const rRate = document.getElementById('r-rate');
-const nRate = document.getElementById('n-rate');
-const cardsContainer = document.querySelector('.cards-container');
-const cardDisplay = document.querySelector('.card-display');
-
-// 新たに追加したボタン要素
-const endGachaButton = document.createElement('button');
-endGachaButton.textContent = 'ガチャを終わる';
-endGachaButton.className = 'gacha-button';
-endGachaButton.style.display = 'none'; // 初期は非表示
-
-const retryButton = document.createElement('button');
-retryButton.textContent = 'もう1回';
-retryButton.className = 'gacha-button';
-retryButton.style.display = 'none'; // 初期は非表示
-
-document.querySelector('.button-container').appendChild(endGachaButton);
-document.querySelector('.button-container').appendChild(retryButton);
-
-// スタッツの初期化
-let stats = {
-    total: 0,
-    ur: 0,
-    sr: 0,
-    r: 0,
-    n: 0
-};
-
-const raritySettings = {
-    UR: { class: 'ultra-rare', probability: 3, color: '#e74c3c' },
-    SR: { class: 'super-rare', probability: 12, color: '#f1c40f' },
-    R: { class: 'rare', probability: 35, color: '#3498db' },
-    N: { class: 'common', probability: 50, color: '#7f8c8d' }
-};
-
-// パーティクルを生成する関数
-function createParticles(color, container) {
-    for (let i = 0; i < 30; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'particle';
-        particle.style.backgroundColor = color;
-        particle.style.position = 'absolute';
-        particle.style.left = '50%';
-        particle.style.top = '50%';
-
-        const angle = (Math.random() * 360) * Math.PI / 180;
-        const distance = 100 + Math.random() * 100;
-        particle.style.transform = `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px)`;
-        container.appendChild(particle);
-        setTimeout(() => { particle.remove(); }, 1000);
-    }
-}
-
-// ミニカードを作成する関数
-function createMiniCard() {
-    const miniCardContainer = document.createElement('div');
-    miniCardContainer.className = 'mini-card';
-
-    const cardElement = document.createElement('div');
-    cardElement.className = 'card';
-
-    // カード表面
-    const cardFront = document.createElement('div');
-    cardFront.className = 'card-front';
-    const frontImg = document.createElement('img');
-    frontImg.src = "写真/カードの裏面.jpg";
-    cardFront.appendChild(frontImg);
-
-    // カード裏面
-    const cardBack = document.createElement('div');
-    cardBack.className = 'card-back';
-
-    const rarity = document.createElement('div');
-    rarity.className = 'rarity';
-
-    const imageContainer = document.createElement('div');
-    imageContainer.className = 'card-image';
-    const cardImg = document.createElement('img');
-    imageContainer.appendChild(cardImg);
-
-    const nameDiv = document.createElement('div');
-    nameDiv.className = 'card-name';
-
-    const effectDiv = document.createElement('div');
-    effectDiv.className = 'card-effect';
-
-    cardBack.appendChild(rarity);
-    cardBack.appendChild(imageContainer);
-    cardBack.appendChild(nameDiv);
-    cardBack.appendChild(effectDiv);
-
-    cardElement.appendChild(cardFront);
-    cardElement.appendChild(cardBack);
-    miniCardContainer.appendChild(cardElement);
-
-    return {
-        container: miniCardContainer,
-        image: cardImg,
-        name: nameDiv,
-        effect: effectDiv,
-        rarity: rarity,
-        card: cardElement
-    };
-}
-let isFirstPull = true;
-
-async function pullGacha() {
-    if (isFirstPull) {
-        isFirstPull = false;
-    } else {
-        if (card.classList.contains('flipped')) {
-            return;
+    for (const card of cardList) {
+        cumulativeWeight += rarityWeights[card.rarity]; // 累積排出率を計算
+        if (randomValue < cumulativeWeight) {
+            return card; // 選ばれたカードを返す
         }
     }
 
-    gachaButton.disabled = true;
-    cardDisplay.style.display = 'block';
-    cardsContainer.style.display = 'none';
-    card.classList.remove('ur-card', 'sr-card', 'r-card', 'n-card');
-
-    const randomIndex = Math.floor(Math.random() * cardDatabase.length);
-    const pulledCard = cardDatabase[randomIndex];
-
-    cardImage.src = pulledCard.image;
-    cardImage.onload = async () => {
-        cardName.textContent = pulledCard.name;
-        cardEffect.textContent = pulledCard.effect;
-        rarityDisplay.textContent = pulledCard.rarity;
-        rarityDisplay.className = `rarity ${raritySettings[pulledCard.rarity].class}`;
-
-        updateStats(pulledCard.rarity);
-        
-        card.classList.add('flipped');
-        createParticles(raritySettings[pulledCard.rarity].color, cardDisplay);
-
-        // カードをSoukoに追加
-        await addCardToSouko(pulledCard);
-
-        // カードが回転し終わった後にボタンを表示
-        endGachaButton.style.display = 'block';
-        retryButton.style.display = 'block';
-
-        gachaButton.disabled = false;
-    };
-
-    cardImage.onerror = () => {
-        console.error("画像の読み込みに失敗しました。画像パスを確認してください。");
-        gachaButton.disabled = false;
-    };
+    return cardList[0]; // デフォルトのカードを返す（万が一のため）
 }
 
-async function pullGacha10() {
-    gachaButton10.disabled = true;
-    cardDisplay.style.display = 'none';
-    cardsContainer.innerHTML = '';
-    cardsContainer.style.display = 'grid';
+function createCardElement(card) {
+    const cardElement = document.createElement('div'); // カードのdivを作成
+    cardElement.classList.add('card', card.rarity); // カードクラスとレアリティクラスを追加
+    
+    const cardInner = document.createElement('div'); // 内部要素を作成
+    cardInner.classList.add('card-inner'); // 内部要素にクラスを追加
 
-    const pulls = [];
-    for (let i = 0; i < 10; i++) {
-        const randomIndex = Math.floor(Math.random() * cardDatabase.length);
-        pulls.push(cardDatabase[randomIndex]);
-    }
+    // フロント面を作成（裏面の画像をフロントにする）
+    const cardFront = document.createElement('div'); 
+    cardFront.classList.add('card-front'); // フロントクラスを追加
+    const frontImage = document.createElement('img');
+    frontImage.src = card.imageBack; // カードの表面の画像を裏面の画像に設定
+    frontImage.alt = 'カード表面'; // 画像の代替テキスト
+    frontImage.style.width = '100%'; // 画像の幅をカードに合わせる
+    frontImage.style.height = 'auto'; // 高さを自動調整
+    cardFront.appendChild(frontImage); // 画像をフロント面に追加
 
-    for (let i = 0; i < pulls.length; i++) {
-        const pulledCard = pulls[i];
-        const miniCard = createMiniCard();
-        cardsContainer.appendChild(miniCard.container);
+    // 裏面を作成（表面の画像を裏面にする）
+    const cardBack = document.createElement('div'); // 裏面を作成
+    cardBack.classList.add('card-back'); // 裏面クラスを追加
+    const backImage = document.createElement('img');
+    backImage.src = card.imageFront; // カードの裏面の画像を表面の画像に設定
+    backImage.alt = 'カード裏面'; // 画像の代替テキスト
+    backImage.style.width = '100%'; // 画像の幅をカードに合わせる
+    backImage.style.height = 'auto'; // 高さを自動調整
+    cardBack.appendChild(backImage); // 画像を裏面に追加
+    
+    // レアリティを表示する要素を作成
+    const rarityLabel = document.createElement('div');
+    rarityLabel.textContent = `レアリティ: ${card.rarity}`; // レアリティのテキスト
+    rarityLabel.style.position = 'absolute'; // 絶対位置
+    rarityLabel.style.bottom = '10px'; // 下から10px
+    rarityLabel.style.left = '10px'; // 左から10px
+    rarityLabel.style.color = 'white'; // テキストカラー
+    rarityLabel.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'; // 半透明の背景
+    rarityLabel.style.padding = '5px'; // パディング
+    rarityLabel.style.borderRadius = '5px'; // 角丸
+    cardBack.appendChild(rarityLabel); // 裏面にレアリティを追加
+    
+    // 内部要素にフロントと裏面を追加
+    cardInner.appendChild(cardFront); 
+    cardInner.appendChild(cardBack); 
+    cardElement.appendChild(cardInner); // 内部要素をカードに追加
 
-        miniCard.image.src = pulledCard.image;
-        miniCard.image.onload = async () => {
-            miniCard.name.textContent = pulledCard.name;
-            miniCard.effect.textContent = pulledCard.effect;
-            miniCard.rarity.textContent = pulledCard.rarity;
-            miniCard.rarity.className = `rarity ${raritySettings[pulledCard.rarity].class}`;
+    // カードをクリックした時にめくる処理
+    cardElement.addEventListener('click', () => {
+        cardElement.classList.toggle('flip'); // フリップクラスをトグル
+    });
 
-            updateStats(pulledCard.rarity);
+    return cardElement; // 作成したカードを返す
+}
 
-            // Soukoにカードを追加
-            await addCardToSouko(pulledCard);
-
+// カードを一枚ずつめくる関数
+function flipCardsOneByOne(cards) {
+    cards.forEach((card, index) => {
+        setTimeout(() => {
+            card.classList.add('flip'); // フリップクラスを追加
+            // フリップが完了した後に光るクラスを追加
             setTimeout(() => {
-                miniCard.card.classList.add('flipped');
-                createParticles(raritySettings[pulledCard.rarity].color, miniCard.container);
-            }, i * 200);
-        };
+                card.classList.add('glow'); // 光るクラスを追加
+            }, 600); // フリップのアニメーション時間とほぼ同じ時間を待つ
+        }, index * 980); // 0.98秒ごとにめくる
+    });
+}
 
-        miniCard.image.onerror = () => {
-            console.error("画像の読み込みに失敗しました。画像パスを確認してください。");
-        };
+// ガチャを引く関数
+function gacha(isMulti) {
+    cardContainer.innerHTML = ''; // 既存のカードをクリア
+    const drawCount = isMulti ? 10 : 1; // 引くカードの数を設定
+    const drawnCards = []; // 引いたカードを保存する配列
+    
+    for (let i = 0; i < drawCount; i++) {
+        const card = drawCard(); // カードを引く
+        const cardElement = createCardElement(card); // カード要素を作成
+        cardContainer.appendChild(cardElement); // カードをコンテナに追加
+        drawnCards.push(cardElement); // 引いたカードを配列に追加
     }
 
-    // 10連ガチャでもボタンを表示
-    endGachaButton.style.display = 'block';
-    retryButton.style.display = 'block';
-
-    gachaButton10.disabled = false;
+    // カードを一枚ずつめくる
+    setTimeout(() => flipCardsOneByOne(drawnCards), 1000); // 1秒後にめくり始める
 }
 
-function updateStats(rarity) {
-    stats.total++;
-    if (rarity === 'UR') stats.ur++;
-    else if (rarity === 'SR') stats.sr++;
-    else if (rarity === 'R') stats.r++;
-    else if (rarity === 'N') stats.n++;
-
-    pullCount.textContent = stats.total;
-    urRate.textContent = ((stats.ur / stats.total) * 100).toFixed(2);
-    srRate.textContent = ((stats.sr / stats.total) * 100).toFixed(2);
-    rRate.textContent = ((stats.r / stats.total) * 100).toFixed(2);
-    nRate.textContent = ((stats.n / stats.total) * 100).toFixed(2);
-}
-
-// ボタンのイベントリスナーを追加
-endGachaButton.addEventListener('click', () => {
-    alert('ガチャを終わります。');
-    // 必要に応じて、他の処理を追加
-});
-
-retryButton.addEventListener('click', () => {
-    endGachaButton.style.display = 'none'; // 終了ボタンを非表示
-    retryButton.style.display = 'none'; // もう1回ボタンを非表示
-    card.classList.remove('flipped'); // カードの回転をリセット
-    cardImage.src = "写真/カードの裏面.jpg"; // 裏面画像を設定
-    cardDisplay.style.display = 'none'; // カード表示を非表示
-    cardsContainer.style.display = 'none'; // カードコンテナを非表示
-    gachaButton.disabled = false; // ボタンを有効にする
-    gachaButton10.disabled = false; // 10連ボタンも有効にする
-});
-
-gachaButton.addEventListener('click', pullGacha);
-gachaButton10.addEventListener('click', pullGacha10);
+// ボタンにイベントリスナーを追加
+singleGachaButton.addEventListener('click', () => gacha(false)); // 1連引くボタン
+multiGachaButton.addEventListener('click', () => gacha(true)); // 10連引くボタン
