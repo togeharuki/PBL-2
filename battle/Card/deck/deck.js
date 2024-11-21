@@ -62,13 +62,23 @@ async function loadCreatedCards() {
                 .filter(([key, _]) => key !== 'timestamp')
                 .map(([id, card]) => ({
                     ...card,
-                    id
+                    id,
+                    isCreated: true  // 作成したカードを識別するフラグ
                 }))
                 .sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
 
             const cardPromises = cardsArray.map(async (card) => {
                 const cardElement = document.createElement('div');
                 cardElement.className = 'card-item';
+
+                // チェックボックスを追加
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'card-checkbox';
+                checkbox.addEventListener('change', function() {
+                    handleCardSelection(this, card);
+                });
+
                 cardElement.innerHTML = `
                     <div class="card-image">
                         <img src="${card.image}" alt="${card.name}">
@@ -76,6 +86,19 @@ async function loadCreatedCards() {
                     <div class="card-name">${card.name}</div>
                     <div class="card-effect">${card.effect}</div>
                 `;
+
+                // 現在のデッキに含まれているかチェック
+                const deckRef = db.collection('Deck').doc(playerId.toString());
+                const deckDoc = await deckRef.get();
+                if (deckDoc.exists) {
+                    const currentDeck = deckDoc.data().cards;
+                    if (currentDeck.some(deckCard => deckCard.name === card.name)) {
+                        checkbox.checked = true;
+                        selectedCards.push(card);
+                    }
+                }
+
+                cardElement.insertBefore(checkbox, cardElement.firstChild);
                 return cardElement;
             });
 
@@ -85,12 +108,28 @@ async function loadCreatedCards() {
                     createdCardsGrid.appendChild(cardElement);
                 }
             });
+            
+            updateSaveButton();
         }
     } catch (error) {
         console.error('作成したカードの読み込みに失敗しました:', error);
     }
 }
 
+// カード選択のハンドラー関数
+function handleCardSelection(checkbox, card) {
+    if (checkbox.checked) {
+        if (selectedCards.length >= 10) {
+            checkbox.checked = false;
+            alert('デッキは10枚までしか選択できません');
+            return;
+        }
+        selectedCards.push(card);
+    } else {
+        selectedCards = selectedCards.filter(c => c.name !== card.name);
+    }
+    updateSaveButton();
+}
 // カードを表示する関数
 function createCardElement(card) {
     const cardElement = document.createElement('div');
@@ -101,17 +140,7 @@ function createCardElement(card) {
     checkbox.type = 'checkbox';
     checkbox.className = 'card-checkbox';
     checkbox.addEventListener('change', function() {
-        if (this.checked) {
-            if (selectedCards.length >= 10) {
-                this.checked = false;
-                alert('デッキは10枚までしか選択できません');
-                return;
-            }
-            selectedCards.push(card);
-        } else {
-            selectedCards = selectedCards.filter(c => c.name !== card.name);
-        }
-        updateSaveButton();
+        handleCardSelection(this, card);
     });
 
     cardElement.innerHTML = `
@@ -131,6 +160,7 @@ function updateSaveButton() {
     const saveButton = document.getElementById('save-deck-button');
     saveButton.disabled = selectedCards.length !== 10;
 }
+
 // デッキを保存する関数
 async function saveDeck() {
     if (selectedCards.length !== 10) {
@@ -143,7 +173,12 @@ async function saveDeck() {
         const deckRef = db.collection('Deck').doc(playerId.toString());
         
         await deckRef.set({
-            cards: selectedCards,
+            cards: selectedCards.map(card => ({
+                name: card.name,
+                effect: card.effect,
+                image: card.image,
+                isCreated: card.isCreated || false
+            })),
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
@@ -183,13 +218,13 @@ async function loadDeckCards() {
 
             const cardPromises = cards.map(async (card) => {
                 const cardName = encodeURIComponent(card.name); // カード名をURLエンコード
-                const imagePath = `https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/${cardName}.jpg`; // JPG形式の画像
-                const jpegPath = `https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/${cardName}.jpeg`; // JPEG形式の画像
+                const imagePath = `https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/${cardName}.jpg`;
+                const jpegPath = `https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/${cardName}.jpeg`;
 
                 // 画像の存在チェック
                 const validImagePath = await checkImageExistence(imagePath, jpegPath);
                 if (validImagePath) {
-                    card.image = validImagePath; // 存在する画像パスをセット
+                    card.image = validImagePath;
                     const cardElement = createCardElement(card);
                     
                     // 現在のデッキに含まれているカードは自動的にチェックを入れる
