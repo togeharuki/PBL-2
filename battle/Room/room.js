@@ -1,18 +1,26 @@
-// Firebaseの設定
-const firebaseConfig = {
-    apiKey: "AIzaSyCGgRBPAF2W0KKw0tX2zwZeyjDGgvv31KM",
-    authDomain: "deck-dreamers.firebaseapp.com",
-    projectId: "deck-dreamers",
-    storageBucket: "deck-dreamers.appspot.com",
-    messagingSenderId: "165933225805",
-    appId: "1:165933225805:web:4e5a3907fc5c7a30a28a6c"
-};
-
-// Firebase初期化
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
 let selectedPlayerCount = 2;
+let db;
+
+// Firebaseの設定と初期化
+function initializeFirebase() {
+    const firebaseConfig = {
+        apiKey: "AIzaSyCGgRBPAF2W0KKw0tX2zwZeyjDGgvv31KM",
+        authDomain: "deck-dreamers.firebaseapp.com",
+        projectId: "deck-dreamers",
+        storageBucket: "deck-dreamers.appspot.com",
+        messagingSenderId: "165933225805",
+        appId: "1:165933225805:web:4e5a3907fc5c7a30a28a6c"
+    };
+
+    // Firebase初期化
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    db = firebase.firestore();
+}
+
+// 初期化を実行
+initializeFirebase();
 
 function generateRoomId() {
     const part1 = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
@@ -38,8 +46,9 @@ function copyRoomId() {
 }
 
 async function createRoom() {
-    const roomId = document.getElementById('generatedRoomId').textContent;
     try {
+        const roomId = document.getElementById('generatedRoomId').textContent;
+        
         // Firestoreにルームを作成
         await db.collection('rooms').doc(roomId).set({
             maxPlayers: selectedPlayerCount,
@@ -92,7 +101,6 @@ function updateSelectedPlayerCount() {
 
 function confirmCreateRoom() {
     createRoom();
-    closeModal();
 }
 
 async function searchRoom() {
@@ -136,7 +144,9 @@ function goBack() {
     window.location.href = '../Battle/battle.html';
 }
 
+// DOMContentLoadedイベントリスナー
 document.addEventListener('DOMContentLoaded', function() {
+    // プレイヤー数選択ボタンのイベントリスナー
     const playerCountButtons = document.querySelectorAll('.player-count-button');
     
     playerCountButtons.forEach(button => {
@@ -148,6 +158,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // モーダルの外側クリックで閉じる
     window.onclick = function(event) {
         const modal = document.getElementById('createRoomModal');
         if (event.target === modal) {
@@ -155,7 +166,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // 古いルームを定期的にクリーンアップ
+    // ルームIDの入力フォーマット制御
+    const roomIdInput = document.getElementById('roomIdInput');
+    if (roomIdInput) {
+        roomIdInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 3) {
+                value = value.slice(0, 3) + '-' + value.slice(3, 7);
+            }
+            e.target.value = value;
+        });
+    }
+
+    // 古いルームのクリーンアップ処理
     setInterval(async function cleanupInactiveRooms() {
         try {
             const oldRooms = await db.collection('rooms')
@@ -173,15 +196,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('クリーンアップエラー:', error);
         }
     }, 1000 * 60 * 15); // 15分ごと
-});
-
-// 入力フォーマットの制御
-document.getElementById('roomIdInput').addEventListener('input', function(e) {
-    let value = e.target.value.replace(/\D/g, '');
-    if (value.length > 3) {
-        value = value.slice(0, 3) + '-' + value.slice(3, 7);
-    }
-    e.target.value = value;
 });
 
 // エラーハンドリング
