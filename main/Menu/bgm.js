@@ -38,6 +38,11 @@ window.addEventListener('DOMContentLoaded', () => {
     updateSpeakerIcon();
 });
 
+// ページ終了時に再生時間をリセット
+window.addEventListener('beforeunload', () => {
+    localStorage.removeItem('currentTime');
+});
+
 // 音楽選択が変更されたときの処理（music.html専用機能）
 if (musicSelect) {
     musicSelect.addEventListener('change', () => {
