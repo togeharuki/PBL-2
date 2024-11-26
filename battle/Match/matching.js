@@ -31,6 +31,7 @@ class MatchingSystem {
         this.playerId = localStorage.getItem('playerId');
         this.playerName = localStorage.getItem('playerName');
         this.unsubscribe = null;
+        this.isMatchFound = false;
 
         this.showMatchingOverlay();
         this.startMatching();
@@ -58,29 +59,19 @@ class MatchingSystem {
                 return;
             }
 
-            let matchRef = null;
-
-            // まず、既存の待機中のマッチを探す
-            const matchesRef = collection(this.db, 'matches');
-            const q = query(matchesRef, 
-                where('status', '==', 'waiting'),
-                where('player1.id', '!=', this.playerId),
-                limit(1)
-            );
-
-            const querySnapshot = await getDocs(q);
+            // 既存の待機中マッチを探す
+            const availableMatch = await this.findAvailableMatch();
             
-            if (!querySnapshot.empty) {
-                // 既存のマッチに参加
-                matchRef = querySnapshot.docs[0].ref;
-                this.matchId = matchRef.id;
-                await this.joinMatch(matchRef);
+            if (availableMatch) {
+                // 既存マッチに参加
+                this.matchId = availableMatch.id;
+                await this.joinMatch(availableMatch.ref);
             } else {
-                // 新しいマッチを作成
+                // 新規マッチ作成
                 await this.createNewMatch();
             }
 
-            // マッチの状態を監視
+            // マッチングの監視開始
             this.watchMatchStatus();
 
         } catch (error) {
@@ -90,25 +81,52 @@ class MatchingSystem {
         }
     }
 
+    async findAvailableMatch() {
+        const matchesRef = collection(this.db, 'matches');
+        const q = query(
+            matchesRef, 
+            where('status', '==', 'waiting'),
+            where('player1.id', '!=', this.playerId),
+            limit(1)
+        );
+
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+            const doc = querySnapshot.docs[0];
+            return { id: doc.id, ref: doc.ref, data: doc.data() };
+        }
+        return null;
+    }
+
     async createNewMatch() {
         const matchRef = doc(collection(this.db, 'matches'));
         this.matchId = matchRef.id;
 
-        await setDoc(matchRef, {
+        const matchData = {
             status: 'waiting',
             createdAt: new Date().toISOString(),
             player1: {
                 id: this.playerId,
                 name: this.playerName
             },
-            player2: null
-        });
+            player2: null,
+            isGameReady: false
+        };
 
-        console.log('新しいマッチを作成:', this.matchId);
+        await setDoc(matchRef, matchData);
+        console.log('新規マッチ作成:', this.matchId);
     }
 
     async joinMatch(matchRef) {
         try {
+            // トランザクションを使用して競合を防ぐ
+            const matchDoc = await getDoc(matchRef);
+            const matchData = matchDoc.data();
+
+            if (matchData.status !== 'waiting') {
+                throw new Error('このマッチは既に埋まっています');
+            }
+
             await updateDoc(matchRef, {
                 status: 'matched',
                 player2: {
@@ -118,8 +136,9 @@ class MatchingSystem {
                 updatedAt: new Date().toISOString()
             });
 
-            // ゲームドキュメントを作成
+            // ゲームドキュメント作成
             await this.createGameDocument();
+            this.isMatchFound = true;
 
         } catch (error) {
             console.error('マッチ参加エラー:', error);
@@ -158,24 +177,39 @@ class MatchingSystem {
         };
 
         await setDoc(gameRef, initialGameState);
+
+        // マッチのステータスを更新
+        const matchRef = doc(this.db, 'matches', this.matchId);
+        await updateDoc(matchRef, {
+            isGameReady: true
+        });
     }
 
     watchMatchStatus() {
+        if (this.unsubscribe) {
+            this.unsubscribe();
+        }
+
         const matchRef = doc(this.db, 'matches', this.matchId);
         
         this.unsubscribe = onSnapshot(matchRef, (snapshot) => {
             if (snapshot.exists()) {
                 const matchData = snapshot.data();
                 
-                if (matchData.status === 'matched') {
+                if ((matchData.status === 'matched' && matchData.isGameReady) || 
+                    (this.isMatchFound && matchData.isGameReady)) {
                     this.hideMatchingOverlay();
-                    const gameUrl = new URL('../taisen.html', window.location.href);
-                    gameUrl.searchParams.set('gameId', this.matchId);
-                    gameUrl.searchParams.set('playerId', this.playerId);
-                    window.location.href = gameUrl.toString();
+                    this.redirectToGame();
                 }
             }
         });
+    }
+
+    redirectToGame() {
+        const gameUrl = new URL('../taisen.html', window.location.href);
+        gameUrl.searchParams.set('gameId', this.matchId);
+        gameUrl.searchParams.set('playerId', this.playerId);
+        window.location.href = gameUrl.toString();
     }
 
     cleanup() {
