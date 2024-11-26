@@ -2,29 +2,34 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Deck Dreamers - Battle</title>
+    <title>Deck Dreamers - オンライン対戦</title>
     <link rel="stylesheet" href="taisen.css">
 </head>
 <body>
+    <div id="game-info" class="game-info">
+        <div class="game-id">ゲームID: <span id="game-id"></span></div>
+        <div class="game-status">状態: <span id="game-status">マッチング中...</span></div>
+    </div>
+
     <div class="battle-container">
         <!-- 対戦相手エリア -->
-        <div class="player-area">
+        <div class="player-area opponent-area">
             <div class="player-info">
                 <div class="hp-display">
-                    HP: <div class="hp-bar"><div class="hp-fill" style="width: 80%;"></div></div>
-                    <span>8/10</span>
+                    HP: <div class="hp-bar"><div id="opponent-hp-bar" class="hp-fill" style="width: 100%;"></div></div>
+                    <span id="opponent-hp">10/10</span>
                 </div>
-                <div class="deck-count">山札: 25枚</div>
+                <div class="deck-count">山札: <span id="opponent-deck-count">25</span>枚</div>
             </div>
             <div class="graveyard">
                 ♰
-                <div class="graveyard-count">3</div>
+                <div id="opponent-graveyard-count" class="graveyard-count">0</div>
             </div>
         </div>
 
         <!-- 相手の手札エリア -->
         <div class="hand-area" id="opponent-hand">
-            <div class="card">
+            <div class="card hidden-card">
                 <div class="card-content">
                     <div class="card-value">?</div>
                     <div class="card-type">不明</div>
@@ -34,9 +39,20 @@
 
         <!-- バトルゾーン -->
         <div class="battle-zone">
-            <div class="card-slot" id="opponent-battle-slot"></div>
-            <div class="timer">60</div>
-            <div class="card-slot" id="player-battle-slot"></div>
+            <div class="field-side opponent-field">
+                <div class="card-slot" id="opponent-battle-slot"></div>
+                <div class="field-status" id="opponent-field-status"></div>
+            </div>
+
+            <div class="timer-container">
+                <div class="turn-indicator" id="turn-indicator"></div>
+                <div class="timer">60</div>
+            </div>
+
+            <div class="field-side player-field">
+                <div class="card-slot" id="player-battle-slot"></div>
+                <div class="field-status" id="player-field-status"></div>
+            </div>
 
             <!-- 神の一手ゾーン -->
             <div class="god-hand-zone">
@@ -60,42 +76,20 @@
         </div>
 
         <!-- プレイヤーの手札エリア -->
-        <div class="hand-area" id="player-hand">
-            <!-- 攻撃カード -->
-            <div class="card attack" draggable="true" data-type="attack" data-value="5">
-                <div class="card-content">
-                    <div class="card-value">5</div>
-                    <div class="card-type">攻撃</div>
-                </div>
-            </div>
-            <!-- 回復カード -->
-            <div class="card heal" draggable="true" data-type="heal" data-value="3">
-                <div class="card-content">
-                    <div class="card-value">3</div>
-                    <div class="card-type">回復</div>
-                </div>
-            </div>
-            <!-- 効果カード -->
-            <div class="card effect" draggable="true" data-type="effect" data-effect="draw">
-                <div class="card-content">
-                    <div class="card-value">効果</div>
-                    <div class="card-type">ドロー</div>
-                </div>
-            </div>
-        </div>
+        <div class="hand-area" id="player-hand"></div>
 
         <!-- プレイヤーエリア -->
-        <div class="player-area">
+        <div class="player-area player-area-self">
             <div class="player-info">
                 <div class="hp-display">
-                    HP: <div class="hp-bar"><div class="hp-fill" style="width: 100%;"></div></div>
-                    <span>10/10</span>
+                    HP: <div class="hp-bar"><div id="player-hp-bar" class="hp-fill" style="width: 100%;"></div></div>
+                    <span id="player-hp">10/10</span>
                 </div>
-                <div class="deck-count">山札: 23枚</div>
+                <div class="deck-count">山札: <span id="player-deck-count">25</span>枚</div>
             </div>
             <div class="graveyard">
                 ♰
-                <div class="graveyard-count">5</div>
+                <div id="player-graveyard-count" class="graveyard-count">0</div>
             </div>
         </div>
     </div>
@@ -103,6 +97,32 @@
     <!-- カード詳細表示用のポップアップ -->
     <div class="card-popup"></div>
 
-    <script src="taisen.js"></script>
+    <!-- 対戦結果モーダル -->
+    <div class="result-modal" id="result-modal">
+        <div class="result-content">
+            <h2 id="result-title"></h2>
+            <p id="result-message"></p>
+            <button id="return-to-menu" class="return-button">メニューに戻る</button>
+        </div>
+    </div>
+
+    <!-- 待機中メッセージ -->
+    <div class="waiting-message" id="waiting-message">
+        <div class="waiting-content">
+            <h2>対戦相手を待っています...</h2>
+            <p>ゲームIDをシェアして対戦相手を招待できます：</p>
+            <div class="share-id">
+                <input type="text" id="share-game-id" readonly>
+                <button id="copy-id" class="copy-button">コピー</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKの読み込み -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+        import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+    </script>
+    <script type="module" src="taisen.js"></script>
 </body>
 </html>
