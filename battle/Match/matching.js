@@ -41,37 +41,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Firestoreのルーム情報を監視
-    if (roomId) {
-        db.collection('rooms').doc(roomId)
-            .onSnapshot((doc) => {
-                if (doc.exists) {
-                    const roomData = doc.data();
-                    // プレイヤーの位置情報を更新
-                    Object.entries(roomData.players || {}).forEach(([playerId, data]) => {
-                        const table = document.querySelector(`[data-table="${data.tableNumber}"]`);
-                        if (table) {
-                            const entryBox = table.querySelector('.entry-box');
-                            const playerNameDisplay = entryBox.querySelector('.player-name-display') || 
-                                                    document.createElement('div');
-                            playerNameDisplay.className = 'player-name-display';
-                            playerNameDisplay.textContent = data.playerName;
-                            if (!entryBox.contains(playerNameDisplay)) {
-                                entryBox.appendChild(playerNameDisplay);
-                            }
-                        }
-                    });
-                    updateStartButtons();
-                }
-            });
-    }
-
     // マッチングテーブルのクリックイベント
     const matchTables = document.querySelectorAll('.match-table');
     matchTables.forEach(table => {
-        const entryBox = table.querySelector('.entry-box');
-        entryBox.addEventListener('click', async function() {
-            const tableNumber = table.dataset.table;
+        table.addEventListener('click', async function() {
+            const tableNumber = this.dataset.table;
             const playerId = localStorage.getItem('playerId');
             const playerName = localStorage.getItem('playerName');
             
@@ -81,71 +55,36 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             try {
-                // Firestoreでルーム情報を更新
-                const roomRef = db.collection('rooms').doc(roomId);
-                await db.runTransaction(async (transaction) => {
-                    const roomDoc = await transaction.get(roomRef);
-                    if (!roomDoc.exists) {
-                        throw new Error('ルームが存在しません');
+                // 既に別のテーブルにいる場合は、その位置から削除
+                if (tablePositions[playerId]) {
+                    const oldTable = document.querySelector(`[data-table="${tablePositions[playerId]}"]`);
+                    if (oldTable) {
+                        oldTable.querySelector('.player-name').textContent = '';
                     }
+                }
 
-                    const roomData = roomDoc.data();
-                    const players = roomData.players || {};
-                    
-                    // 既に他のプレイヤーがいる場合はチェック
-                    if (players[tableNumber] && players[tableNumber].playerId !== playerId) {
-                        throw new Error('この位置は既に occupied です');
-                    }
+                // 新しいテーブルに名前を表示
+                this.querySelector('.player-name').textContent = playerName;
+                tablePositions[playerId] = tableNumber;
 
-                    // 自分が他の位置にいる場合は削除
-                    Object.keys(players).forEach(key => {
-                        if (players[key].playerId === playerId) {
-                            delete players[key];
-                        }
-                    });
-
-                    // 新しい位置に追加
-                    players[tableNumber] = {
-                        playerId,
-                        playerName,
-                        tableNumber
-                    };
-
-                    transaction.update(roomRef, { players });
-                });
+                // 対戦開始ボタンの有効化を更新
+                updateStartButtons();
 
                 console.log(`プレイヤー ${playerName} がテーブル ${tableNumber} に配置されました`);
             } catch (error) {
                 console.error('エラー:', error);
-                alert(error.message);
+                alert('エラーが発生しました');
             }
         });
     });
     // 退室ボタンのイベントリスナー
-    document.querySelector('.exit-button').addEventListener('click', async function() {
+    document.querySelector('.exit-button').addEventListener('click', function() {
         if (confirm('本当に退室しますか？')) {
             const playerId = localStorage.getItem('playerId');
-            if (roomId && playerId) {
-                try {
-                    const roomRef = db.collection('rooms').doc(roomId);
-                    await db.runTransaction(async (transaction) => {
-                        const roomDoc = await transaction.get(roomRef);
-                        if (roomDoc.exists) {
-                            const roomData = roomDoc.data();
-                            const players = roomData.players || {};
-                            
-                            // プレイヤーの位置情報を削除
-                            Object.keys(players).forEach(key => {
-                                if (players[key].playerId === playerId) {
-                                    delete players[key];
-                                }
-                            });
-
-                            transaction.update(roomRef, { players });
-                        }
-                    });
-                } catch (error) {
-                    console.error('退室エラー:', error);
+            if (playerId && tablePositions[playerId]) {
+                const myTable = document.querySelector(`[data-table="${tablePositions[playerId]}"]`);
+                if (myTable) {
+                    myTable.querySelector('.player-name').textContent = '';
                 }
             }
             window.location.href = '../Room/room.html';
@@ -208,12 +147,14 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateStartButtons() {
         const matchTables = document.querySelectorAll('.match-table');
         matchTables.forEach(table => {
-            const entryBox = table.querySelector('.entry-box');
-            const playerNameDisplay = entryBox.querySelector('.player-name-display');
+            const playerName = table.querySelector('.player-name').textContent;
             const startButton = table.querySelector('.start-button');
-            startButton.disabled = !playerNameDisplay || !playerNameDisplay.textContent;
+            startButton.disabled = !playerName;
         });
     }
+
+    // 定期的な更新を設定
+    setInterval(updateStartButtons, 1000);
 
     // ページ読み込み時に一度実行
     updateStartButtons();
