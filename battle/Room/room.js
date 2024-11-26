@@ -1,4 +1,3 @@
-// グローバル変数の宣言
 let selectedPlayerCount = 2;
 let db;
 
@@ -23,14 +22,12 @@ function initializeFirebase() {
 // 初期化を実行
 initializeFirebase();
 
-// ルームID生成関数
 function generateRoomId() {
     const part1 = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
     const part2 = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
     return `${part1}-${part2}`;
 }
 
-// コピー機能の関数
 function copyRoomId() {
     const roomId = document.querySelector('.room-id').textContent;
     navigator.clipboard.writeText(roomId).then(() => {
@@ -48,25 +45,6 @@ function copyRoomId() {
     });
 }
 
-// 生成されたルームIDをコピーする関数
-function copyGeneratedRoomId() {
-    const roomId = document.getElementById('generatedRoomId').textContent;
-    navigator.clipboard.writeText(roomId).then(() => {
-        const copyButton = document.querySelector('.room-id-display .copy-button');
-        copyButton.textContent = 'コピー完了!';
-        copyButton.classList.add('success');
-        
-        setTimeout(() => {
-            copyButton.textContent = 'コピー';
-            copyButton.classList.remove('success');
-        }, 1000);
-    }).catch(err => {
-        alert('コピーに失敗しました');
-        console.error('コピーに失敗:', err);
-    });
-}
-
-// ルーム作成関数
 async function createRoom() {
     try {
         const roomId = document.getElementById('generatedRoomId').textContent;
@@ -92,15 +70,11 @@ async function createRoom() {
     }
 }
 
-// ルーム表示更新関数
 function updateRoomDisplay(room) {
-    if (room) {
-        document.getElementById('playerCapacity').textContent = room.maxPlayers;
-        document.getElementById('currentPlayers').textContent = Object.keys(room.players || {}).length;
-    }
+    document.getElementById('playerCapacity').textContent = room.maxPlayers;
+    document.getElementById('currentPlayers').textContent = Object.keys(room.players || {}).length;
 }
 
-// モーダル表示関数
 function showCreateRoomModal() {
     const roomId = generateRoomId();
     document.getElementById('generatedRoomId').textContent = roomId;
@@ -108,12 +82,10 @@ function showCreateRoomModal() {
     document.querySelector('[data-count="2"]').classList.add('selected');
 }
 
-// モーダルを閉じる関数
 function closeModal() {
     document.getElementById('createRoomModal').style.display = 'none';
     resetPlayerCountSelection();
 }
-// プレイヤー数選択のリセット関数
 function resetPlayerCountSelection() {
     selectedPlayerCount = 2;
     document.querySelectorAll('.player-count-button').forEach(button => {
@@ -123,17 +95,14 @@ function resetPlayerCountSelection() {
     updateSelectedPlayerCount();
 }
 
-// 選択プレイヤー数の表示更新関数
 function updateSelectedPlayerCount() {
     document.getElementById('selectedPlayerCount').textContent = `選択中: ${selectedPlayerCount}人`;
 }
 
-// ルーム作成確認関数
 function confirmCreateRoom() {
     createRoom();
 }
 
-// ルーム検索関数
 async function searchRoom() {
     const roomId = document.getElementById('roomIdInput').value;
     const regex = /^\d{3}-\d{4}$/;
@@ -171,12 +140,11 @@ async function searchRoom() {
     }
 }
 
-// 戻る関数
 function goBack() {
     window.location.href = '../Battle/battle.html';
 }
 
-// DOMContentLoaded時の初期化
+// DOMContentLoadedイベントリスナー
 document.addEventListener('DOMContentLoaded', function() {
     // プレイヤー数選択ボタンのイベントリスナー
     const playerCountButtons = document.querySelectorAll('.player-count-button');
@@ -210,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 古いルームの自動クリーンアップ
+    // 古いルームのクリーンアップ処理
     setInterval(async function cleanupInactiveRooms() {
         try {
             const oldRooms = await db.collection('rooms')
