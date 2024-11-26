@@ -14,6 +14,8 @@ const db = firebase.firestore();
 
 // 選択されたカードを追跡する配列
 let selectedCards = [];
+// 作成したカードを保持する配列
+let createdCards = [];
 
 document.addEventListener('DOMContentLoaded', async function() {
     // プレイヤー情報の取得
@@ -67,18 +69,13 @@ async function loadCreatedCards() {
                 }))
                 .sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
 
-            const cardPromises = cardsArray.map(async (card) => {
+            // 作成したカードを配列に保存
+            createdCards = cardsArray;
+
+            // 作成したカードの表示
+            cardsArray.forEach(card => {
                 const cardElement = document.createElement('div');
                 cardElement.className = 'card-item';
-
-                // チェックボックスを追加
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.className = 'card-checkbox';
-                checkbox.addEventListener('change', function() {
-                    handleCardSelection(this, card);
-                });
-
                 cardElement.innerHTML = `
                     <div class="card-image">
                         <img src="${card.image}" alt="${card.name}">
@@ -86,49 +83,12 @@ async function loadCreatedCards() {
                     <div class="card-name">${card.name}</div>
                     <div class="card-effect">${card.effect}</div>
                 `;
-
-                // 現在のデッキに含まれているかチェック
-                const deckRef = db.collection('Deck').doc(playerId.toString());
-                const deckDoc = await deckRef.get();
-                if (deckDoc.exists) {
-                    const currentDeck = deckDoc.data().cards;
-                    if (currentDeck.some(deckCard => deckCard.name === card.name)) {
-                        checkbox.checked = true;
-                        selectedCards.push(card);
-                    }
-                }
-
-                cardElement.insertBefore(checkbox, cardElement.firstChild);
-                return cardElement;
+                createdCardsGrid.appendChild(cardElement);
             });
-
-            const cardElements = await Promise.all(cardPromises);
-            cardElements.forEach(cardElement => {
-                if (cardElement) {
-                    createdCardsGrid.appendChild(cardElement);
-                }
-            });
-            
-            updateSaveButton();
         }
     } catch (error) {
         console.error('作成したカードの読み込みに失敗しました:', error);
     }
-}
-
-// カード選択のハンドラー関数
-function handleCardSelection(checkbox, card) {
-    if (checkbox.checked) {
-        if (selectedCards.length >= 10) {
-            checkbox.checked = false;
-            alert('デッキは10枚までしか選択できません');
-            return;
-        }
-        selectedCards.push(card);
-    } else {
-        selectedCards = selectedCards.filter(c => c.name !== card.name);
-    }
-    updateSaveButton();
 }
 // カードを表示する関数
 function createCardElement(card) {
@@ -140,7 +100,17 @@ function createCardElement(card) {
     checkbox.type = 'checkbox';
     checkbox.className = 'card-checkbox';
     checkbox.addEventListener('change', function() {
-        handleCardSelection(this, card);
+        if (this.checked) {
+            if (selectedCards.length >= 10) {
+                this.checked = false;
+                alert('デッキは10枚までしか選択できません');
+                return;
+            }
+            selectedCards.push(card);
+        } else {
+            selectedCards = selectedCards.filter(c => c.name !== card.name);
+        }
+        updateSaveButton();
     });
 
     cardElement.innerHTML = `
@@ -172,8 +142,11 @@ async function saveDeck() {
         const playerId = localStorage.getItem('playerId');
         const deckRef = db.collection('Deck').doc(playerId.toString());
         
+        // チェックボックスで選択したカードと作成したカードを結合
+        const allCards = [...selectedCards, ...createdCards];
+        
         await deckRef.set({
-            cards: selectedCards.map(card => ({
+            cards: allCards.map(card => ({
                 name: card.name,
                 effect: card.effect,
                 image: card.image,
@@ -214,14 +187,15 @@ async function loadDeckCards() {
             // 現在のデッキの状態を取得
             const deckRef = db.collection('Deck').doc(playerId.toString());
             const deckDoc = await deckRef.get();
-            const currentDeck = deckDoc.exists ? deckDoc.data().cards : [];
+            const currentDeck = deckDoc.exists ? 
+                              deckDoc.data().cards.filter(card => !card.isCreated) : // 作成したカード以外のみを取得
+                              [];
 
             const cardPromises = cards.map(async (card) => {
-                const cardName = encodeURIComponent(card.name); // カード名をURLエンコード
+                const cardName = encodeURIComponent(card.name);
                 const imagePath = `https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/${cardName}.jpg`;
                 const jpegPath = `https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/${cardName}.jpeg`;
 
-                // 画像の存在チェック
                 const validImagePath = await checkImageExistence(imagePath, jpegPath);
                 if (validImagePath) {
                     card.image = validImagePath;
@@ -241,16 +215,13 @@ async function loadDeckCards() {
                 }
             });
 
-            // すべてのカード要素を取得
             const cardElements = await Promise.all(cardPromises);
-            // nullでないカード要素だけをデッキグリッドに追加
             cardElements.forEach(cardElement => {
                 if (cardElement) {
                     deckGrid.appendChild(cardElement);
                 }
             });
 
-            // 保存ボタンの初期状態を設定
             updateSaveButton();
         } else {
             console.log('デッキが見つかりません');
@@ -266,12 +237,11 @@ function checkImageExistence(jpgPath, jpegPath) {
     return new Promise((resolve) => {
         const img = new Image();
         img.src = jpgPath;
-        img.onload = () => resolve(jpgPath); // JPGが存在する場合
+        img.onload = () => resolve(jpgPath);
         img.onerror = () => {
-            // JPGが存在しない場合、JPEGを試す
             img.src = jpegPath;
-            img.onload = () => resolve(jpegPath); // JPEGが存在する場合
-            img.onerror = () => resolve(null); // どちらも存在しない場合
+            img.onload = () => resolve(jpegPath);
+            img.onerror = () => resolve(null);
         };
     });
 }
