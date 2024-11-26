@@ -7,218 +7,176 @@
     --text-color: #ffffff;
 }
 
-body {
-    margin: 0;
-    padding: 20px;
-    background: var(--background-color);
-    color: var(--text-color);
-    font-family: 'Arial', sans-serif;
-}
+/* 既存のスタイルはそのままに、新しいスタイルを追加 */
 
-.battle-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    position: relative;
-}
-
-.player-area {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px;
-    margin: 10px 0;
-}
-
-.player-info {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.hp-display {
-    background: var(--card-background);
-    padding: 10px 20px;
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.hp-bar {
-    width: 150px;
-    height: 20px;
-    background: #444;
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.hp-fill {
-    height: 100%;
-    background: var(--primary-color);
-    transition: width 0.3s ease;
-}
-
-.hand-area {
-    display: flex;
-    gap: 10px;
-    min-height: var(--card-height);
-    padding: 10px;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.battle-zone {
-    height: 200px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 40px;
-    position: relative;
-}
-
-.god-hand-zone {
-    position: absolute;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    background: rgba(45, 45, 68, 0.5);
-    padding: 10px;
+.game-info {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: rgba(45, 45, 68, 0.9);
+    padding: 15px;
     border-radius: 8px;
+    color: #fff;
+    z-index: 100;
 }
 
-.god-hand-title {
-    text-align: center;
-    font-size: 12px;
-    color: #ffd700;
+.game-id {
+    font-size: 14px;
     margin-bottom: 5px;
 }
 
-.god-hand-remaining {
-    text-align: center;
-    font-size: 12px;
-    color: #ffd700;
-    margin-top: 5px;
+.game-status {
+    font-size: 14px;
+    color: #4ecdc4;
 }
 
-.card-slot {
-    width: var(--card-width);
-    height: var(--card-height);
-    border: 2px dashed #666;
-    border-radius: 8px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.opponent-area {
+    opacity: 0.7;
 }
 
-.card {
-    width: var(--card-width);
-    height: var(--card-height);
-    background: var(--card-background);
-    border-radius: 8px;
-    cursor: pointer;
-    transition: transform 0.2s;
-    position: relative;
-    user-select: none;
+.hidden-card {
+    background: linear-gradient(145deg, #3d3d64, #2d2d44);
+    border: 2px solid #666;
 }
 
-.card.god-hand {
-    border: 2px solid #ffd700;
-    background: linear-gradient(145deg, var(--card-background), #3d3d64);
-}
-
-.card:hover {
-    transform: translateY(-10px);
-}
-
-.card.attack {
-    border: 2px solid #ff4444;
-}
-
-.card.heal {
-    border: 2px solid #44ff44;
-}
-
-.card.effect {
-    border: 2px solid #4444ff;
-}
-
-.card-content {
-    height: 100%;
+.field-side {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    padding: 10px;
-    box-sizing: border-box;
+    align-items: center;
+    gap: 10px;
 }
 
-.card-value {
-    font-size: 24px;
-    font-weight: bold;
-    text-align: center;
-}
-
-.card-type {
+.field-status {
     font-size: 12px;
-    text-align: center;
-    color: #aaa;
+    color: #4ecdc4;
+    height: 20px;
 }
 
-.timer {
+.turn-indicator {
     position: absolute;
-    top: 50%;
+    top: -30px;
     left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 48px;
-    font-weight: bold;
-    color: #ff9800;
+    transform: translateX(-50%);
+    color: #ffd700;
+    font-size: 14px;
+    white-space: nowrap;
 }
 
-.graveyard {
-    width: 60px;
-    height: 80px;
-    background: var(--card-background);
-    border-radius: 8px;
+.timer-container {
+    position: relative;
     display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.result-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
     justify-content: center;
     align-items: center;
-    font-size: 24px;
-    cursor: pointer;
-    position: relative;
 }
 
-.graveyard-count {
-    position: absolute;
-    top: -10px;
-    right: -10px;
-    background: var(--primary-color);
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: 12px;
-}
-
-.deck-count {
+.result-content {
     background: var(--card-background);
-    padding: 5px 10px;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    color: #fff;
+}
+
+.return-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background: #4ecdc4;
+    border: none;
     border-radius: 5px;
-    font-size: 14px;
-}
-
-.card-popup {
-    position: fixed;
-    background: rgba(0, 0, 0, 0.9);
-    padding: 20px;
-    border-radius: 10px;
-    z-index: 1000;
     color: white;
-    font-size: 14px;
-    pointer-events: none;
-    display: none;
+    cursor: pointer;
+    transition: background 0.3s;
 }
 
-.card.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+.return-button:hover {
+    background: #45b7a8;
+}
+
+.waiting-message {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.waiting-content {
+    background: var(--card-background);
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    color: #fff;
+}
+
+.share-id {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 15px;
+}
+
+.share-id input {
+    padding: 8px;
+    border: none;
+    border-radius: 4px;
+    background: #1a1a2e;
+    color: #fff;
+    width: 200px;
+}
+
+.copy-button {
+    padding: 8px 15px;
+    background: #4ecdc4;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+}
+
+.copy-button:hover {
+    background: #45b7a8;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .battle-container {
+        padding: 10px;
+    }
+
+    .card {
+        --card-width: 80px;
+        --card-height: 112px;
+    }
+
+    .game-info {
+        position: static;
+        margin: 10px auto;
+        max-width: 90%;
+    }
+
+    .god-hand-zone {
+        position: static;
+        margin-top: 20px;
+        flex-direction: row;
+        justify-content: center;
+        gap: 20px;
+    }
 }
