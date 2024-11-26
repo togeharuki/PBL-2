@@ -2,15 +2,10 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Deck Dreamers - オンライン対戦</title>
+    <title>Deck Dreamers - バトル</title>
     <link rel="stylesheet" href="taisen.css">
 </head>
 <body>
-    <div id="game-info" class="game-info">
-        <div class="game-id">ゲームID: <span id="game-id"></span></div>
-        <div class="game-status">状態: <span id="game-status">マッチング中...</span></div>
-    </div>
-
     <div class="battle-container">
         <!-- 対戦相手エリア -->
         <div class="player-area opponent-area">
@@ -19,52 +14,45 @@
                     HP: <div class="hp-bar"><div id="opponent-hp-bar" class="hp-fill" style="width: 100%;"></div></div>
                     <span id="opponent-hp">10/10</span>
                 </div>
-                <div class="deck-count">山札: <span id="opponent-deck-count">25</span>枚</div>
-            </div>
-            <div class="graveyard">
-                ♰
-                <div id="opponent-graveyard-count" class="graveyard-count">0</div>
+                <div class="deck">
+                    <img src="/battle/gatya/写真/カードの裏面.png" alt="カードの裏面" class="card-back">
+                    <span class="deck-count" id="opponent-deck-count">25</span>
+                </div>
             </div>
         </div>
 
         <!-- 相手の手札エリア -->
         <div class="hand-area" id="opponent-hand">
-            <div class="card hidden-card">
-                <div class="card-content">
-                    <div class="card-value">?</div>
-                    <div class="card-type">不明</div>
-                </div>
-            </div>
+            <!-- 相手の手札（裏向き）は動的に生成 -->
         </div>
 
         <!-- バトルゾーン -->
         <div class="battle-zone">
+            <!-- 対戦相手のフィールド -->
             <div class="field-side opponent-field">
                 <div class="card-slot" id="opponent-battle-slot"></div>
-                <div class="field-status" id="opponent-field-status"></div>
             </div>
 
+            <!-- タイマーとターン表示 -->
             <div class="timer-container">
                 <div class="turn-indicator" id="turn-indicator"></div>
                 <div class="timer">60</div>
             </div>
 
+            <!-- プレイヤーのフィールド -->
             <div class="field-side player-field">
                 <div class="card-slot" id="player-battle-slot"></div>
-                <div class="field-status" id="player-field-status"></div>
             </div>
 
             <!-- 神の一手ゾーン -->
             <div class="god-hand-zone">
                 <div class="god-hand-title">神の一手</div>
-                <!-- ダメージ+5の神の一手 -->
                 <div class="card god-hand" draggable="true" data-type="god" data-effect="damage_up">
                     <div class="card-content">
                         <div class="card-value">神</div>
                         <div class="card-type">ダメージ+5</div>
                     </div>
                 </div>
-                <!-- 手札を1枚破棄の神の一手 -->
                 <div class="card god-hand" draggable="true" data-type="god" data-effect="discard">
                     <div class="card-content">
                         <div class="card-value">神</div>
@@ -76,7 +64,9 @@
         </div>
 
         <!-- プレイヤーの手札エリア -->
-        <div class="hand-area" id="player-hand"></div>
+        <div class="hand-area" id="player-hand">
+            <!-- プレイヤーの手札は動的に生成 -->
+        </div>
 
         <!-- プレイヤーエリア -->
         <div class="player-area player-area-self">
@@ -85,11 +75,10 @@
                     HP: <div class="hp-bar"><div id="player-hp-bar" class="hp-fill" style="width: 100%;"></div></div>
                     <span id="player-hp">10/10</span>
                 </div>
-                <div class="deck-count">山札: <span id="player-deck-count">25</span>枚</div>
-            </div>
-            <div class="graveyard">
-                ♰
-                <div id="player-graveyard-count" class="graveyard-count">0</div>
+                <div class="deck">
+                    <img src="/battle/gatya/写真/カードの裏面.png" alt="カードの裏面" class="card-back">
+                    <span class="deck-count" id="player-deck-count">25</span>
+                </div>
             </div>
         </div>
     </div>
@@ -102,27 +91,20 @@
         <div class="result-content">
             <h2 id="result-title"></h2>
             <p id="result-message"></p>
-            <button id="return-to-menu" class="return-button">メニューに戻る</button>
+            <button onclick="location.href='../Room/room.html'" class="return-button">メニューに戻る</button>
         </div>
     </div>
 
-    <!-- 待機中メッセージ -->
-    <div class="waiting-message" id="waiting-message">
-        <div class="waiting-content">
-            <h2>対戦相手を待っています...</h2>
-            <p>ゲームIDをシェアして対戦相手を招待できます：</p>
-            <div class="share-id">
-                <input type="text" id="share-game-id" readonly>
-                <button id="copy-id" class="copy-button">コピー</button>
-            </div>
+    <!-- マッチング中のローディング -->
+    <div id="matching-overlay" class="matching-overlay">
+        <div class="matching-content">
+            <div class="loading-spinner"></div>
+            <p>対戦相手を待っています...</p>
         </div>
     </div>
 
     <!-- Firebase SDKの読み込み -->
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
-        import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
-    </script>
+    <script type="module" src="matching.js"></script>
     <script type="module" src="taisen.js"></script>
 </body>
 </html>
