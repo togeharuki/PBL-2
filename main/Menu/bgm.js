@@ -17,16 +17,21 @@ let isMuted = true; // 初期状態
 
 // ページ読み込み時の処理
 window.addEventListener('DOMContentLoaded', () => {
-    // ローカルストレージからBGM選択状態を復元
     const selectedMusic = localStorage.getItem('selectedMusic');
     const storedMuteState = localStorage.getItem('isMuted');
+    const storedTime = localStorage.getItem('currentTime');
 
     // ミュート状態を復元
-    isMuted = storedMuteState === 'true'; // 文字列を真偽値に変換
+    isMuted = storedMuteState === 'true';
 
     // 選択されたBGMがあれば再生を試みる
     if (selectedMusic && selectedMusic !== 'none') {
         playMusic(musicFiles[selectedMusic]);
+
+        // 再生位置を復元
+        if (storedTime) {
+            musicPlayer.currentTime = parseFloat(storedTime);
+        }
     }
 
     // スピーカーアイコンを初期化
@@ -56,25 +61,19 @@ function toggleVolume() {
     if (isMuted) {
         stopMusic();
     } else {
-        // 音楽を再生（選択されている場合のみ）
         if (musicSelect.value !== 'none' && musicSource.src) {
             musicPlayer.play();
         }
-        localStorage.setItem('isMuted', isMuted);
-        updateSpeakerIcon();
     }
 
     // ミュート状態をローカルストレージに保存
     localStorage.setItem('isMuted', isMuted);
-
-    // スピーカーアイコンを更新
     updateSpeakerIcon();
 }
 
 // 音楽を再生
 function playMusic(src) {
-    // ファイルパスのURLエンコードが必要ならエンコードを適用
-    musicSource.src = encodeURI(src); // encodeURIで日本語ファイル名を扱えるようにする
+    musicSource.src = encodeURI(src);
     musicPlayer.load();
     if (!isMuted) {
         musicPlayer.play();
@@ -85,7 +84,17 @@ function playMusic(src) {
 function stopMusic() {
     musicPlayer.pause();
     musicPlayer.currentTime = 0;
+
+    // 再生位置をリセット
+    localStorage.removeItem('currentTime');
 }
+
+// 再生位置をローカルストレージに保存
+musicPlayer.addEventListener('timeupdate', () => {
+    if (!isMuted && musicSource.src) {
+        localStorage.setItem('currentTime', musicPlayer.currentTime);
+    }
+});
 
 // スピーカーアイコンを更新する関数
 function updateSpeakerIcon() {
@@ -103,5 +112,5 @@ if (speakerIcon) {
 
 // タイトルに戻るボタンのクリックイベントを設定
 titleButton.addEventListener('click', () => {
-    window.location.href = '../main/Menu/Menu.html'; // タイトルページのURLに変更してください
+    window.location.href = '../main/Menu/Menu.html';
 });
