@@ -26,7 +26,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // 選択されたBGMがあれば再生を試みる
     if (selectedMusic && selectedMusic !== 'none') {
-        musicSelect.value = selectedMusic;
         playMusic(musicFiles[selectedMusic]);
     }
 
@@ -34,19 +33,21 @@ window.addEventListener('DOMContentLoaded', () => {
     updateSpeakerIcon();
 });
 
-// 音楽選択が変更されたときの処理
-musicSelect.addEventListener('change', () => {
-    const selectedValue = musicSelect.value;
+// 音楽選択が変更されたときの処理（music.html専用機能）
+if (musicSelect) {
+    musicSelect.addEventListener('change', () => {
+        const selectedValue = musicSelect.value;
 
-    if (selectedValue === 'none') {
-        stopMusic();
-    } else {
-        playMusic(musicFiles[selectedValue]);
-    }
+        if (selectedValue === 'none') {
+            stopMusic();
+        } else {
+            playMusic(musicFiles[selectedValue]);
+        }
 
-    // BGM選択をローカルストレージに保存
-    localStorage.setItem('selectedMusic', selectedValue);
-});
+        // BGM選択をローカルストレージに保存
+        localStorage.setItem('selectedMusic', selectedValue);
+    });
+}
 
 // 音量オン/オフの切り替え
 function toggleVolume() {
@@ -59,6 +60,8 @@ function toggleVolume() {
         if (musicSelect.value !== 'none' && musicSource.src) {
             musicPlayer.play();
         }
+        localStorage.setItem('isMuted', isMuted);
+        updateSpeakerIcon();
     }
 
     // ミュート状態をローカルストレージに保存
@@ -94,7 +97,9 @@ function updateSpeakerIcon() {
 }
 
 // スピーカーアイコンをクリックすると音量を切り替える
-speakerIcon.addEventListener('click', toggleVolume);
+if (speakerIcon) {
+    speakerIcon.addEventListener('click', toggleVolume);
+}
 
 // タイトルに戻るボタンのクリックイベントを設定
 titleButton.addEventListener('click', () => {
