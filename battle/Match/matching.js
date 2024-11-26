@@ -1,166 +1,207 @@
-// Firebaseの設定
-const firebaseConfig = {
-    apiKey: "AIzaSyCGgRBPAF2W0KKw0tX2zwZeyjDGgvv31KM",
-    authDomain: "deck-dreamers.firebaseapp.com",
-    projectId: "deck-dreamers",
-    storageBucket: "deck-dreamers.appspot.com",
-    messagingSenderId: "165933225805",
-    appId: "1:165933225805:web:4e5a3907fc5c7a30a28a6c"
-};
+// Firebase設定とSDKのインポート
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+import { 
+    getFirestore, 
+    collection, 
+    doc, 
+    setDoc, 
+    getDoc, 
+    updateDoc, 
+    onSnapshot,
+    query,
+    where,
+    limit,
+    getDocs
+} from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
 
-// Firebase初期化
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+class MatchingSystem {
+    constructor() {
+        // Firebase初期化
+        const firebaseConfig = {
+            apiKey: "AIzaSyCGgRBPAF2W0KKw0tX2zwZeyjDGgvv31KM",
+            authDomain: "deck-dreamers.firebaseapp.com",
+            projectId: "deck-dreamers",
+            storageBucket: "deck-dreamers.appspot.com",
+            messagingSenderId: "165933225805",
+            appId: "1:165933225805:web:4e5a3907fc5c7a30a28a6c"
+        };
 
-document.addEventListener('DOMContentLoaded', function() {
-    // プレイヤーのテーブル位置を追跡するオブジェクト
-    const tablePositions = {};
+        const app = initializeApp(firebaseConfig);
+        this.db = getFirestore(app);
+        
+        this.matchId = null;
+        this.playerId = localStorage.getItem('playerId');
+        this.playerName = localStorage.getItem('playerName');
+        this.unsubscribe = null;
 
-    // 既存のコード
-    const urlParams = new URLSearchParams(window.location.search);
-    const roomId = urlParams.get('roomId');
-    const maxPlayers = urlParams.get('maxPlayers');
-
-    // ルームIDを表示
-    if (roomId) {
-        document.querySelector('.room-id').textContent = `ルームID: ${roomId}`;
+        // マッチング開始時にオーバーレイを表示
+        this.showMatchingOverlay();
+        this.startMatching();
     }
 
-    // プレイヤー数を更新
-    if (maxPlayers) {
-        document.getElementById('playerCapacity').textContent = maxPlayers;
-
-        // メンバー数に応じてテーブルの表示を制御
-        const matchTables = document.querySelectorAll('.match-table');
-        matchTables.forEach((table, index) => {
-            if (index < Math.floor(maxPlayers / 2)) {
-                table.style.display = 'block';
-            } else {
-                table.style.display = 'none';
-            }
-        });
+    showMatchingOverlay() {
+        const overlay = document.getElementById('matching-overlay');
+        if (overlay) {
+            overlay.style.display = 'flex';
+        }
     }
 
-    // マッチングテーブルのクリックイベント
-    const matchTables = document.querySelectorAll('.match-table');
-    matchTables.forEach(table => {
-        table.addEventListener('click', async function() {
-            const tableNumber = this.dataset.table;
-            const playerId = localStorage.getItem('playerId');
-            const playerName = localStorage.getItem('playerName');
-            
-            if (!playerId || !playerName) {
-                alert('ログインしてください');
+    hideMatchingOverlay() {
+        const overlay = document.getElementById('matching-overlay');
+        if (overlay) {
+            overlay.style.display = 'none';
+        }
+    }
+
+    async startMatching() {
+        try {
+            // プレイヤー情報の確認
+            if (!this.playerId || !this.playerName) {
+                alert('プレイヤー情報が見つかりません。ログインしてください。');
+                window.location.href = '../login.html';
                 return;
             }
 
-            try {
-                // 既に別のテーブルにいる場合は、その位置から削除
-                if (tablePositions[playerId]) {
-                    const oldTable = document.querySelector(`[data-table="${tablePositions[playerId]}"]`);
-                    if (oldTable) {
-                        oldTable.querySelector('.player-name').textContent = '';
-                    }
-                }
-
-                // 新しいテーブルに名前を表示
-                this.querySelector('.player-name').textContent = playerName;
-                tablePositions[playerId] = tableNumber;
-
-                // 対戦開始ボタンの有効化を更新
-                updateStartButtons();
-
-                console.log(`プレイヤー ${playerName} がテーブル ${tableNumber} に配置されました`);
-            } catch (error) {
-                console.error('エラー:', error);
-                alert('エラーが発生しました');
+            // 既存の空きマッチを探す
+            const matchRef = await this.findAvailableMatch();
+            
+            if (matchRef) {
+                // 既存マッチに参加
+                await this.joinMatch(matchRef);
+            } else {
+                // 新しいマッチを作成
+                await this.createNewMatch();
             }
-        });
-    });
-    // 退室ボタンのイベントリスナー
-    document.querySelector('.exit-button').addEventListener('click', function() {
-        if (confirm('本当に退室しますか？')) {
-            const playerId = localStorage.getItem('playerId');
-            if (playerId && tablePositions[playerId]) {
-                const myTable = document.querySelector(`[data-table="${tablePositions[playerId]}"]`);
-                if (myTable) {
-                    myTable.querySelector('.player-name').textContent = '';
-                }
-            }
-            window.location.href = '../Room/room.html';
+
+            // マッチの状態を監視
+            this.watchMatchStatus();
+
+        } catch (error) {
+            console.error('マッチング開始エラー:', error);
+            alert('マッチングに失敗しました。再度お試しください。');
+            this.hideMatchingOverlay();
         }
-    });
+    }
 
-    // 対戦開始ボタンのイベント
-    const startButtons = document.querySelectorAll('.start-button');
-    startButtons.forEach((button, index) => {
-        button.addEventListener('click', async function() {
-            if (!button.disabled) {
-                try {
-                    const playerId = localStorage.getItem('playerId');
-                    if (!playerId) {
-                        alert('プレイヤー情報が見つかりません');
-                        return;
-                    }
+    async findAvailableMatch() {
+        const matchesRef = collection(this.db, 'matches');
+        const q = query(
+            matchesRef, 
+            where('status', '==', 'waiting'),
+            where('player1.id', '!=', this.playerId),
+            limit(1)
+        );
 
-                    const taisenUrl = new URL('../fight/taisen.html', window.location.href);
-                    taisenUrl.searchParams.set('roomId', roomId);
-                    taisenUrl.searchParams.set('maxPlayers', maxPlayers);
-                    taisenUrl.searchParams.set('tableNumber', index + 1);
-                    window.location.href = taisenUrl.toString();
-                } catch (error) {
-                    console.error('対戦開始エラー:', error);
-                    alert('対戦開始に失敗しました');
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) {
+            return snapshot.docs[0].ref;
+        }
+        return null;
+    }
+
+    async createNewMatch() {
+        const matchRef = doc(collection(this.db, 'matches'));
+        this.matchId = matchRef.id;
+
+        const matchData = {
+            status: 'waiting',
+            player1: {
+                id: this.playerId,
+                name: this.playerName
+            },
+            player2: null,
+            created: new Date().toISOString(),
+            gameStarted: false
+        };
+
+        await setDoc(matchRef, matchData);
+        console.log('新しいマッチを作成しました:', this.matchId);
+    }
+
+    async joinMatch(matchRef) {
+        const player2Data = {
+            id: this.playerId,
+            name: this.playerName
+        };
+
+        await updateDoc(matchRef, {
+            status: 'ready',
+            player2: player2Data,
+            gameStarted: true
+        });
+
+        this.matchId = matchRef.id;
+        console.log('マッチに参加しました:', this.matchId);
+    }
+
+    watchMatchStatus() {
+        if (this.unsubscribe) {
+            this.unsubscribe();
+        }
+
+        const matchRef = doc(this.db, 'matches', this.matchId);
+        
+        this.unsubscribe = onSnapshot(matchRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const matchData = snapshot.data();
+                
+                if (matchData.status === 'ready' && matchData.gameStarted) {
+                    this.hideMatchingOverlay();
+                    // ゲームの初期化処理を開始
+                    this.initializeGame(matchData);
                 }
             }
-        });
-    });
-
-    // メニューバーのリンクにイベントリスナーを追加
-    const menuItems = document.querySelectorAll('.menu-item');
-    menuItems.forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.preventDefault();
-            const text = item.textContent.trim();
-
-            // 現在のURLパラメータを維持するための処理
-            const params = new URLSearchParams(window.location.search);
-            const paramString = params.toString();
-            const queryString = paramString ? `?${paramString}` : '';
-
-            // テキストに応じて適切なページに遷移
-            switch(text) {
-                case '設定':
-                    window.location.href = `../../Music/Music.html${queryString}`;
-                    break;
-                case 'ルール説明':
-                    window.location.href = `../../main/Rule/Rule.html${queryString}`;
-                    break;
-                case 'メニュー':
-                    window.location.href = `../../main/Menu/Menu.html${queryString}`;
-                    break;
-            }
-        });
-    });
-
-    // 対戦開始ボタンの状態更新関数
-    function updateStartButtons() {
-        const matchTables = document.querySelectorAll('.match-table');
-        matchTables.forEach(table => {
-            const playerName = table.querySelector('.player-name').textContent;
-            const startButton = table.querySelector('.start-button');
-            startButton.disabled = !playerName;
         });
     }
 
-    // 定期的な更新を設定
-    setInterval(updateStartButtons, 1000);
+    async initializeGame(matchData) {
+        const gameRef = doc(this.db, 'games', this.matchId);
+        const initialGameState = {
+            status: 'playing',
+            players: {
+                [matchData.player1.id]: {
+                    name: matchData.player1.name,
+                    hp: 10,
+                    deck: [],
+                    hand: [],
+                    field: null,
+                    godHandRemaining: 2
+                },
+                [matchData.player2.id]: {
+                    name: matchData.player2.name,
+                    hp: 10,
+                    deck: [],
+                    hand: [],
+                    field: null,
+                    godHandRemaining: 2
+                }
+            },
+            currentTurn: matchData.player1.id,
+            turnTime: 60
+        };
 
-    // ページ読み込み時に一度実行
-    updateStartButtons();
-});
+        await setDoc(gameRef, initialGameState);
+        
+        // ゲームページへ移動
+        const gameUrl = new URL(window.location.href);
+        gameUrl.searchParams.set('gameId', this.matchId);
+        gameUrl.searchParams.set('playerId', this.playerId);
+        window.location.href = gameUrl.toString();
+    }
 
-// エラーハンドリング
-window.addEventListener('error', function(event) {
-    console.error('エラーが発生しました:', event.error);
+    cleanup() {
+        if (this.unsubscribe) {
+            this.unsubscribe();
+        }
+    }
+}
+
+// マッチングシステムの初期化
+document.addEventListener('DOMContentLoaded', () => {
+    const matchingSystem = new MatchingSystem();
+
+    // ページ離脱時のクリーンアップ
+    window.addEventListener('beforeunload', () => {
+        matchingSystem.cleanup();
+    });
 });
