@@ -72,10 +72,10 @@ async function loadCreatedCards() {
             // 作成したカードを配列に保存
             createdCards = cardsArray;
 
-            // 作成したカードの表示
+            // 作成したカードの表示（チェックボックスなし）
             cardsArray.forEach(card => {
                 const cardElement = document.createElement('div');
-                cardElement.className = 'card-item';
+                cardElement.className = 'card-item created-card'; // 作成したカード用のクラスを追加
                 cardElement.innerHTML = `
                     <div class="card-image">
                         <img src="${card.image}" alt="${card.name}">
@@ -90,7 +90,7 @@ async function loadCreatedCards() {
         console.error('作成したカードの読み込みに失敗しました:', error);
     }
 }
-// カードを表示する関数
+// カードを表示する関数（デフォルトカード用）
 function createCardElement(card) {
     const cardElement = document.createElement('div');
     cardElement.className = 'card-item';
@@ -142,7 +142,7 @@ async function saveDeck() {
         const playerId = localStorage.getItem('playerId');
         const deckRef = db.collection('Deck').doc(playerId.toString());
         
-        // チェックボックスで選択したカードと作成したカードを結合
+        // 選択したカードと作成したカードを結合
         const allCards = [...selectedCards, ...createdCards];
         
         await deckRef.set({
