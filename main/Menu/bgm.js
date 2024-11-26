@@ -114,3 +114,4 @@ if (speakerIcon) {
 titleButton.addEventListener('click', () => {
     window.location.href = '../main/Menu/Menu.html';
 });
+
