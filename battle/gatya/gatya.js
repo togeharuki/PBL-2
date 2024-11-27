@@ -1,9 +1,9 @@
 const items = [
-    { name: 'アイテム1', image: '写真/Deck.png', effect: '攻撃力アップ', count: 0 },
-    { name: 'アイテム2', image: '写真/Dream.png', effect: '防御力アップ', count: 0 },
-    { name: 'アイテム3', image: '写真/dream world.png', effect: '回避率アップ', count: 0 },
-    { name: 'アイテム4', image: '写真/ice world.png', effect: 'スピードアップ', count: 0 },
-    { name: 'アイテム5', image: '写真/hell world.png', effect: 'クリティカル率アップ', count: 1 }
+    { name: 'アイテム1', image: '写真/Deck.png', effect: '攻撃力アップ', count: 2 },
+    { name: 'アイテム2', image: '写真/Dream.png', effect: '防御力アップ', count: 2 },
+    { name: 'アイテム3', image: '写真/dream world.png', effect: '回避率アップ', count: 2 },
+    { name: 'アイテム4', image: '写真/ice world.png', effect: 'スピードアップ', count: 2 },
+    { name: 'アイテム5', image: '写真/hell world.png', effect: 'クリティカル率アップ', count: 2 }
 ];
 
 const gachaCapsule = document.getElementById('gachaCapsule');
