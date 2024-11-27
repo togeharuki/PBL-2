@@ -37,6 +37,17 @@
                 <li>デッキ枚数が0になったら、その時点でHPが高いほうのプレイヤーが勝利する</li>
             </ui><br>
             <button class="StartBtn" id="StartBtn">戻る</button>
+            <!-- スピーカーアイコン -->
+            <div id="speaker-icon">
+            <img src="../Menu/syasin/off.png" alt="音量オフ">
+            <img src="../Menu/syasin/on.png" alt="音量オン">
+            </div>
+
+                <!-- BGMプレイヤー -->
+            <audio id="music-player" loop>
+            <source id="music-source" src="">
+            </audio>
         </body>
     <script src="Rule.js"></script>
+    <script src="../Menu/bgm.js"></script>
 </html>
