@@ -5,7 +5,7 @@
     box-sizing: border-box;
 }
 
-body {
+main {
     font-family: Arial, sans-serif;
     display: flex;
     justify-content: center;
@@ -14,28 +14,43 @@ body {
     background-color: #f5f5f5;
 }
 
+/* 親要素（gacha-container）に中央寄せのスタイルを追加 */
 .gacha-container {
-    text-align: center;
-}
-
-/* ガチャカプセルのスタイル */
-.gacha-capsule {
-    width: 250px;
-    height: 350px;
-    margin: 10% auto;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    transition: transform 2s ease;
-    transform-style: preserve-3d;
-    animation: none;
+    height: 100vh;  /* 親要素の高さを画面全体に */
+    text-align: center;
+    margin: 10%;  /* 左右のマージンを自動で調整 */
 }
 
+/* ガチャカプセルと結果表示エリアを横並びにする */
+.gacha-wrapper {
+    display: flex;
+    justify-content: center;  /* 横並びにした要素を中央寄せ */
+    align-items: center;  /* 垂直方向にも中央寄せ */
+}
+
+/* カプセル画像のスタイル */
 .gacha-capsule-image {
     width: 250px;
     height: 350px;
-    object-fit: cover;  /* 画像を枠に合わせて調整 */
-    border-radius: 10%; /* 画像を丸く表示 */
+    object-fit: cover;
+    border-radius: 10%;
+}
+
+/* 結果表示エリア */
+#gachaResult {
+    width: 300px;  /* 結果エリアの幅 */
+    height: 150px;  /* 高さ */
+    margin-left: 20px;  /* カプセルと結果の間にスペースを追加 */
+    padding: 10px;
+    font-size: 16px;
+    line-height: 1.5;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    resize: none;
 }
 
 /* ボタンのスタイル */
@@ -60,15 +75,17 @@ button:hover {
     background-color: #45a049;
 }
 
-/* 結果表示エリアのスタイル */
-textarea {
-    margin-top: 20px;
-    width: 80%;
-    resize: none;
-    padding: 10px;
-    font-size: 16px;
-    height: 120px;
+/* #endMessageのスタイル */
+#endMessage {
+    display: flex;  /* Flexboxレイアウト */
+    justify-content: center;  /* 水平方向の中央寄せ */
+    align-items: center;  /* 垂直方向の中央寄せ */
+    text-align: center;  /* テキストの中央揃え */
+    flex-direction: column;  /* 子要素を縦に並べる */
 }
+
+
+
 
 /* カプセル回転アニメーション */
 @keyframes rotateCapsule {
