@@ -2,16 +2,18 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ガチャ</title>
     <link rel="stylesheet" href="gatya.css"> <!-- スタイルシートのリンク -->
 </head>
 <body>
-    <h1>ガチャ</h1>
-    <div id="card-container"></div> <!-- カードを表示するコンテナ -->
-    <button id="single-gacha">1連引く</button> <!-- 1回ガチャを引くボタン -->
-    <button id="multi-gacha">10連引く</button> <!-- 10回ガチャを引くボタン -->
-
-    <script src="gatya.js"></script> <!-- JavaScriptファイルのリンク -->
+    <div class='box' id='gachaBox'>
+        <div class='wave -one'></div>
+        <div class='wave -two'></div>
+        <div class='wave -three'></div>
+        <div class='title'>
+            <p>夢への一歩</p>
+        </div>
+    </div>
+    <script src="gatya.js"></script>
 </body>
 </html>
