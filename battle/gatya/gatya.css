@@ -7,8 +7,7 @@ html {
 }
 
 body {
-    display: flex
-;
+    display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
@@ -16,7 +15,8 @@ body {
     margin: 0;
     font-family: Arial, sans-serif;
     background-color: #1a1a2e;
-    background-image: radial-gradient(circle at 10% 20%, rgba(90, 90, 90, 0.1) 0%, rgba(90, 90, 90, 0.1) 5%, transparent 5%), radial-gradient(circle at 90% 80%, rgba(90, 90, 90, 0.1) 0%, rgba(90, 90, 90, 0.1) 5%, transparent 5%);
+    background-image:  radial-gradient(circle at 10% 20%, rgba(90, 90, 90, 0.1) 0%, rgba(90, 90, 90, 0.1) 5%, transparent 5%), 
+                       radial-gradient(circle at 90% 80%, rgba(90, 90, 90, 0.1) 0%, rgba(90, 90, 90, 0.1) 5%, transparent 5%);
 }
 
 .box {
@@ -28,20 +28,15 @@ body {
     position: relative;
     overflow: hidden;
     transform: translate3d(0, 0, 0);
-    transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s; /* アニメーションの設定 */
+    transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
 }
 
 .title {
-    text-align: center; /* 中央揃え */
-    line-height: 1.5; /* 行間の設定 */
+    text-align: center;
+    line-height: 1.5;
 }
 
 
-.box:hover {
-    background-color: #eae9e9; /* ホバー時の背景色 */
-    transform: scale(1.05); /* ホバー時に少し拡大 */
-    box-shadow: 0 4px 50px rgba(0, 0, 0, 0.3); /* ホバー時のシャドウを強調 */
-}
 
 .wave {
     opacity: 0.4;
@@ -55,20 +50,17 @@ body {
     margin-top: -250px;
     transform-origin: 50% 48%;
     border-radius: 43%;
-    -webkit-animation: drift 3000ms infinite linear;
     animation: drift 3000ms infinite linear;
 }
 
-.wave.-three {
-    -webkit-animation: drift 5000ms infinite linear;
-    animation: drift 5000ms infinite linear;
-}
-
 .wave.-two {
-    -webkit-animation: drift 7000ms infinite linear;
     animation: drift 7000ms infinite linear;
     opacity: 0.1;
     background: yellow;
+}
+
+.wave.-three {
+    animation: drift 5000ms infinite linear;
 }
 
 .box:after {
@@ -101,20 +93,35 @@ body {
     text-indent: 0.3em;
 }
 
-@-webkit-keyframes drift {
-    from {
-    transform: rotate(0deg);
-    }
-    from {
-    transform: rotate(360deg);
-    }
+.button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px; /* ボタンとガチャボックスの間のスペース */
+}
+
+.gacha-button {
+    background-color: #0af; /* ボタンの背景色 */
+    color: white; /* ボタンの文字色 */
+    border: none; /* ボタンの枠線をなくす */
+    border-radius: 5px; /* ボタンの角を丸める */
+    padding: 10px 20px; /* ボタンの内側の余白 */
+    font-size: 16px; /* フォントサイズ */
+    cursor: pointer; /* カーソルをポインターにする */
+    margin: 0 10px; /* ボタンの間のスペース */
+    transition: background-color 0.3s, transform 0.3s; /* ホバー時のアニメーション */
+}
+
+.gacha-button:hover {
+    background-color: #0088cc; /* ホバー時の背景色 */
+    transform: scale(1.05); /* ホバー時に少し拡大 */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* ホバー時の影 */
 }
 
 @keyframes drift {
     from {
-    transform: rotate(0deg);
+        transform: rotate(0deg);
     }
-    from {
-    transform: rotate(360deg);
+    to {
+        transform: rotate(360deg);
     }
 }
