@@ -8,30 +8,18 @@
 </head>
 <main>
     <div class="gacha-container">
-        <!-- ガチャガチャカプセルと結果エリアを横並びにするためのラッパー -->
         <div class="gacha-wrapper">
-            <!-- ガチャガチャカプセル -->
             <div class="gacha-capsule" id="gachaCapsule">
                 <img id="gachaCapsuleImage" class="gacha-capsule-image" src="写真/カードの裏面.png" alt="ガチャの中身">
             </div>
-
-            <!-- 結果表示エリア -->
             <textarea id="gachaResult" readonly placeholder="結果がここに表示されます..."></textarea>
         </div>
-
-        <!-- ガチャボタン -->
         <button id="gachaButton" aria-label="ガチャを引く">ガチャを引く</button>
-        
-        <!-- 戻るボタン -->
         <button id="resetButton" style="display: none;" aria-label="戻る">戻る</button>
     </div>
-
-    <!-- 終了メッセージ表示エリア -->
     <div id="endMessage" style="display: none;">
         <h2>ガチャの在庫がすべてなくなりました。<br>ご利用ありがとうございました！</h2>
     </div>
-
     <script src="gatya.js"></script>
 </main>
-
 </html>
