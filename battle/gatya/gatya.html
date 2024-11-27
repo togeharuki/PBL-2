@@ -2,18 +2,48 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>ガチャ</title>
-    <link rel="stylesheet" href="gatya.css"> <!-- スタイルシートのリンク -->
+    <title>Deck Dreamers - ガチャ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="gacha.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-    <div class='box' id='gachaBox'>
-        <div class='wave -one'></div>
-        <div class='wave -two'></div>
-        <div class='wave -three'></div>
-        <div class='title'>
-            <p>夢への一歩</p>
+    <div class="container">
+        <header>
+            <div class="player-info">
+                <div id="player-name"></div>
+                <div id="player-id"></div>
+            </div>
+            <nav class="menu-bar">
+                <a href="../deck/deck.html" class="menu-item">デッキ</a>
+                <a href="../Menu/Menu.html" class="menu-item">メニュー</a>
+            </nav>
+        </header>
+
+        <main>
+            <div class="gacha-controls">
+                <button id="single-gacha" class="gacha-button">1回引く</button>
+                <button id="multi-gacha" class="gacha-button">10連引く</button>
+            </div>
+
+            <div id="card-container" class="card-container"></div>
+
+            <div class="preview-section">
+                <h2>提供割合</h2>
+                <div id="preview-container" class="preview-container"></div>
+            </div>
+        </main>
+
+        <!-- ガチャ演出用のオーバーレイ -->
+        <div id="gacha-overlay" class="gacha-overlay hidden">
+            <div class="gacha-animation">
+                <div class="gacha-light"></div>
+            </div>
         </div>
     </div>
+
     <script src="gatya.js"></script>
 </body>
 </html>
