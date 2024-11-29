@@ -79,6 +79,7 @@ async function createPlayer(playerName, playerId) {
             playerId: playerId,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
+        console.log('プレイヤー情報を保存しました');
         return true;
     } catch (error) {
         console.error('プレイヤー情報の保存に失敗しました:', error);
@@ -98,6 +99,7 @@ async function createSoukoCards(playerId) {
         });
 
         await db.collection('Souko').doc(playerId.toString()).set(cardData);
+        console.log('デフォルトカードを倉庫に保存しました');
         return true;
     } catch (error) {
         console.error('倉庫へのカード保存に失敗しました:', error);
@@ -105,34 +107,6 @@ async function createSoukoCards(playerId) {
     }
 }
 
-// ログイン状態を保存する関数
-async function addCurrentLogin(playerId) {
-    try {
-        const currentLoginRef = db.collection('CurrentLogin').doc('active');
-        const doc = await currentLoginRef.get();
-        let playerIds = [];
-        
-        if (doc.exists) {
-            playerIds = doc.data().playerIds || [];
-            // すでに存在する場合は追加しない
-            if (playerIds.includes(playerId)) {
-                return true;
-            }
-        }
-        
-        // IDを追加して保存
-        playerIds.push(playerId);
-        await currentLoginRef.set({ 
-            playerIds: playerIds,
-            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        return true;
-    } catch (error) {
-        console.error('ログイン状態の保存に失敗しました:', error);
-        throw error;
-    }
-}
 // プレイヤー名の入力チェック
 playerNameInput.addEventListener('input', function() {
     if (this.value.length > 20) {
@@ -181,37 +155,25 @@ createAccountButton.addEventListener('click', async () => {
             // デフォルトカードを倉庫に保存
             await createSoukoCards(nextPlayerId);
 
-            // ログイン状態を保存
-            await addCurrentLogin(nextPlayerId);
+            showMessage(`アカウントを作成しました！\nプレイヤーID: ${nextPlayerId}`, 'success');
 
             // ローカルストレージにプレイヤー情報を保存
             localStorage.setItem('playerName', playerName);
             localStorage.setItem('playerId', nextPlayerId);
 
-            showMessage(`アカウント作成成功!\nプレイヤーID: ${nextPlayerId}`, 'success');
-
-            // 3秒後にタイトル画面に遷移
+            // 3秒後にタイトル画面に戻る
             setTimeout(() => {
                 window.location.href = 'title.html';
             }, 3000);
 
         } catch (error) {
-            // エラー発生時のクリーンアップ
+            // エラーが発生した場合、両方のコレクションをクリーンアップ
             try {
-                // 作成したデータを削除
-                await db.collection('Player').doc(nextPlayerId.toString()).delete();
-                await db.collection('Souko').doc(nextPlayerId.toString()).delete();
-                
-                // CurrentLoginからも削除
-                const currentLoginRef = db.collection('CurrentLogin').doc('active');
-                const currentLoginDoc = await currentLoginRef.get();
-                if (currentLoginDoc.exists) {
-                    const playerIds = currentLoginDoc.data().playerIds.filter(id => id !== nextPlayerId);
-                    if (playerIds.length === 0) {
-                        await currentLoginRef.delete();
-                    } else {
-                        await currentLoginRef.set({ playerIds: playerIds });
-                    }
+                if (db.collection('Player').doc(nextPlayerId.toString())) {
+                    await db.collection('Player').doc(nextPlayerId.toString()).delete();
+                }
+                if (db.collection('Souko').doc(nextPlayerId.toString())) {
+                    await db.collection('Souko').doc(nextPlayerId.toString()).delete();
                 }
             } catch (cleanupError) {
                 console.error('クリーンアップに失敗:', cleanupError);
@@ -222,7 +184,6 @@ createAccountButton.addEventListener('click', async () => {
     } catch (error) {
         console.error('アカウント作成エラー:', error);
         showMessage('アカウントの作成に失敗しました', 'error');
-    } finally {
         createAccountButton.disabled = false;
     }
 });
@@ -231,37 +192,85 @@ createAccountButton.addEventListener('click', async () => {
 function showMessage(text, type) {
     messageDiv.textContent = text;
     messageDiv.className = `message ${type} show`;
+}
 
-    // 5秒後にメッセージを非表示
-    setTimeout(() => {
-        messageDiv.className = messageDiv.className.replace(' show', '');
-    }, 5000);
+// デッキのカードを読み込む関数
+async function loadDeckCards() {
+    try {
+        const playerId = localStorage.getItem('playerId');
+        const soukoRef = db.collection('Souko').doc(playerId.toString());
+        const doc = await soukoRef.get();
+
+        if (doc.exists) {
+            const deckGrid = document.getElementById('deck-grid');
+            deckGrid.innerHTML = ''; // 既存のカードをクリア
+
+            const cardData = doc.data();
+            const cardPromises = Object.values(cardData).map(async (card) => {
+                const imagePath = await checkImageExistence(card.image); // 既に定義された画像URLを使う
+
+                if (imagePath) {
+                    card.image = imagePath; // 存在する画像パスをセット
+                    return createCardElement(card); // カード要素を作成
+                } else {
+                    console.log(`画像が見つかりません: ${card.image}`);
+                    return null; // 画像が見つからない場合はnullを返す
+                }
+            });
+
+            // すべてのカード要素を取得
+            const cardElements = await Promise.all(cardPromises);
+            // nullでないカード要素だけをデッキグリッドに追加
+            cardElements.forEach(cardElement => {
+               
+                if (cardElement) {
+                    deckGrid.appendChild(cardElement);
+                }
+            });
+        } else {
+            console.log('デッキが見つかりません');
+        }
+    } catch (error) {
+        console.error('デッキの読み込みに失敗しました:', error);
+        alert('デッキの読み込みに失敗しました: ' + error.message);
+    }
+}
+
+// 画像の存在チェックを行う関数
+function checkImageExistence(imageUrl) {
+    const extensions = ['.jpg', '.jpeg', '.png']; // 対応する画像形式
+    return new Promise((resolve) => {
+        const checkNext = (index) => {
+            if (index >= extensions.length) {
+                resolve(null); // すべての拡張子で画像が見つからなかった場合
+                return;
+            }
+
+            const img = new Image();
+            img.src = imageUrl.replace(/\.(jpg|jpeg|png)$/, extensions[index]); // 拡張子を変更
+            img.onload = () => resolve(img.src); // 画像が存在する場合
+            img.onerror = () => checkNext(index + 1); // 次の拡張子をチェック
+        };
+
+        checkNext(0); // 最初の拡張子からチェック開始
+    });
+}
+
+// カードを表示する関数
+function createCardElement(card) {
+    const cardElement = document.createElement('div');
+    cardElement.className = 'card-item';
+    cardElement.innerHTML = `
+        <div class="card-image">
+            <img src="${card.image}" alt="${card.name}">
+        </div>
+        <div class="card-name">${card.name}</div>
+        <div class="card-effect">${card.effect}</div>
+    `;
+    return cardElement;
 }
 
 // エラーハンドリング
 window.addEventListener('error', function(event) {
     console.error('エラーが発生しました:', event.error);
-    showMessage('エラーが発生しました', 'error');
-});
-
-// データベース接続の監視
-db.enableNetwork().catch(error => {
-    console.error('データベース接続エラー:', error);
-    showMessage('サーバーに接続できません', 'error');
-});
-
-// ページ読み込み時の初期化
-window.addEventListener('load', async () => {
-    try {
-        const currentLoginDoc = await db.collection('CurrentLogin').doc('active').get();
-        if (!currentLoginDoc.exists || !currentLoginDoc.data().playerIds) {
-            // CurrentLoginが存在しない場合、新規作成
-            await db.collection('CurrentLogin').doc('active').set({
-                playerIds: [],
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        }
-    } catch (error) {
-        console.error('初期化エラー:', error);
-    }
 });
