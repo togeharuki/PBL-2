@@ -80,22 +80,6 @@ async function createPlayer(playerName, playerId) {
             playerId: playerId,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-
-        // CurrentLoginに追加
-        const currentLoginRef = db.collection('CurrentLogin').doc('active');
-        const doc = await currentLoginRef.get();
-        let playerIds = [];
-        if (doc.exists) {
-            playerIds = doc.data().playerIds || [];
-        }
-        if (!playerIds.includes(playerId)) {
-            playerIds.push(playerId);
-            await currentLoginRef.set({ 
-                playerIds: playerIds,
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        }
-
         return true;
     } catch (error) {
         console.error('プレイヤー情報の保存に失敗しました:', error);
@@ -118,6 +102,35 @@ async function createSoukoCards(playerId) {
         return true;
     } catch (error) {
         console.error('倉庫へのカード保存に失敗しました:', error);
+        throw error;
+    }
+}
+
+// ログイン状態を保存する関数
+async function addCurrentLogin(playerId) {
+    try {
+        const currentLoginRef = db.collection('CurrentLogin').doc('active');
+        const doc = await currentLoginRef.get();
+        let playerIds = [];
+        
+        if (doc.exists) {
+            playerIds = doc.data().playerIds || [];
+            // すでに存在する場合は追加しない
+            if (playerIds.includes(playerId)) {
+                return true;
+            }
+        }
+        
+        // IDを追加して保存
+        playerIds.push(playerId);
+        await currentLoginRef.set({ 
+            playerIds: playerIds,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        return true;
+    } catch (error) {
+        console.error('ログイン状態の保存に失敗しました:', error);
         throw error;
     }
 }
@@ -169,32 +182,14 @@ createAccountButton.addEventListener('click', async () => {
             // デフォルトカードを倉庫に保存
             await createSoukoCards(nextPlayerId);
 
-            // 成功メッセージを表示
-            const notification = document.createElement('div');
-            notification.className = 'success-notification';
-            notification.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: rgb(78, 205, 196);
-                padding: 20px 40px;
-                border-radius: 10px;
-                color: white;
-                text-align: center;
-                z-index: 1000;
-                font-size: 1.2em;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            `;
-            notification.innerHTML = `
-                <h2 style="margin: 0 0 10px 0;">アカウント作成成功！</h2>
-                <p style="margin: 0;">プレイヤーID: ${nextPlayerId}<br>プレイヤー名: ${playerName}</p>
-            `;
-            document.body.appendChild(notification);
+            // ログイン状態を保存
+            await addCurrentLogin(nextPlayerId);
 
             // ローカルストレージにプレイヤー情報を保存
             localStorage.setItem('playerName', playerName);
             localStorage.setItem('playerId', nextPlayerId);
+
+            showMessage(`アカウント作成成功!\nプレイヤーID: ${nextPlayerId}`, 'success');
 
             // 3秒後にタイトル画面に遷移
             setTimeout(() => {
@@ -203,7 +198,9 @@ createAccountButton.addEventListener('click', async () => {
 
         } catch (error) {
             // エラー発生時のクリーンアップ
+            // エラー発生時のクリーンアップ
             try {
+                // 作成したデータを削除
                 await db.collection('Player').doc(nextPlayerId.toString()).delete();
                 await db.collection('Souko').doc(nextPlayerId.toString()).delete();
                 
@@ -228,6 +225,7 @@ createAccountButton.addEventListener('click', async () => {
         console.error('アカウント作成エラー:', error);
         showMessage('アカウントの作成に失敗しました', 'error');
     } finally {
+    } finally {
         createAccountButton.disabled = false;
     }
 });
@@ -237,6 +235,7 @@ function showMessage(text, type) {
     messageDiv.textContent = text;
     messageDiv.className = `message ${type} show`;
 
+    // 5秒後にメッセージを非表示
     setTimeout(() => {
         messageDiv.className = messageDiv.className.replace(' show', '');
     }, 5000);
@@ -245,4 +244,27 @@ function showMessage(text, type) {
 // エラーハンドリング
 window.addEventListener('error', function(event) {
     console.error('エラーが発生しました:', event.error);
+    showMessage('エラーが発生しました', 'error');
+});
+
+// データベース接続の監視
+db.enableNetwork().catch(error => {
+    console.error('データベース接続エラー:', error);
+    showMessage('サーバーに接続できません', 'error');
+});
+
+// ページ読み込み時の初期化
+window.addEventListener('load', async () => {
+    try {
+        const currentLoginDoc = await db.collection('CurrentLogin').doc('active').get();
+        if (!currentLoginDoc.exists || !currentLoginDoc.data().playerIds) {
+            // CurrentLoginが存在しない場合、新規作成
+            await db.collection('CurrentLogin').doc('active').set({
+                playerIds: [],
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+    } catch (error) {
+        console.error('初期化エラー:', error);
+    }
 });
