@@ -32,11 +32,26 @@ window.addEventListener('load', async () => {
     const savedPlayerName = localStorage.getItem('playerName');
     
     if (savedPlayerId && savedPlayerName) {
-        playerInfoDiv.textContent = `現在のログイン: ${savedPlayerName} (ID: ${savedPlayerId})`;
-        logoutButton.style.display = 'block'; // ログアウトボタンを表示
+        // ログイン状態を確認
+        const currentLoginDoc = await db.collection('CurrentLogin').doc('active').get();
+        const isLoggedIn = currentLoginDoc.exists && 
+                          currentLoginDoc.data().playerIds && 
+                          currentLoginDoc.data().playerIds.includes(savedPlayerId);
+
+        if (isLoggedIn) {
+            playerInfoDiv.textContent = `現在のログイン: ${savedPlayerName} (ID: ${savedPlayerId})`;
+            playerInfoDiv.style.display = 'block';
+            logoutButton.style.display = 'block';
+        } else {
+            // ログイン状態が不整合の場合、ローカルストレージをクリア
+            localStorage.removeItem('playerName');
+            localStorage.removeItem('playerId');
+            playerInfoDiv.style.display = 'none';
+            logoutButton.style.display = 'none';
+        }
     } else {
         playerInfoDiv.style.display = 'none';
-        logoutButton.style.display = 'none'; // ログアウトボタンを非表示
+        logoutButton.style.display = 'none';
     }
 });
 
@@ -68,37 +83,40 @@ loginButton.addEventListener('click', async () => {
         const playerId = playerData.playerId;
 
         // 現在のログイン状態を確認
-        const currentLoginDoc = await db.collection('CurrentLogin').doc('active').get();
-        if (currentLoginDoc.exists) {
-            const currentPlayerIds = currentLoginDoc.data().playerIds;
+        const currentLoginRef = db.collection('CurrentLogin').doc('active');
+        const currentLoginDoc = await currentLoginRef.get();
 
-            // 既にログイン中のプレイヤーがいる場合、ログインを拒否
+        if (currentLoginDoc.exists) {
+            const currentPlayerIds = currentLoginDoc.data().playerIds || [];
             if (currentPlayerIds.includes(playerId)) {
-                showMessage('このアカウントはすでにログインしています。', 'error');
+                showMessage('このアカウントはすでにログインしています', 'error');
                 loginButton.disabled = false;
                 return;
             }
+
+            // 既存のログイン状態に追加
+            await currentLoginRef.update({
+                playerIds: firebase.firestore.FieldValue.arrayUnion(playerId)
+            });
+        } else {
+            // 新しいログイン状態を作成
+            await currentLoginRef.set({
+                playerIds: [playerId]
+            });
         }
 
         // ローカルストレージに保存
         localStorage.setItem('playerName', playerName);
         localStorage.setItem('playerId', playerId);
 
-        // 現在のログイン状態をFirestoreに保存
-        let currentPlayerIds = currentLoginDoc.exists ? currentLoginDoc.data().playerIds : [];
-        currentPlayerIds.push(playerId);
-        await db.collection('CurrentLogin').doc('active').set({ playerIds: currentPlayerIds });
-
-        // プレイヤー情報を表示
+        // UI更新
         playerInfoDiv.style.display = 'block';
-        playerInfoDiv.textContent = `プレイヤーID: ${playerId}`;
+        playerInfoDiv.textContent = `現在のログイン: ${playerName} (ID: ${playerId})`;
+        logoutButton.style.display = 'block';
         
         showMessage('ログインしました', 'success');
 
-        // ログアウトボタンを表示
-        logoutButton.style.display = 'block';
-
-        // 3秒後にタイトル画面に戻る
+        // 3秒後にタイトル画面に遷移
         setTimeout(() => {
             window.location.href = 'title.html';
         }, 3000);
@@ -115,34 +133,45 @@ loginButton.addEventListener('click', async () => {
 logoutButton.addEventListener('click', async () => {
     try {
         const playerId = localStorage.getItem('playerId');
+        if (!playerId) {
+            showMessage('ログイン情報が見つかりません', 'error');
+            return;
+        }
 
-        // Firestoreから現在のログイン情報を取得
-        const currentLoginDoc = await db.collection('CurrentLogin').doc('active').get();
-        
+        const currentLoginRef = db.collection('CurrentLogin').doc('active');
+        const currentLoginDoc = await currentLoginRef.get();
+
         if (currentLoginDoc.exists) {
-            let currentPlayerIds = currentLoginDoc.data().playerIds;
+            const currentPlayerIds = currentLoginDoc.data().playerIds || [];
+            const updatedPlayerIds = currentPlayerIds.filter(id => id !== playerId);
 
-            // プレイヤーIDを削除
-            currentPlayerIds = currentPlayerIds.filter(id => id !== playerId);
-
-            // プレイヤーIDが空の場合、ドキュメントを削除する
-            if (currentPlayerIds.length === 0) {
-                await db.collection('CurrentLogin').doc('active').delete();
+            if (updatedPlayerIds.length === 0) {
+                // ログイン中のプレイヤーがいなくなった場合、ドキュメントを削除
+                await currentLoginRef.delete();
             } else {
-                // プレイヤーIDが削除された後の配列をFirestoreに保存
-                await db.collection('CurrentLogin').doc('active').set({ playerIds: currentPlayerIds });
+                // プレイヤーIDを配列から削除
+                await currentLoginRef.update({
+                    playerIds: updatedPlayerIds
+                });
             }
         }
 
-        // ローカルストレージからプレイヤー情報を削除
+        // ローカルストレージをクリア
         localStorage.removeItem('playerName');
         localStorage.removeItem('playerId');
 
-        // UIを更新
+        // UI更新
         playerInfoDiv.style.display = 'none';
         logoutButton.style.display = 'none';
+        playerNameInput.value = '';
 
         showMessage('ログアウトしました', 'success');
+
+        // 3秒後にページをリロード
+        setTimeout(() => {
+            window.location.reload();
+        }, 3000);
+
     } catch (error) {
         console.error('ログアウトエラー:', error);
         showMessage('ログアウトに失敗しました', 'error');
