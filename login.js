@@ -124,24 +124,34 @@ window.addEventListener('load', async () => {
         const savedPlayerName = localStorage.getItem('playerName');
         
         if (savedPlayerId && savedPlayerName) {
+            // まずUIを更新
+            updateLoginUI(savedPlayerName, savedPlayerId);
+            
+            // サーバーでログイン状態を確認
             const isLoggedIn = await checkLoginState(savedPlayerId);
-
-            if (isLoggedIn) {
-                updateLoginUI(savedPlayerName, savedPlayerId);
-            } else {
-                localStorage.removeItem('playerName');
-                localStorage.removeItem('playerId');
-                hideLoginUI();
+            if (!isLoggedIn) {
+                // サーバー側でログインが確認できない場合、自動再ログイン
+                try {
+                    await db.collection('CurrentLogin').doc('active').set({
+                        playerIds: firebase.firestore.FieldValue.arrayUnion(savedPlayerId)
+                    }, { merge: true });
+                } catch (error) {
+                    console.error('自動再ログインに失敗:', error);
+                }
             }
         } else {
             hideLoginUI();
         }
     } catch (error) {
         console.error('ログイン状態の確認中にエラーが発生:', error);
-        hideLoginUI();
+        // エラー時もローカルのログイン情報があれば表示を維持
+        if (localStorage.getItem('playerId') && localStorage.getItem('playerName')) {
+            updateLoginUI(localStorage.getItem('playerName'), localStorage.getItem('playerId'));
+        } else {
+            hideLoginUI();
+        }
     }
 });
-
 // ログイン処理
 loginButton.addEventListener('click', async () => {
     const playerName = playerNameInput.value.trim();
@@ -161,6 +171,7 @@ loginButton.addEventListener('click', async () => {
 
         if (playerQuery.empty) {
             showMessage('プレイヤーが見つかりません', 'error');
+            loginButton.disabled = false;
             return;
         }
 
@@ -176,6 +187,7 @@ loginButton.addEventListener('click', async () => {
             const currentPlayerIds = currentLoginDoc.data().playerIds || [];
             if (currentPlayerIds.includes(playerId)) {
                 showMessage('このアカウントはすでにログインしています', 'error');
+                loginButton.disabled = false;
                 return;
             }
 
@@ -228,10 +240,8 @@ logoutButton.addEventListener('click', async () => {
             const updatedPlayerIds = currentPlayerIds.filter(id => id !== playerId);
 
             if (updatedPlayerIds.length === 0) {
-                // ログイン中のプレイヤーがいなくなった場合、ドキュメントを削除
                 await currentLoginRef.delete();
             } else {
-                // プレイヤーIDを配列から削除
                 await currentLoginRef.update({
                     playerIds: updatedPlayerIds
                 });
@@ -242,13 +252,12 @@ logoutButton.addEventListener('click', async () => {
         localStorage.removeItem('playerName');
         localStorage.removeItem('playerId');
 
-        // UI更新
-        hideLoginUI();
+        // メッセージを表示
         showMessage('ログアウトしました', 'success');
 
-        // 3秒後にページをリロード
+        // 3秒後にタイトル画面に遷移
         setTimeout(() => {
-            window.location.reload();
+            window.location.href = 'title.html';
         }, 3000);
 
     } catch (error) {
@@ -278,4 +287,14 @@ window.addEventListener('error', function(event) {
 db.enableNetwork().catch(error => {
     console.error('データベース接続エラー:', error);
     showMessage('サーバーに接続できません', 'error');
+});
+
+// ページ離脱時の処理
+window.addEventListener('beforeunload', () => {
+    // ページ遷移時にもログイン状態を維持
+    const savedPlayerId = localStorage.getItem('playerId');
+    const savedPlayerName = localStorage.getItem('playerName');
+    if (savedPlayerId && savedPlayerName) {
+        updateLoginUI(savedPlayerName, savedPlayerId);
+    }
 });
