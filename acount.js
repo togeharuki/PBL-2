@@ -79,7 +79,6 @@ async function createPlayer(playerName, playerId) {
             playerId: playerId,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-        console.log('プレイヤー情報を保存しました');
         return true;
     } catch (error) {
         console.error('プレイヤー情報の保存に失敗しました:', error);
@@ -99,7 +98,6 @@ async function createSoukoCards(playerId) {
         });
 
         await db.collection('Souko').doc(playerId.toString()).set(cardData);
-        console.log('デフォルトカードを倉庫に保存しました');
         return true;
     } catch (error) {
         console.error('倉庫へのカード保存に失敗しました:', error);
@@ -112,25 +110,29 @@ async function addCurrentLogin(playerId) {
     try {
         const currentLoginRef = db.collection('CurrentLogin').doc('active');
         const doc = await currentLoginRef.get();
-        
         let playerIds = [];
+        
         if (doc.exists) {
             playerIds = doc.data().playerIds || [];
+            // すでに存在する場合は追加しない
+            if (playerIds.includes(playerId)) {
+                return true;
+            }
         }
         
-        if (!playerIds.includes(playerId)) {
-            playerIds.push(playerId);
-            await currentLoginRef.set({ playerIds: playerIds });
-        }
+        // IDを追加して保存
+        playerIds.push(playerId);
+        await currentLoginRef.set({ 
+            playerIds: playerIds,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        });
         
-        console.log('ログイン状態を保存しました');
         return true;
     } catch (error) {
         console.error('ログイン状態の保存に失敗しました:', error);
         throw error;
     }
 }
-
 // プレイヤー名の入力チェック
 playerNameInput.addEventListener('input', function() {
     if (this.value.length > 20) {
@@ -182,25 +184,34 @@ createAccountButton.addEventListener('click', async () => {
             // ログイン状態を保存
             await addCurrentLogin(nextPlayerId);
 
-            showMessage(`アカウントを作成しました！\nプレイヤーID: ${nextPlayerId}`, 'success');
-
             // ローカルストレージにプレイヤー情報を保存
             localStorage.setItem('playerName', playerName);
             localStorage.setItem('playerId', nextPlayerId);
 
-            // 3秒後にタイトル画面に戻る
+            showMessage(`アカウント作成成功!\nプレイヤーID: ${nextPlayerId}`, 'success');
+
+            // 3秒後にタイトル画面に遷移
             setTimeout(() => {
                 window.location.href = 'title.html';
             }, 3000);
 
         } catch (error) {
-            // エラーが発生した場合、両方のコレクションをクリーンアップ
+            // エラー発生時のクリーンアップ
             try {
-                if (db.collection('Player').doc(nextPlayerId.toString())) {
-                    await db.collection('Player').doc(nextPlayerId.toString()).delete();
-                }
-                if (db.collection('Souko').doc(nextPlayerId.toString())) {
-                    await db.collection('Souko').doc(nextPlayerId.toString()).delete();
+                // 作成したデータを削除
+                await db.collection('Player').doc(nextPlayerId.toString()).delete();
+                await db.collection('Souko').doc(nextPlayerId.toString()).delete();
+                
+                // CurrentLoginからも削除
+                const currentLoginRef = db.collection('CurrentLogin').doc('active');
+                const currentLoginDoc = await currentLoginRef.get();
+                if (currentLoginDoc.exists) {
+                    const playerIds = currentLoginDoc.data().playerIds.filter(id => id !== nextPlayerId);
+                    if (playerIds.length === 0) {
+                        await currentLoginRef.delete();
+                    } else {
+                        await currentLoginRef.set({ playerIds: playerIds });
+                    }
                 }
             } catch (cleanupError) {
                 console.error('クリーンアップに失敗:', cleanupError);
@@ -211,6 +222,7 @@ createAccountButton.addEventListener('click', async () => {
     } catch (error) {
         console.error('アカウント作成エラー:', error);
         showMessage('アカウントの作成に失敗しました', 'error');
+    } finally {
         createAccountButton.disabled = false;
     }
 });
@@ -219,9 +231,37 @@ createAccountButton.addEventListener('click', async () => {
 function showMessage(text, type) {
     messageDiv.textContent = text;
     messageDiv.className = `message ${type} show`;
+
+    // 5秒後にメッセージを非表示
+    setTimeout(() => {
+        messageDiv.className = messageDiv.className.replace(' show', '');
+    }, 5000);
 }
 
 // エラーハンドリング
 window.addEventListener('error', function(event) {
     console.error('エラーが発生しました:', event.error);
+    showMessage('エラーが発生しました', 'error');
+});
+
+// データベース接続の監視
+db.enableNetwork().catch(error => {
+    console.error('データベース接続エラー:', error);
+    showMessage('サーバーに接続できません', 'error');
+});
+
+// ページ読み込み時の初期化
+window.addEventListener('load', async () => {
+    try {
+        const currentLoginDoc = await db.collection('CurrentLogin').doc('active').get();
+        if (!currentLoginDoc.exists || !currentLoginDoc.data().playerIds) {
+            // CurrentLoginが存在しない場合、新規作成
+            await db.collection('CurrentLogin').doc('active').set({
+                playerIds: [],
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+    } catch (error) {
+        console.error('初期化エラー:', error);
+    }
 });
