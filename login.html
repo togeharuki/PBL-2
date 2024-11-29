@@ -110,26 +110,18 @@
             font-size: 1.2em;
             color: #4ecdc4;
         }
-        #logoutButton {
-            background: linear-gradient(45deg, #ff6b6b, #ff4757);
-        }
-        .login-form {
-            width: 100%;
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>ログイン</h1>
-        <div id="login-form" class="login-form">
-            <div class="input-group">
-                <label for="playerName">プレイヤー名</label>
-                <input type="text" id="playerName" maxlength="20" placeholder="プレイヤー名を入力してください">
-            </div>
-            <button id="loginButton">ログイン</button>
+        <div class="input-group">
+            <label for="playerName">プレイヤー名</label>
+            <input type="text" id="playerName" maxlength="20" placeholder="プレイヤー名を入力してください">
         </div>
         <div id="playerInfo"></div>
-        <button id="logoutButton" style="display: none;">ログアウト</button>
+        <button id="loginButton">ログイン</button>
+        <button id="logoutButton" style="display:none;">ログアウト</button>
         <div id="message" class="message"></div>
         <button class="back-button" onclick="location.href='title.html'">戻る</button>
     </div>
