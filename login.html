@@ -115,36 +115,26 @@
             font-size: 1.2em;
             color: #4ecdc4;
         }
-        .button-group {
-            margin: 20px 0;
+        #logoutButton {
+            background: linear-gradient(45deg, #ff6b6b, #ff4757);
         }
-        #speaker-icon {
-            color: #ff6b6b;
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            cursor: pointer;
-            z-index: 1000;
-        }
-
-        #speaker-icon img {
-            width: 50px;
-            height: 50px;
+        .login-form {
+            width: 100%;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>ログイン</h1>
-        <div id="playerInfo"></div>
-        <div class="input-group">
-            <label for="playerName">プレイヤー名</label>
-            <input type="text" id="playerName" maxlength="20" placeholder="プレイヤー名を入力してください">
-        </div>
-        <div class="button-group">
+        <div id="login-form" class="login-form">
+            <div class="input-group">
+                <label for="playerName">プレイヤー名</label>
+                <input type="text" id="playerName" maxlength="20" placeholder="プレイヤー名を入力してください">
+            </div>
             <button id="loginButton">ログイン</button>
-            <button id="logoutButton">ログアウト</button>
         </div>
+        <div id="playerInfo"></div>
+        <button id="logoutButton" style="display: none;">ログアウト</button>
         <div id="message" class="message"></div>
         <button class="back-button" onclick="location.href='title.html'">戻る</button>
     </div>
