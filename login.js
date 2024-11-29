@@ -139,7 +139,6 @@ window.addEventListener('load', async () => {
             if (isLoggedIn) {
                 updateLoginUI(savedPlayerName, savedPlayerId);
             } else {
-                // ログイン状態が無効な場合、ローカルストレージをクリア
                 localStorage.removeItem('playerName');
                 localStorage.removeItem('playerId');
                 await hideLoginUI();
@@ -231,30 +230,37 @@ logoutButton?.addEventListener('click', async () => {
         }
 
         const currentLoginRef = db.collection('CurrentLogin').doc('active');
-        
-        // CurrentLoginからプレイヤーIDを削除
-        await currentLoginRef.update({
-            playerIds: firebase.firestore.FieldValue.arrayRemove(playerId)
-        });
+        const currentLoginDoc = await currentLoginRef.get();
 
-        // ドキュメントを取得して、空になった場合は削除
-        const updatedDoc = await currentLoginRef.get();
-        if (updatedDoc.exists && (!updatedDoc.data().playerIds || updatedDoc.data().playerIds.length === 0)) {
-            await currentLoginRef.delete();
+        if (currentLoginDoc.exists) {
+            // 現在のplayerIds配列を取得
+            const currentPlayerIds = currentLoginDoc.data().playerIds || [];
+            
+            // 該当するplayerIdを削除
+            const updatedPlayerIds = currentPlayerIds.filter(id => id !== playerId);
+            
+            if (updatedPlayerIds.length === 0) {
+                // プレイヤーがいなくなった場合はドキュメントを削除
+                await currentLoginRef.delete();
+            } else {
+                // 更新された配列で上書き
+                await currentLoginRef.set({
+                    playerIds: updatedPlayerIds
+                });
+            }
+            
+            // ローカルストレージをクリア
+            localStorage.removeItem('playerName');
+            localStorage.removeItem('playerId');
+
+            await hideLoginUI();
+            showMessage('ログアウトしました', 'success');
+
+            // 3秒後にタイトル画面に遷移
+            setTimeout(() => {
+                window.location.href = 'title.html';
+            }, 3000);
         }
-
-        // ローカルストレージをクリア
-        localStorage.removeItem('playerName');
-        localStorage.removeItem('playerId');
-
-        await hideLoginUI();
-        showMessage('ログアウトしました', 'success');
-
-        // 3秒後にタイトル画面に遷移
-        setTimeout(() => {
-            window.location.href = 'title.html';
-        }, 3000);
-
     } catch (error) {
         console.error('ログアウトエラー:', error);
         showMessage('ログアウトに失敗しました', 'error');
@@ -277,7 +283,7 @@ function showMessage(text, type) {
 
 // エラーハンドリング
 window.addEventListener('error', function(event) {
-    console.error('グローバルエラー:', event.error);
+    console.error('グローバルエラー:', error);
     showMessage('エラーが発生しました', 'error');
 });
 
