@@ -18,49 +18,6 @@ const logoutButton = document.getElementById('logoutButton');
 const playerNameInput = document.getElementById('playerName');
 const messageDiv = document.getElementById('message');
 const playerInfoDiv = document.getElementById('playerInfo');
-const currentLoginContainer = document.getElementById('current-login-container');
-const loginForm = document.getElementById('login-form');
-
-// スタイルの追加
-const style = document.createElement('style');
-style.textContent = `
-    .login-status {
-        background-color: #2a2a4e;
-        padding: 15px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        text-align: center;
-    }
-
-    .logout-section {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        margin-top: 10px;
-    }
-
-    #logoutButton {
-        background-color: #ff4757;
-        color: white;
-        padding: 8px 16px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: bold;
-    }
-
-    #logoutButton:hover {
-        background-color: #ff6b81;
-    }
-
-    .player-info {
-        color: #4ecdc4;
-        font-weight: bold;
-        margin-bottom: 10px;
-    }
-`;
-document.head.appendChild(style);
 
 // プレイヤー名の入力チェック
 playerNameInput.addEventListener('input', function() {
@@ -69,41 +26,6 @@ playerNameInput.addEventListener('input', function() {
     }
 });
 
-// ログイン状態のUI更新
-function updateLoginUI(playerName, playerId) {
-    if (currentLoginContainer) {
-        currentLoginContainer.innerHTML = `
-            <div class="login-status">
-                <div class="player-info">
-                    <div>現在ログイン中のアカウント:</div>
-                    <div>${playerName}</div>
-                    <div>プレイヤーID: ${playerId}</div>
-                </div>
-                <div class="logout-section">
-                    <button id="logoutButton">ログアウト</button>
-                </div>
-            </div>
-        `;
-
-        // ログアウトボタンのイベントリスナーを再設定
-        document.getElementById('logoutButton').addEventListener('click', handleLogout);
-    }
-    
-    if (loginForm) {
-        loginForm.style.display = 'none';
-    }
-}
-
-// ログイン状態の非表示
-function hideLoginUI() {
-    if (currentLoginContainer) {
-        currentLoginContainer.innerHTML = '';
-    }
-    if (loginForm) {
-        loginForm.style.display = 'block';
-    }
-    playerNameInput.value = '';
-}
 // ページ読み込み時の処理
 window.addEventListener('load', async () => {
     const savedPlayerId = localStorage.getItem('playerId');
@@ -117,14 +39,19 @@ window.addEventListener('load', async () => {
                           currentLoginDoc.data().playerIds.includes(savedPlayerId);
 
         if (isLoggedIn) {
-            updateLoginUI(savedPlayerName, savedPlayerId);
+            playerInfoDiv.textContent = `現在のログイン: ${savedPlayerName} (ID: ${savedPlayerId})`;
+            playerInfoDiv.style.display = 'block';
+            logoutButton.style.display = 'block';
         } else {
+            // ログイン状態が不整合の場合、ローカルストレージをクリア
             localStorage.removeItem('playerName');
             localStorage.removeItem('playerId');
-            hideLoginUI();
+            playerInfoDiv.style.display = 'none';
+            logoutButton.style.display = 'none';
         }
     } else {
-        hideLoginUI();
+        playerInfoDiv.style.display = 'none';
+        logoutButton.style.display = 'none';
     }
 });
 
@@ -182,7 +109,11 @@ loginButton.addEventListener('click', async () => {
         localStorage.setItem('playerName', playerName);
         localStorage.setItem('playerId', playerId);
 
-        updateLoginUI(playerName, playerId);
+        // UI更新
+        playerInfoDiv.style.display = 'block';
+        playerInfoDiv.textContent = `現在のログイン: ${playerName} (ID: ${playerId})`;
+        logoutButton.style.display = 'block';
+        
         showMessage('ログインしました', 'success');
 
         // 3秒後にタイトル画面に遷移
@@ -199,7 +130,7 @@ loginButton.addEventListener('click', async () => {
 });
 
 // ログアウト処理
-async function handleLogout() {
+logoutButton.addEventListener('click', async () => {
     try {
         const playerId = localStorage.getItem('playerId');
         if (!playerId) {
@@ -215,17 +146,25 @@ async function handleLogout() {
             const updatedPlayerIds = currentPlayerIds.filter(id => id !== playerId);
 
             if (updatedPlayerIds.length === 0) {
+                // ログイン中のプレイヤーがいなくなった場合、ドキュメントを削除
                 await currentLoginRef.delete();
             } else {
+                // プレイヤーIDを配列から削除
                 await currentLoginRef.update({
                     playerIds: updatedPlayerIds
                 });
             }
         }
 
+        // ローカルストレージをクリア
         localStorage.removeItem('playerName');
         localStorage.removeItem('playerId');
-        hideLoginUI();
+
+        // UI更新
+        playerInfoDiv.style.display = 'none';
+        logoutButton.style.display = 'none';
+        playerNameInput.value = '';
+
         showMessage('ログアウトしました', 'success');
 
         // 3秒後にページをリロード
@@ -237,17 +176,12 @@ async function handleLogout() {
         console.error('ログアウトエラー:', error);
         showMessage('ログアウトに失敗しました', 'error');
     }
-}
+});
 
 // メッセージ表示関数
 function showMessage(text, type) {
     messageDiv.textContent = text;
     messageDiv.className = `message ${type} show`;
-
-    // メッセージを5秒後に非表示にする
-    setTimeout(() => {
-        messageDiv.className = messageDiv.className.replace(' show', '');
-    }, 5000);
 }
 
 // エラーハンドリング
