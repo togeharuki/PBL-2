@@ -215,7 +215,6 @@ document.querySelector('.exit-button').addEventListener('click', async function(
                         p.tableNumber === tableNumber.toString()
                     );
 
-                    // 対戦相手が存在するか確認
                     if (tablePlayers.length !== 2) {
                         alert('対戦相手が見つかりません');
                         return;
@@ -224,6 +223,7 @@ document.querySelector('.exit-button').addEventListener('click', async function(
                     // 対戦画面へ遷移
                     const taisenUrl = new URL('../fight/taisen.html', window.location.href);
                     taisenUrl.searchParams.set('roomId', roomId);
+                    taisenUrl.searchParams.set('tableNumber', tableNumber);
                     taisenUrl.searchParams.set('tableNumber', tableNumber);
                     window.location.href = taisenUrl.toString();
                 } catch (error) {
@@ -278,3 +278,4 @@ document.querySelector('.exit-button').addEventListener('click', async function(
 window.addEventListener('error', function(event) {
     console.error('エラーが発生しました:', event.error);
 });
+
