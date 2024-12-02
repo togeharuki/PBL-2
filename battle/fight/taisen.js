@@ -108,7 +108,7 @@ class Game {
             this.opponentId = playerIds.find(id => id !== this.playerId);
             console.log('対戦相手ID:', this.opponentId);
 
-            // デッキの初期化（まだ行われていない場合）
+            // デキの初期化（まだ行われていない場合）
             if (!this.gameState.players[this.playerId]?.deck?.length) {
                 console.log('デッキ初期化');
                 await this.initializePlayerDeck();
@@ -160,24 +160,43 @@ class Game {
     async initializePlayerDeck() {
         try {
             console.log('デッキ初期化開始');
-            const deckRef = db.collection('deck');
-            const querySnapshot = await deckRef.limit(30).get();
+            // プレイヤーのデッキ情報を取得
+            const playerRef = db.collection('Player').doc(this.playerId);
+            const playerDoc = await playerRef.get();
             
-            if (querySnapshot.empty) {
-                throw new Error('デッキのカードが見つかりません');
+            if (!playerDoc.exists) {
+                throw new Error('プレイヤー情報が見つかりません');
+            }
+
+            const playerData = playerDoc.data();
+            if (!playerData.deck) {
+                throw new Error('プレイヤーのデッキが設定されていません');
+            }
+
+            // デッキIDを使用してデッキ情報を取得
+            const deckRef = db.collection('Deck').doc(playerData.deck);
+            const deckDoc = await deckRef.get();
+
+            if (!deckDoc.exists) {
+                throw new Error('デッキが見つかりません');
+            }
+
+            const deckData = deckDoc.data();
+            if (!deckData.cards || !Array.isArray(deckData.cards)) {
+                throw new Error('デッキのカードデータが不正です');
             }
 
             console.log('カード情報取得完了');
-            const allCards = [];
-            querySnapshot.forEach((doc) => {
-                const cardData = doc.data();
-                allCards.push({
-                    id: doc.id,
+            const allCards = deckData.cards.map(cardId => {
+                const cardData = deckData.cardDetails[cardId];
+                return {
+                    id: cardId,
                     type: cardData.type,
-                    value: cardData.value,
                     effect: cardData.effect,
-                    name: cardData.name
-                });
+                    name: cardData.name,
+                    image: cardData.image,
+                    isCreated: cardData.isCreated
+                };
             });
 
             console.log(`取得したカード数: ${allCards.length}`);
