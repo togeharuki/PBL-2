@@ -8,145 +8,50 @@ const firebaseConfig = {
     appId: "1:165933225805:web:4e5a3907fc5c7a30a28a6c"
 };
 
-// Firebaseを初期化
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+// ログインしているユーザーの情報を取得します。
+const user = firebase.auth().currentUser()
 
-// DOMの準備完了を待つ
-document.addEventListener('DOMContentLoaded', function() {
-    // グローバル変数
-    let items = [];
-    let playerId = null;
+// ユーザーコレクションへのリファレンスを作成します。
+const userRef = db.collection('user')
 
-    // DOM要素の取得を関数化
-    function initializeDOMElements() {
-        return {
-            gachaButton: document.getElementById('gachaButton'),
-            resetButton: document.getElementById('resetButton'),
-            gachaResult: document.getElementById('gachaResult'),
-            gachaCapsule: document.getElementById('gachaCapsule'),
-            gachaCapsuleImage: document.getElementById('gachaCapsuleImage'),
-            endMessage: document.getElementById('endMessage')
-        };
-    }
+userRef.doc().set({
+    name: 'アイテム1',
+    image: '写真/Deck.png',
+    effect: '攻撃力1',
+    count: 2,
+    birthday: new Date('1996-11-11'), // timestampe型にはDateオブジェクトを渡します。
+    createdAt: db.FieldValue.serverTimestamp() // サーバーの時間をセットすることもできます。
+})
 
-    // DOM要素を取得
-    const elements = initializeDOMElements();
+// ガチャボタンがクリックされたとき
+gachaButton.addEventListener('click', () => {
+    triggerGachaAnimation();
+    handleGachaResult();
+});
 
-    const GACHA_ITEMS = [
-        {
-            name: '学祭のピザ',
-            image: 'https://togeharuki.github.io/Deck-Dreamers/battle/gatya/写真/R-学祭のピザ.png',
-            effect: '攻撃力+1',
-            count: 10,
-            rarity: 'R',
-            weight: 30
-        },
-        {
-            name: '二郎系',
-            image: 'https://togeharuki.github.io/Deck-Dreamers/battle/gatya/写真/R-二郎系.png',
-            effect: '攻撃力+1',
-            count: 10,
-            rarity: 'R',
-            weight: 30
-        },
-        {
-            name: '先生集合',
-            image: 'https://togeharuki.github.io/Deck-Dreamers/battle/gatya/写真/R-先生集合.png',
-            effect: '攻撃力+1',
-            count: 10,
-            rarity: 'R',
-            weight: 30
-        },
-        {
-            name: '河合家のりょうちゃん',
-            image: 'https://togeharuki.github.io/Deck-Dreamers/battle/gatya/写真/SR-河合家のりょうちゃん.png',
-            effect: '攻撃力+5',
-            count: 5,
-            rarity: 'SR',
-            weight: 10
-        },
-        {
-            name: '金田家のしょうちゃん',
-            image: 'https://togeharuki.github.io/Deck-Dreamers/battle/gatya/写真/SR-金田家のしょうちゃん.png',
-            effect: '攻撃力+3',
-            count: 5,
-            rarity: 'SR',
-            weight: 10
-        },
-        {
-            name: '喜友名家のともちゃん',
-            image: 'https://togeharuki.github.io/Deck-Dreamers/battle/gatya/写真/SR-喜友名家のともちゃん.png',
-            effect: '攻撃力+2',
-            count: 5,
-            rarity: 'SR',
-            weight: 10
-        },
-        {
-            name: '佐藤家のてんちゃん',
-            image: 'https://togeharuki.github.io/Deck-Dreamers/battle/gatya/写真/SSR-佐藤家のてんちゃん.png',
-            effect: '回復+10',
-            count: 2,
-            rarity: 'SSR',
-            weight: 2
-        },
-        {
-            name: 'マーモット系男子',
-            image: 'https://togeharuki.github.io/Deck-Dreamers/battle/gatya/写真/SSR-マーモット系男子.png',
-            effect: '回復+10',
-            count: 2,
-            rarity: 'SSR',
-            weight: 2
-        }
-    ];
+// 戻るボタンがクリックされたとき
+resetButton.addEventListener('click', resetGacha);
 
-    // Firebaseが利用可能か確認
-    if (typeof firebase === 'undefined' || !firebase.firestore) {
-        console.error('Firebase が初期化されていません');
-        showSuccessNotification('システムエラーが発生しました');
-        return;
-    }
+function triggerGachaAnimation() {
+    gachaButton.classList.add('clicked');
+    gachaButton.style.display = 'none';
+    resetButton.style.display = 'inline-block';
 
-    // アイテムを重み付けでランダムに選ぶ関数
-    function weightedRandomSelect() {
-        const availableItems = items.filter(item => item.count > 0);
-        if (availableItems.length === 0) return null;
+    gachaCapsule.style.animation = 'none';
+    void gachaCapsule.offsetWidth;
+    gachaCapsule.style.animation = 'rotateCapsule 2s ease forwards';
+}
 
-        const totalWeight = availableItems.reduce((sum, item) => sum + item.weight, 0);
-        let random = Math.random() * totalWeight;
+function handleGachaResult() {
+    let randomItem;
+    do {
+        randomItem = getRandomItem();
+    } while (randomItem.count === 0);
 
-        for (const item of availableItems) {
-            random -= item.weight;
-            if (random <= 0) {
-                return item;
-            }
-        }
-        return availableItems[0];
-    }
-
-    // ガチャの初期化
-    async function initializeGacha() {
-        playerId = localStorage.getItem('playerId');
-        if (!playerId) {
-            showSuccessNotification('ログインが必要です');
-            window.location.href = '../login.html';
-            return;
-        }
-
-        try {
-            const soukoRef = db.collection('Souko').doc(playerId.toString());
-            const soukoDoc = await soukoRef.get();
-
-            if (!soukoDoc.exists || !soukoDoc.data().gachaItems) {
-                const initialGachaData = {
-                    gachaItems: GACHA_ITEMS,
-                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                };
-                await soukoRef.set(initialGachaData, { merge: true });
-                items = [...GACHA_ITEMS];
-            } else {
-                items = soukoDoc.data().gachaItems;
-            }
+    randomItem.count--;
+    setTimeout(() => {
+        resultArea.value = `アイテム名: ${randomItem.name}\n効果: ${randomItem.effect}`;
+        gachaCapsuleImage.src = randomItem.image;
 
             displayItemsRemaining();
             updateButtonState();
