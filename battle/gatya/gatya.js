@@ -1,11 +1,10 @@
-// Firebaseの設定
+// Firebaseの設定と初期化
 const firebaseConfig = {
     projectId: "deck-dreamers",
     organizationId: "oic-ok.ac.jp",
     projectNumber: "165933225805"
 };
 
-// Firebase初期化
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
@@ -17,7 +16,34 @@ const gachaCapsule = document.getElementById('gachaCapsule');
 const gachaCapsuleImage = document.getElementById('gachaCapsuleImage');
 const endMessage = document.getElementById('endMessage');
 
-// グローバル変数
+// ガチャアイテムの定義
+const GACHA_ITEMS = [
+    {
+        name: 'SSRカード',
+        image: '写真/カード1.png',
+        effect: '攻撃力+5',
+        count: 3,
+        rarity: 'SSR',
+        weight: 5
+    },
+    {
+        name: 'SRカード',
+        image: '写真/カード2.png',
+        effect: '攻撃力+3',
+        count: 7,
+        rarity: 'SR',
+        weight: 15
+    },
+    {
+        name: 'Rカード',
+        image: '写真/カード3.png',
+        effect: '攻撃力+1',
+        count: 10,
+        rarity: 'R',
+        weight: 30
+    }
+];
+
 let items = [];
 let playerId = null;
 
@@ -25,273 +51,188 @@ let playerId = null;
 async function initializeGacha() {
     playerId = localStorage.getItem('playerId');
     if (!playerId) {
-        alert('ログインしてください');
+        alert('ログインが必要です');
         window.location.href = '../login.html';
         return;
     }
 
     try {
         const gachaRef = db.collection('Gacha').doc(playerId);
-        const gachaDoc = await gachaRef.get();
+        const doc = await gachaRef.get();
 
-        if (!gachaDoc.exists) {
-            // 初期ガチャデータの設定
-            const initialItems = [
-                {
-                    name: 'レアカード1',
-                    image: '写真/カード1.png',
-                    effect: '攻撃力+3',
-                    count: 5,
-                    rarity: 'rare',
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                },
-                {
-                    name: 'ノーマルカード1',
-                    image: '写真/カード2.png',
-                    effect: '攻撃力+1',
-                    count: 10,
-                    rarity: 'normal',
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                }
-            ];
-
+        if (!doc.exists) {
+            // 初期データを設定
+            items = [...GACHA_ITEMS];
             await gachaRef.set({
-                items: initialItems,
+                items: items,
                 lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
             });
-
-            items = initialItems;
         } else {
-            items = gachaDoc.data().items;
+            items = doc.data().items;
         }
 
+        // 残り枚数を表示
         displayItemsRemaining();
+        
+        // ボタンの状態を設定
+        updateButtonState();
     } catch (error) {
         console.error('初期化エラー:', error);
         alert('データの読み込みに失敗しました');
     }
 }
 
-// ページ読み込み時の処理
+// ページ読み込み時に初期化
 document.addEventListener('DOMContentLoaded', initializeGacha);
 
-// Firebaseのガチャデータを更新
-async function updateGachaData() {
-    if (!playerId) return;
-
-    try {
-        await db.collection('Gacha').doc(playerId).update({
-            items: items,
-            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-        });
-    } catch (error) {
-        console.error('ガチャデータの更新に失敗:', error);
-        throw error;
-    }
-}
-// ガチャボタンのクリックイベント
+// ガチャを引く処理
 gachaButton.addEventListener('click', async () => {
     try {
+        gachaButton.disabled = true;
         triggerGachaAnimation();
         await handleGachaResult();
     } catch (error) {
         console.error('ガチャ実行エラー:', error);
         alert('ガチャの実行に失敗しました');
+        gachaButton.disabled = false;
     }
 });
-
-// 戻るボタンのクリックイベント
-resetButton.addEventListener('click', resetGacha);
-
-// ガチャアニメーション処理
+// アニメーション処理
 function triggerGachaAnimation() {
-    gachaButton.classList.add('clicked');
     gachaButton.style.display = 'none';
     resetButton.style.display = 'inline-block';
-
-    gachaCapsule.style.animation = 'none';
-    void gachaCapsule.offsetWidth;
     gachaCapsule.style.animation = 'rotateCapsule 2s ease forwards';
 }
 
-// ガチャ結果処理
+// ガチャ結果の処理
 async function handleGachaResult() {
-    let randomItem;
-    do {
-        randomItem = getRandomItem();
-    } while (randomItem.count === 0);
+    const selectedItem = weightedRandomSelect();
+    if (!selectedItem) {
+        showEndMessage();
+        return;
+    }
 
-    randomItem.count--;
+    // 在庫を減らす
+    const itemIndex = items.findIndex(item => item.name === selectedItem.name);
+    if (itemIndex !== -1) {
+        items[itemIndex].count--;
+    }
 
     try {
+        // Firebaseの更新
         await updateGachaData();
-        await addToCardCollection(randomItem);
+        
+        // カードコレクションに追加
+        await addToCardCollection(selectedItem);
 
+        // 結果表示
         setTimeout(() => {
-            gachaResult.value = `アイテム名: ${randomItem.name}\n効果: ${randomItem.effect}`;
-            gachaCapsuleImage.src = randomItem.image;
+            gachaResult.value = `★${selectedItem.rarity}★\n${selectedItem.name}\n効果: ${selectedItem.effect}`;
+            gachaCapsuleImage.src = selectedItem.image;
             displayItemsRemaining();
             updateButtonState();
-        } catch (error) {
-            console.error('初期化エラー:', error);
-            showSuccessNotification('データの読み込みに失敗しました');
-        }
-    }
+        }, 2000);
 
-    // Soukoにカードを追加
-    async function addCardToSouko(card) {
-        try {
-            const soukoRef = db.collection('Souko').doc(playerId.toString());
-            const cardId = `gacha_card_${Date.now()}`;
-            await soukoRef.set({
-                [`cards.${cardId}`]: {
-                    name: card.name,
-                    image: card.image,
-                    effect: card.effect,
-                    rarity: card.rarity,
-                    type: 'gacha',
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                }
-            }, { merge: true });
-        } catch (error) {
-            console.error('カード追加エラー:', error);
-            throw error;
-        }
-    }
-
-    // ガチャ結果を処理する関数
-    async function handleGachaResult() {
-        const selectedItem = weightedRandomSelect();
-        if (!selectedItem) {
-            showEndMessage();
-            return;
-        }
-
-        const itemIndex = items.findIndex(item => item.name === selectedItem.name);
-        if (itemIndex !== -1) {
-            items[itemIndex].count--;
-        }
-
-        try {
-            await addCardToSouko(selectedItem);
-            await updateGachaData();
-
-            setTimeout(() => {
-                elements.gachaResult.value = `★${selectedItem.rarity}★\n${selectedItem.name}\n効果: ${selectedItem.effect}`;
-                elements.gachaCapsuleImage.src = selectedItem.image;
-                displayItemsRemaining();
-                updateButtonState();
-            }, 2000);
-        } catch (error) {
-            console.error('結果処理エラー:', error);
-            showSuccessNotification('処理に失敗しました');
-        }
-    }
-
-    // Firestoreのデータ更新
-    async function updateGachaData() {
-        if (!playerId) return;
-        try {
-            const soukoRef = db.collection('Souko').doc(playerId.toString());
-            await soukoRef.update({
-                gachaItems: items,
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            console.log('データ更新成功:', playerId);
-        } catch (error) {
-            console.error('データ更新エラー:', error);
-            console.error('エラーの詳細:', error.message);
-            throw error;
-        }
-    }
-
-    // UI操作関連の関数
-    function triggerGachaAnimation() {
-        elements.gachaButton.style.display = 'none';
-        elements.resetButton.style.display = 'inline-block';
-        elements.gachaCapsule.style.animation = 'rotateCapsule 2s ease forwards';
-    }
-
-function resetGacha() {
-    resetButton.style.display = 'none';
-    gachaButton.style.display = 'inline-block';
-    gachaResult.value = '';
-    gachaResult.style.display = 'block';
-    gachaCapsuleImage.src = '写真/カードの裏面.png';
-    endMessage.style.display = 'none';
-    gachaCapsule.style.transform = 'rotateY(0deg)';
-}
-
-function displayItemsRemaining() {
-    console.clear();
-    items.forEach(item => {
-        console.log(`${item.name}: 残り ${item.count} 個`);
-        updateFirestoreItemCount(item);
-    });
-}
-
-// Firestoreのアイテム数を更新
-async function updateFirestoreItemCount(item) {
-    try {
-        const itemRef = db.collection('Gacha').doc(playerId);
-        await itemRef.set({
-            items: items,
-            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
     } catch (error) {
-        console.error('アイテム数の更新に失敗:', error);
+        console.error('結果処理エラー:', error);
+        alert('処理に失敗しました');
     }
 }
 
-function checkAllItemsOutOfStock() {
-    const allOutOfStock = items.every(item => item.count === 0);
-    if (allOutOfStock) {
-        endMessage.style.display = 'block';
-        gachaButton.style.display = 'none';
-        gachaResult.style.display = 'none';
-        resetButton.style.display = 'inline-block';
-        
-        try {
-            await resetGachaData();
-        } catch (error) {
-            console.error('ガチャリセットエラー:', error);
+// 重み付き抽選
+function weightedRandomSelect() {
+    const availableItems = items.filter(item => item.count > 0);
+    if (availableItems.length === 0) return null;
+
+    const totalWeight = availableItems.reduce((sum, item) => sum + item.weight, 0);
+    let random = Math.random() * totalWeight;
+
+    for (const item of availableItems) {
+        random -= item.weight;
+        if (random <= 0) {
+            return item;
         }
     }
+    return availableItems[0];
 }
 
-// ガチャデータのリセット
-async function resetGachaData() {
-    if (!playerId) return;
-
+// カードコレクションに追加
+async function addToCardCollection(item) {
     try {
-        const initialItems = [
-            {
-                name: 'レアカード1',
-                image: '写真/カード1.png',
-                effect: '攻撃力+3',
-                count: 5,
-                rarity: 'rare',
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            },
-            {
-                name: 'ノーマルカード1',
-                image: '写真/カード2.png',
-                effect: '攻撃力+1',
-                count: 10,
-                rarity: 'normal',
+        const cardRef = db.collection('Card').doc(playerId);
+        const cardId = `card_${Date.now()}`;
+        
+        await cardRef.set({
+            [cardId]: {
+                name: item.name,
+                image: item.image,
+                effect: item.effect,
+                rarity: item.rarity,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             }
-        ];
-
-        await db.collection('Gacha').doc(playerId).set({
-            items: initialItems,
-            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        items = initialItems;
+        }, { merge: true });
     } catch (error) {
-        console.error('ガチャリセットエラー:', error);
+        console.error('カード追加エラー:', error);
         throw error;
     }
 }
 
+// リセットボタンの処理
+resetButton.addEventListener('click', () => {
+    resetGacha();
+});
+
+// ガチャのリセット
+function resetGacha() {
+    resetButton.style.display = 'none';
+    gachaButton.disabled = false;
+    gachaButton.style.display = 'inline-block';
+    gachaResult.value = '';
+    gachaCapsuleImage.src = '写真/カードの裏面.png';
+    gachaCapsule.style.animation = 'none';
+}
+
+// 残り枚数の表示
+function displayItemsRemaining() {
+    console.clear();
+    items.forEach(item => {
+        console.log(`${item.rarity} ${item.name}: 残り ${item.count} 個`);
+    });
+}
+
+// ガチャデータの更新
+async function updateGachaData() {
+    if (!playerId) return;
+
+    try {
+        await db.collection('Gacha').doc(playerId).set({
+            items: items,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    } catch (error) {
+        console.error('データ更新エラー:', error);
+        throw error;
+    }
+}
+
+// ボタン状態の更新
+function updateButtonState() {
+    const hasAvailableItems = items.some(item => item.count > 0);
+    gachaButton.disabled = !hasAvailableItems;
+    
+    if (!hasAvailableItems) {
+        showEndMessage();
+    }
+}
+
+// 終了メッセージの表示
+function showEndMessage() {
+    endMessage.style.display = 'block';
+    gachaButton.style.display = 'none';
+    gachaResult.style.display = 'none';
+}
+
+// エラーハンドリング
+window.addEventListener('error', function(event) {
+    console.error('エラーが発生しました:', event.error);
+});
