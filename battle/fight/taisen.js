@@ -134,7 +134,7 @@ class Game {
             this.opponentId = playerIds.find(id => id !== this.playerId);
             console.log('対戦相手ID:', this.opponentId);
 
-            // デキの初期化（まだ行われていない場合）
+            // デッキの初期化（まだ行われていない場合）
             if (!this.gameState.players[this.playerId]?.deck?.length) {
                 console.log('デッキ初期化');
                 await this.initializePlayerDeck();
@@ -165,7 +165,9 @@ class Game {
 
             // タイマーを開始
             console.log('タイマー開始');
-            this.startTimer();
+            if (this.gameState.status === 'playing' && this.gameState.currentTurn === this.playerId) {
+                this.startTimer();
+            }
 
             console.log('ゲーム初期化完了');
 
@@ -489,12 +491,62 @@ class Game {
         return typeMap[type] || type;
     }
 
-    cleanup() {
-        if (this.unsubscribe) {
-            this.unsubscribe();
+    // タイマーの開始
+    startTimer() {
+        console.log('タイマー開���');
+        const timerElement = document.querySelector('.timer');
+        if (!timerElement) {
+            console.error('タイマー要素が見つかりません');
+            return;
         }
+
+        // 既存のタイマーをクリア
         if (this.timer) {
             clearInterval(this.timer);
+        }
+
+        this.timeLeft = 60;
+        timerElement.textContent = this.timeLeft;
+
+        this.timer = setInterval(() => {
+            this.timeLeft--;
+            timerElement.textContent = this.timeLeft;
+
+            if (this.timeLeft <= 0) {
+                clearInterval(this.timer);
+                // タイムアップ時の処理
+                this.handleTimeUp();
+            }
+        }, 1000);
+    }
+
+    // タイムアップ時の処理
+    handleTimeUp() {
+        console.log('タイムアップ');
+        // ランダムにカードを出す処理などを実装
+        if (this.isPlayerTurn && this.playerHand.length > 0) {
+            const randomIndex = Math.floor(Math.random() * this.playerHand.length);
+            const randomCard = this.playerHand[randomIndex];
+            const battleSlot = document.getElementById('player-battle-slot');
+            if (battleSlot) {
+                this.playCard(randomCard, battleSlot);
+            }
+        }
+    }
+
+    // タイマーのクリーンアップ
+    cleanupTimer() {
+        if (this.timer) {
+            clearInterval(this.timer);
+            this.timer = null;
+        }
+    }
+
+    // ゲーム終了時の処理
+    cleanup() {
+        this.cleanupTimer();
+        if (this.unsubscribe) {
+            this.unsubscribe();
         }
     }
 }
