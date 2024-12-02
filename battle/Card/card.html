@@ -54,6 +54,18 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
+    <!-- スピーカーアイコン -->
+    <div id="speaker-icon">
+        <img src="syasin/off.png" alt="音量オフ">
+        <img src="syasin/on.png" alt="音量オン">
+    </div>
+        
+    <!-- BGMプレイヤー -->
+    <audio id="music-player" loop>
+        <source id="music-source" src="">
+    </audio>
+
+    <script src="../Battle/bgm.js"></script>
     <!-- メインのJavaScriptファイル -->
     <script src="card.js"></script>
 
