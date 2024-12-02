@@ -9,8 +9,16 @@ const firebaseConfig = {
 };
 
 // Firebase初期化
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+let db;
+try {
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    db = firebase.firestore();
+    console.log('Firebase初期化成功');
+} catch (error) {
+    console.error('Firebase初期化エラー:', error);
+}
 
 class Game {
     constructor() {
@@ -491,7 +499,14 @@ class Game {
     }
 }
 
-// ゲーム開始
+// DOMContentLoadedイベントで初期化
 document.addEventListener('DOMContentLoaded', () => {
-    const game = new Game();
+    // Firebaseの初期化を待ってからゲームを開始
+    if (db) {
+        console.log('ゲーム初期化開始');
+        const game = new Game();
+    } else {
+        console.error('Firebaseが初期化されていません');
+        alert('ゲームの初期化に失敗しました。ページを再読み込みしてください。');
+    }
 });
