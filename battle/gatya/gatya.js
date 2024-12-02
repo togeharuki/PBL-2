@@ -1,11 +1,8 @@
 // Firebaseの設定
 const firebaseConfig = {
-    apiKey: "AIzaSyCGgRBPAF2W0KKw0tX2zwZeyjDGgvv31KM",
-    authDomain: "deck-dreamers.firebaseapp.com",
     projectId: "deck-dreamers",
-    storageBucket: "deck-dreamers.appspot.com",
-    messagingSenderId: "165933225805",
-    appId: "1:165933225805:web:4e5a3907fc5c7a30a28a6c"
+    organizationId: "oic-ok.ac.jp",
+    projectNumber: "165933225805"
 };
 
 // Firebase初期化
@@ -133,7 +130,6 @@ async function handleGachaResult() {
         // カードコレクションに追加
         await addToCardCollection(randomItem);
 
-        // 結果表示
         setTimeout(() => {
             resultArea.value = `アイテム名: ${randomItem.name}\n効果: ${randomItem.effect}`;
             gachaCapsuleImage.src = randomItem.image;
@@ -141,7 +137,6 @@ async function handleGachaResult() {
             displayItemsRemaining();
             checkAllItemsOutOfStock();
         }, 2000);
-
     } catch (error) {
         console.error('結果処理エラー:', error);
         throw error;
@@ -189,7 +184,21 @@ function displayItemsRemaining() {
     console.clear();
     items.forEach(item => {
         console.log(`${item.name}: 残り ${item.count} 個`);
+        updateFirestoreItemCount(item);
     });
+}
+
+// Firestoreのアイテム数を更新
+async function updateFirestoreItemCount(item) {
+    try {
+        const itemRef = db.collection('Gacha').doc(playerId).collection('items').doc(item.name);
+        await itemRef.set({
+            count: item.count,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+    } catch (error) {
+        console.error('アイテム数の更新に失敗:', error);
+    }
 }
 
 // 在庫切れチェック
@@ -202,7 +211,6 @@ async function checkAllItemsOutOfStock() {
         resetButton.style.display = 'inline-block';
         
         try {
-            // ガチャデータをリセット
             await resetGachaData();
         } catch (error) {
             console.error('ガチャリセットエラー:', error);
