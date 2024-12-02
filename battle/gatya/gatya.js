@@ -19,24 +19,24 @@ const endMessage = document.getElementById('endMessage');
 // ガチャアイテムの定義
 const GACHA_ITEMS = [
     {
-        name: 'SSRカード',
-        image: '写真/カード1.png',
+        name: '河合家のりょうちゃん',
+        image: '写真/河合家のりょうちゃん.png',
         effect: '攻撃力+5',
         count: 3,
         rarity: 'SSR',
         weight: 5
     },
     {
-        name: 'SRカード',
-        image: '写真/カード2.png',
+        name: '金田家のしょうちゃん',
+        image: '写真/金田家のしょうちゃん.png',
         effect: '攻撃力+3',
         count: 7,
         rarity: 'SR',
         weight: 15
     },
     {
-        name: 'Rカード',
-        image: '写真/カード3.png',
+        name: '佐藤家のてんちゃん',
+        image: '写真/佐藤家のてんちゃん.png',
         effect: '攻撃力+1',
         count: 10,
         rarity: 'R',
@@ -61,7 +61,6 @@ async function initializeGacha() {
         const soukoDoc = await soukoRef.get();
 
         if (!soukoDoc.exists) {
-            // 初期データの設定
             const initialGachaData = {
                 gachaItems: GACHA_ITEMS,
                 lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
@@ -69,7 +68,6 @@ async function initializeGacha() {
             await soukoRef.set(initialGachaData);
             items = [...GACHA_ITEMS];
         } else {
-            // 既存のガチャデータを取得
             items = soukoDoc.data().gachaItems || [...GACHA_ITEMS];
         }
 
@@ -88,15 +86,10 @@ document.addEventListener('DOMContentLoaded', initializeGacha);
 async function addCardToSouko(card) {
     try {
         const soukoRef = db.collection('Souko').doc(playerId);
+        const existingCardsDoc = await soukoRef.get();
+        let existingCards = existingCardsDoc.data().cards || {};
 
-        // 既存のカードリストを取得
-        const soukoDoc = await soukoRef.get();
-        let existingCards = soukoDoc.data().cards || {};
-
-        // カードIDを生成
         const cardId = `gacha_card_${Date.now()}`;
-
-        // カードを既存のリストに追加
         existingCards[cardId] = {
             name: card.name,
             image: card.image,
@@ -106,7 +99,6 @@ async function addCardToSouko(card) {
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
 
-        // 倉庫のデータを更新
         await soukoRef.set({
             cards: existingCards,
             lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
@@ -125,27 +117,21 @@ async function handleGachaResult() {
         return;
     }
 
-    // 在庫を減らす
     const itemIndex = items.findIndex(item => item.name === selectedItem.name);
     if (itemIndex !== -1) {
         items[itemIndex].count--;
     }
 
     try {
-        // 倉庫にカードを追加
         await addCardToSouko(selectedItem);
-        
-        // ガチャデータを更新
         await updateGachaData();
 
-        // 結果表示
         setTimeout(() => {
             gachaResult.value = `★${selectedItem.rarity}★\n${selectedItem.name}\n効果: ${selectedItem.effect}`;
-            gachaCapsuleImage.src = selectedItem.image;
+            gachaCapsuleImage.src = selectedItem.image; // ここで画像を表示
             displayItemsRemaining();
             updateButtonState();
         }, 2000);
-
     } catch (error) {
         console.error('結果処理エラー:', error);
         alert('処理に失敗しました');
@@ -168,7 +154,6 @@ function weightedRandomSelect() {
     }
     return availableItems[0];
 }
-
 // ガチャデータの更新
 async function updateGachaData() {
     if (!playerId) return;
