@@ -42,12 +42,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         document.getElementById('player-name').textContent = `プレイヤー名: ${playerName}`;
         document.getElementById('player-id').textContent = `ID: ${playerId}`;
 
-        // Firebase接続確認
         if (!db) {
             throw new Error('Firebaseデータベースが初期化されていません');
         }
 
-        // カードの読み込み
         console.log('カードデータ読み込み開始');
         await loadDeckCards();
         await loadCreatedCards();
@@ -66,7 +64,6 @@ async function loadDeckCards() {
         console.log('既存カードの読み込み開始');
         const playerId = localStorage.getItem('playerId');
         
-        // 倉庫からカードを読み込む
         const soukoRef = db.collection('Souko').doc(playerId);
         const soukoDoc = await soukoRef.get();
         console.log('倉庫データ取得:', soukoDoc.exists);
@@ -81,9 +78,6 @@ async function loadDeckCards() {
         }
 
         const cardData = soukoDoc.data();
-        console.log('倉庫データ:', cardData);
-
-        // カードデータを配列に変換
         const cards = Object.entries(cardData)
             .filter(([key]) => key.startsWith('default_card_'))
             .map(([_, card]) => ({
@@ -105,19 +99,14 @@ async function loadDeckCards() {
         // 現在のデッキ状態を取得
         const deckRef = db.collection('Deck').doc(playerId);
         const deckDoc = await deckRef.get();
-        console.log('デッキデータ取得:', deckDoc.exists);
 
         const currentDeck = deckDoc.exists ? 
             deckDoc.data().cards.filter(card => !card.isCreated) : 
             [];
-        console.log('現在のデッキ内の既存カード数:', currentDeck.length);
 
         // カードを表示
-        let displayedCount = 0;
-        for (const card of cards) {
+        cards.forEach(card => {
             const cardElement = createCardElement(card);
-            
-            // 現在のデッキに含まれているカードをチェック
             if (currentDeck.some(deckCard => deckCard.name === card.name)) {
                 const checkbox = cardElement.querySelector('.card-checkbox');
                 if (checkbox) {
@@ -125,26 +114,14 @@ async function loadDeckCards() {
                     selectedCards.push(card);
                 }
             }
-            
             deckGrid.appendChild(cardElement);
-            displayedCount++;
-        }
-        console.log('表示した効果カード数:', displayedCount);
-
-        if (displayedCount === 0) {
-            showNotification('効果カードが見つかりません', 'error');
-        }
+        });
 
     } catch (error) {
         console.error('デッキの読み込みに失敗しました:', error);
-        console.error('エラーの詳細:', {
-            error: error.message,
-            stack: error.stack
-        });
         showNotification('デッキの読み込みに失敗しました', 'error');
     }
 }
-
 // 作成したカードを読み込む
 async function loadCreatedCards() {
     try {
@@ -157,7 +134,7 @@ async function loadCreatedCards() {
             const createdCardsSection = document.createElement('div');
             createdCardsSection.className = 'deck-container';
             createdCardsSection.innerHTML = `
-                <h2 class="section-title">作成したカード一覧</h2>
+                <h2 class="section-title">作成したカード</h2>
                 <div class="deck-grid" id="created-cards-grid"></div>
             `;
             
@@ -171,7 +148,8 @@ async function loadCreatedCards() {
                     id,
                     isCreated: true
                 }))
-                .sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                .sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0))
+                .slice(0, 20); // 最新の20枚のみ使用
 
             createdCards = cardsArray;
 
@@ -182,59 +160,41 @@ async function loadCreatedCards() {
         }
     } catch (error) {
         console.error('作成したカードの読み込みに失敗しました:', error);
+        showNotification('作成カードの読み込みに失敗しました', 'error');
     }
 }
+
 // カード要素を作成
 function createCardElement(card, isCreated = false) {
     const cardElement = document.createElement('div');
     cardElement.className = `card-item ${card.rarity || ''}`;
     
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.className = 'card-checkbox';
-    if (isCreated) {
-        checkbox.dataset.cardId = card.id;
-        checkbox.dataset.cardType = 'created';
-    } else {
+    // チェックボックスは既存カードにのみ追加
+    if (!isCreated) {
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'card-checkbox';
         checkbox.dataset.cardType = 'normal';
-    }
-    
-    checkbox.addEventListener('change', function() {
-        const { normalCount, createdCount } = getTotalSelectedCards();
         
-        if (this.checked) {
-            if (this.dataset.cardType === 'created' && createdCount > 20) {
+        checkbox.addEventListener('change', function() {
+            const checkedCount = document.querySelectorAll('input[data-card-type="normal"]:checked').length;
+            
+            if (this.checked && checkedCount > 10) {
                 this.checked = false;
-                showNotification('作成カードは20枚までしか選択できません');
-                return;
-            }
-            if (this.dataset.cardType === 'normal' && normalCount > 10) {
-                this.checked = false;
-                showNotification('既存カードは10枚までしか選択できません');
+                showNotification('既存カードは10枚までしか選択できません', 'warning');
                 return;
             }
             
-            if (this.dataset.cardType === 'created') {
-                const cardId = this.dataset.cardId;
-                const selectedCard = createdCards.find(c => c.id === cardId);
-                if (selectedCard) {
-                    selectedCards.push(selectedCard);
-                }
-            } else {
+            if (this.checked) {
                 selectedCards.push(card);
-            }
-        } else {
-            if (this.dataset.cardType === 'created') {
-                const cardId = this.dataset.cardId;
-                selectedCards = selectedCards.filter(c => c.id !== cardId);
             } else {
                 selectedCards = selectedCards.filter(c => c.name !== card.name);
             }
-        }
-        updateSaveButton();
-    });
-    
-    cardElement.appendChild(checkbox);
+            updateSaveButton();
+        });
+        
+        cardElement.appendChild(checkbox);
+    }
 
     const cardContent = document.createElement('div');
     cardContent.className = 'card-content';
@@ -244,24 +204,12 @@ function createCardElement(card, isCreated = false) {
         </div>
         <div class="card-info">
             <div class="card-name">${card.name}</div>
-            <div class="card-type">${card.type || ''}${card.value ? ` ${card.value}` : ''}</div>
             <div class="card-effect">${card.effect || ''}</div>
-            ${card.rarity ? `<div class="card-rarity">${card.rarity}</div>` : ''}
             ${isCreated ? '<div class="created-card-label">作成カード</div>' : ''}
         </div>
     `;
 
     cardElement.appendChild(cardContent);
-
-    // カードのホバーエフェクト
-    cardElement.addEventListener('mouseenter', () => {
-        cardElement.classList.add('hover');
-    });
-
-    cardElement.addEventListener('mouseleave', () => {
-        cardElement.classList.remove('hover');
-    });
-
     return cardElement;
 }
 
@@ -280,68 +228,36 @@ async function saveDeck() {
             return;
         }
 
-        const { normalCount, createdCount, total } = getTotalSelectedCards();
+        // 選択された既存カードを取得
+        const normalCards = selectedCards.map(card => ({
+            name: card.name,
+            effect: card.effect,
+            type: 'normal',
+            image: card.image,
+            isCreated: false
+        }));
 
-        // カード枚数の確認
-        if (normalCount !== 10) {
-            showNotification('既存カードは10枚選択する必要があります');
+        if (normalCards.length !== 10) {
+            showNotification('既存カードを10枚選択してください', 'warning');
             return;
         }
-        if (createdCount !== 20) {
-            showNotification('作成カードは20枚選択する必要があります');
-            return;
-        }
-        if (total !== 30) {
-            showNotification('デッキは合計30枚のカードを選択する必要があります');
+
+        if (createdCards.length !== 20) {
+            showNotification('作成カードが20枚必要です', 'warning');
             return;
         }
 
-        // 選択された通常カードを取得
-        const normalCards = [];
-        document.querySelectorAll('input[data-card-type="normal"]:checked').forEach(checkbox => {
-            const cardElement = checkbox.closest('.card-item');
-            const cardName = cardElement.querySelector('.card-name').textContent.trim();
-            const cardEffect = cardElement.querySelector('.card-effect').textContent.trim();
-            const cardImage = cardElement.querySelector('.card-image img')?.src || getCardImagePath({ name: cardName });
-            
-            normalCards.push({
-                name: cardName,
-                effect: cardEffect,
-                type: 'normal',
-                image: cardImage,
-                isCreated: false
-            });
-        });
+        // 作成カードを準備
+        const createdCardData = createdCards.map(card => ({
+            name: card.name,
+            effect: card.effect,
+            type: 'created',
+            image: card.image,
+            isCreated: true
+        }));
 
-        // 選択された作成カードを取得
-        const selectedCreatedCards = [];
-        document.querySelectorAll('input[data-card-type="created"]:checked').forEach(checkbox => {
-            const cardId = checkbox.dataset.cardId;
-            const foundCard = createdCards.find(c => c.id === cardId);
-            if (foundCard) {
-                selectedCreatedCards.push({
-                    name: foundCard.name,
-                    effect: foundCard.effect,
-                    type: 'created',
-                    image: foundCard.image,
-                    isCreated: true
-                });
-            }
-        });
-
-        // 全てのカードを結合
-        const allDeckCards = [...normalCards, ...selectedCreatedCards];
-
-        console.log('保存するデッキデータ:', {
-            通常カード: normalCards.length,
-            作成カード: selectedCreatedCards.length,
-            合計: allDeckCards.length,
-            データ: allDeckCards
-        });
-
-        if (allDeckCards.length !== 30) {
-            throw new Error(`カードの総数が不正です: ${allDeckCards.length}`);
-        }
+        // 全カードを結合
+        const allDeckCards = [...normalCards, ...createdCardData];
 
         // デッキを保存
         const deckRef = db.collection('Deck').doc(playerId);
@@ -350,44 +266,33 @@ async function saveDeck() {
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        showNotification('デッキを保存しました', 'success');
-
-        // 保存成功後、選択状態をリセット
-        selectedCards = [];
-        updateSaveButton();
+        showSuccessNotification();
 
     } catch (error) {
         console.error('デッキの保存に失敗しました:', error);
-        showNotification('データの保存に失敗しました: ' + error.message, 'error');
+        showNotification('デッキの保存に失敗しました', 'error');
     }
 }
 
-// 保存ボタンの状態を更新
-function updateSaveButton() {
-    const saveButton = document.getElementById('save-deck-button');
-    const cardCounter = document.getElementById('card-counter');
-    
-    const { normalCount, createdCount, total } = getTotalSelectedCards();
-    
-    if (saveButton) {
-        const isValid = normalCount === 10 && createdCount === 20;
-        saveButton.disabled = !isValid;
-        saveButton.classList.toggle('ready', isValid);
-    }
-    
-    if (cardCounter) {
-        cardCounter.textContent = `選択中: 既存${normalCount}/10 作成${createdCount}/20 (合計${total}/30)`;
-        cardCounter.classList.toggle('complete', total === 30);
-    }
+// 成功通知を表示
+function showSuccessNotification() {
+    const notification = document.createElement('div');
+    notification.className = 'success-notification';
+    notification.innerHTML = `
+        <div class="success-content">
+            <h2>デッキ作成成功！</h2>
+            <p>既存カード10枚と作成カード20枚の<br>デッキを作成しました。</p>
+        </div>
+    `;
+    document.body.appendChild(notification);
 
-    // デバッグ情報
-    console.log('カード選択状態:', {
-        normalCount,
-        createdCount,
-        total,
-        selectedCards: selectedCards.length,
-        createdChecked: document.querySelectorAll('input[data-card-type="created"]:checked').length
-    });
+    setTimeout(() => {
+        notification.classList.add('fade-out');
+        setTimeout(() => {
+            notification.remove();
+            window.location.href = '../Menu/Menu.html';
+        }, 500);
+    }, 2000);
 }
 
 // 通知を表示
@@ -395,13 +300,31 @@ function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     notification.textContent = message;
-    
     document.body.appendChild(notification);
     
     setTimeout(() => {
         notification.classList.add('fade-out');
         setTimeout(() => notification.remove(), 500);
     }, 3000);
+}
+
+// 保存ボタンの状態を更新
+function updateSaveButton() {
+    const saveButton = document.getElementById('save-deck-button');
+    const cardCounter = document.getElementById('card-counter');
+    
+    const checkedCount = document.querySelectorAll('input[data-card-type="normal"]:checked').length;
+    const isValid = checkedCount === 10 && createdCards.length === 20;
+    
+    if (saveButton) {
+        saveButton.disabled = !isValid;
+        saveButton.classList.toggle('ready', isValid);
+    }
+    
+    if (cardCounter) {
+        cardCounter.textContent = `選択中: ${checkedCount}/10枚 (作成カード: ${createdCards.length}/20枚)`;
+        cardCounter.classList.toggle('complete', isValid);
+    }
 }
 
 // デッキをリセット
@@ -412,18 +335,8 @@ function resetDeck() {
             checkbox.checked = false;
         });
         updateSaveButton();
-        showNotification('デッキをリセットしました');
+        showNotification('選択をリセットしました');
     }
-}
-
-// メニューに戻る
-function goBack() {
-    if (selectedCards.length > 0) {
-        if (!confirm('変更は保存されませんが、よろしいですか？')) {
-            return;
-        }
-    }
-    window.location.href = '../Menu/Menu.html';
 }
 
 // エラーハンドリング
@@ -431,30 +344,3 @@ window.addEventListener('error', function(event) {
     console.error('エラーが発生しました:', event.error);
     showNotification('エラーが発生しました', 'error');
 });
-
-// 未保存の変更がある場合に警告
-window.addEventListener('beforeunload', (e) => {
-    if (selectedCards.length > 0) {
-        e.preventDefault();
-        e.returnValue = '';
-    }
-});
-
-// 選択されたカードの合計を取得
-function getTotalSelectedCards() {
-    const normalCheckboxes = document.querySelectorAll('input[data-card-type="normal"]:checked');
-    const createdCheckboxes = document.querySelectorAll('input[data-card-type="created"]:checked');
-
-    const normalCount = normalCheckboxes.length;
-    const createdCount = createdCheckboxes.length;
-    const total = normalCount + createdCount;
-
-    console.log('カード選択状況:', {
-        通常カード: normalCount,
-        作成カード: createdCount,
-        合計: total,
-        チェックボックス総数: document.querySelectorAll('.card-checkbox').length
-    });
-
-    return { normalCount, createdCount, total };
-}
