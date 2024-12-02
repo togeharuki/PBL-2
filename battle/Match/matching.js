@@ -215,6 +215,7 @@ document.querySelector('.exit-button').addEventListener('click', async function(
                         p.tableNumber === tableNumber.toString()
                     );
 
+                    // 対戦相手が存在するか確認
                     if (tablePlayers.length !== 2) {
                         alert('対戦相手が見つかりません');
                         return;
