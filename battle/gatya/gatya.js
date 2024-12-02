@@ -1,11 +1,8 @@
 // Firebaseの設定
 const firebaseConfig = {
-    apiKey: "AIzaSyCGgRBPAF2W0KKw0tX2zwZeyjDGgvv31KM",
-    authDomain: "deck-dreamers.firebaseapp.com",
     projectId: "deck-dreamers",
-    storageBucket: "deck-dreamers.appspot.com",
-    messagingSenderId: "165933225805",
-    appId: "1:165933225805:web:4e5a3907fc5c7a30a28a6c"
+    organizationId: "oic-ok.ac.jp",
+    projectNumber: "165933225805"
 };
 
 // Firebase初期化
@@ -133,7 +130,6 @@ async function handleGachaResult() {
         // カードコレクションに追加
         await addToCardCollection(randomItem);
 
-        // 結果表示
         setTimeout(() => {
             resultArea.value = `アイテム名: ${randomItem.name}\n効果: ${randomItem.effect}`;
             gachaCapsuleImage.src = randomItem.image;
@@ -232,7 +228,23 @@ function resetGacha() {
 
 function displayItemsRemaining() {
     console.clear();
-    items.forEach(item => console.log(`${item.name}: 残り ${item.count} 個`));
+    items.forEach(item => {
+        console.log(`${item.name}: 残り ${item.count} 個`);
+        updateFirestoreItemCount(item);
+    });
+}
+
+// Firestoreのアイテム数を更新
+async function updateFirestoreItemCount(item) {
+    try {
+        const itemRef = db.collection('Gacha').doc(playerId).collection('items').doc(item.name);
+        await itemRef.set({
+            count: item.count,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+    } catch (error) {
+        console.error('アイテム数の更新に失敗:', error);
+    }
 }
 
 function checkAllItemsOutOfStock() {
@@ -242,9 +254,48 @@ function checkAllItemsOutOfStock() {
         gachaButton.style.display = 'none';
         resultArea.style.display = 'none';
         resetButton.style.display = 'inline-block';
-        resetButton.addEventListener('click', () => {
-            window.location.href = '../../main/Menu/Menu.html';  // 遷移先のURLを指定
+        
+        try {
+            await resetGachaData();
+        } catch (error) {
+            console.error('ガチャリセットエラー:', error);
+        }
+    }
+}
+
+// ガチャデータのリセット
+async function resetGachaData() {
+    if (!playerId) return;
+
+    try {
+        const initialItems = [
+            {
+                name: 'レアカード1',
+                image: '写真/Deck.png',
+                effect: '攻撃力+3',
+                count: 5,
+                rarity: 'rare',
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            },
+            {
+                name: 'ノーマルカード1',
+                image: '写真/Deck.png',
+                effect: '攻撃力+1',
+                count: 10,
+                rarity: 'normal',
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            }
+        ];
+
+        await db.collection('Gacha').doc(playerId).set({
+            items: initialItems,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
         });
+
+        items = initialItems;
+    } catch (error) {
+        console.error('ガチャリセットエラー:', error);
+        throw error;
     }
 }
 
