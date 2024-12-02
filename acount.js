@@ -71,30 +71,19 @@ const createAccountButton = document.getElementById('createAccount');
 const playerNameInput = document.getElementById('playerName');
 const messageDiv = document.getElementById('message');
 
-// プレイヤー情報を保存する関数
+// プレイヤー情報とログイン状態を保存する関数
 async function createPlayer(playerName, playerId) {
     try {
-        // プレイヤー情報をPlayerコレクションに保存
+        // プレイヤー情報を保存
         await db.collection('Player').doc(playerId.toString()).set({
             playerName: playerName,
             playerId: playerId,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            loginStatus: {
+                isLoggedIn: true,
+                lastLoginAt: firebase.firestore.FieldValue.serverTimestamp()
+            }
         });
-
-        // CurrentLoginに追加
-        const currentLoginRef = db.collection('CurrentLogin').doc('active');
-        const doc = await currentLoginRef.get();
-        let playerIds = [];
-        if (doc.exists) {
-            playerIds = doc.data().playerIds || [];
-        }
-        if (!playerIds.includes(playerId)) {
-            playerIds.push(playerId);
-            await currentLoginRef.set({ 
-                playerIds: playerIds,
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        }
 
         return true;
     } catch (error) {
@@ -121,6 +110,7 @@ async function createSoukoCards(playerId) {
         throw error;
     }
 }
+
 // プレイヤー名の入力チェック
 playerNameInput.addEventListener('input', function() {
     if (this.value.length > 20) {
@@ -151,7 +141,7 @@ createAccountButton.addEventListener('click', async () => {
             return;
         }
 
-        // 新しいプレイヤーIDを取得
+        // 最新のプレイヤーIDを取得
         const lastPlayerDoc = await db.collection('Player')
             .orderBy('playerId', 'desc')
             .limit(1)
@@ -206,18 +196,6 @@ createAccountButton.addEventListener('click', async () => {
             try {
                 await db.collection('Player').doc(nextPlayerId.toString()).delete();
                 await db.collection('Souko').doc(nextPlayerId.toString()).delete();
-                
-                // CurrentLoginからも削除
-                const currentLoginRef = db.collection('CurrentLogin').doc('active');
-                const currentLoginDoc = await currentLoginRef.get();
-                if (currentLoginDoc.exists) {
-                    const playerIds = currentLoginDoc.data().playerIds.filter(id => id !== nextPlayerId);
-                    if (playerIds.length === 0) {
-                        await currentLoginRef.delete();
-                    } else {
-                        await currentLoginRef.set({ playerIds: playerIds });
-                    }
-                }
             } catch (cleanupError) {
                 console.error('クリーンアップに失敗:', cleanupError);
             }
@@ -245,4 +223,10 @@ function showMessage(text, type) {
 // エラーハンドリング
 window.addEventListener('error', function(event) {
     console.error('エラーが発生しました:', event.error);
+});
+
+// データベース接続の監視
+db.enableNetwork().catch(error => {
+    console.error('データベース接続エラー:', error);
+    showMessage('サーバーに接続できません', 'error');
 });
