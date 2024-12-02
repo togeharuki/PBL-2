@@ -66,7 +66,6 @@ async function loadDeckCards() {
         
         const soukoRef = db.collection('Souko').doc(playerId);
         const soukoDoc = await soukoRef.get();
-        console.log('倉庫データ取得:', soukoDoc.exists);
 
         const deckGrid = document.getElementById('deck-grid');
         deckGrid.innerHTML = '';
@@ -256,7 +255,31 @@ async function saveDeck() {
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        showNotification('デッキを保存しました', 'success');
+        // 成功通知を表示
+        const notification = document.createElement('div');
+        notification.className = 'success-notification';
+        notification.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgb(78, 205, 196);
+            padding: 20px 40px;
+            border-radius: 10px;
+            color: white;
+            text-align: center;
+            z-index: 1000;
+            font-size: 1.2em;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        `;
+        notification.textContent = 'デッキを保存しました！';
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => notification.remove(), 500);
+        }, 2000);
 
     } catch (error) {
         console.error('デッキの保存に失敗しました:', error);
