@@ -20,7 +20,19 @@ class Game {
         const urlParams = new URLSearchParams(window.location.search);
         this.roomId = urlParams.get('roomId');
         this.tableNumber = urlParams.get('tableNumber');
-        this.playerId = localStorage.getItem('userId');
+        this.playerId = localStorage.getItem('playerId');
+
+        // デバッグ情報の出力
+        console.log('初期化パラメータ:', {
+            roomId: this.roomId,
+            tableNumber: this.tableNumber,
+            playerId: this.playerId,
+            urlParams: Object.fromEntries(urlParams.entries()),
+            localStorage: {
+                playerId: localStorage.getItem('playerId'),
+                playerName: localStorage.getItem('playerName')
+            }
+        });
 
         // ゲーム状態の初期化
         this.gameState = null;
@@ -37,13 +49,19 @@ class Game {
         this.timer = null;
 
         if (!this.roomId || !this.tableNumber || !this.playerId) {
-            console.error('ゲーム情報が不正です');
+            console.error('ゲーム情報が不正です:', {
+                roomId: this.roomId,
+                tableNumber: this.tableNumber,
+                playerId: this.playerId
+            });
+            alert('ゲーム情報が不正です。ルーム画面に戻ります。');
             window.location.href = '../Room/room.html';
             return;
         }
 
         // ゲームIDを生成
         this.gameId = `${this.roomId}_table${this.tableNumber}`;
+        console.log('ゲームID:', this.gameId);
 
         // ゲームの初期化
         this.initializeGame();
