@@ -165,9 +165,7 @@ class Game {
 
             // タイマーを開始
             console.log('タイマー開始');
-            if (this.gameState.status === 'playing' && this.gameState.currentTurn === this.playerId) {
-                this.startTimer();
-            }
+            this.initializeTimer();
 
             console.log('ゲーム初期化完了');
 
@@ -491,9 +489,7 @@ class Game {
         return typeMap[type] || type;
     }
 
-    // タイマーの開始
-    startTimer() {
-        console.log('タイマー開���');
+    initializeTimer() {
         const timerElement = document.querySelector('.timer');
         if (!timerElement) {
             console.error('タイマー要素が見つかりません');
@@ -503,24 +499,28 @@ class Game {
         // 既存のタイマーをクリア
         if (this.timer) {
             clearInterval(this.timer);
+            this.timer = null;
         }
 
+        // 初期値を設定
         this.timeLeft = 60;
         timerElement.textContent = this.timeLeft;
 
-        this.timer = setInterval(() => {
-            this.timeLeft--;
-            timerElement.textContent = this.timeLeft;
+        // タイマーを開始（自分のターンの場合のみ）
+        if (this.gameState.status === 'playing' && this.gameState.currentTurn === this.playerId) {
+            this.timer = setInterval(() => {
+                this.timeLeft--;
+                timerElement.textContent = this.timeLeft;
 
-            if (this.timeLeft <= 0) {
-                clearInterval(this.timer);
-                // タイムアップ時の処理
-                this.handleTimeUp();
-            }
-        }, 1000);
+                if (this.timeLeft <= 0) {
+                    clearInterval(this.timer);
+                    this.timer = null;
+                    this.handleTimeUp();
+                }
+            }, 1000);
+        }
     }
 
-    // タイムアップ時の処理
     handleTimeUp() {
         console.log('タイムアップ');
         // ランダムにカードを出す処理などを実装
@@ -534,17 +534,14 @@ class Game {
         }
     }
 
-    // タイマーのクリーンアップ
-    cleanupTimer() {
+    cleanup() {
+        // タイマーのクリーンアップ
         if (this.timer) {
             clearInterval(this.timer);
             this.timer = null;
         }
-    }
 
-    // ゲーム終了時の処理
-    cleanup() {
-        this.cleanupTimer();
+        // リアルタイムリスナーのクリーンアップ
         if (this.unsubscribe) {
             this.unsubscribe();
         }
