@@ -1,17 +1,27 @@
-const items = [
-    { name: 'アイテム1', image: '写真/Deck.png', effect: '攻撃力アップ', count: 2 },
-    { name: 'アイテム2', image: '写真/Dream.png', effect: '防御力アップ', count: 2 },
-    { name: 'アイテム3', image: '写真/dream world.png', effect: '回避率アップ', count: 2 },
-    { name: 'アイテム4', image: '写真/ice world.png', effect: 'スピードアップ', count: 2 },
-    { name: 'アイテム5', image: '写真/hell world.png', effect: 'クリティカル率アップ', count: 2 }
-];
+// Firebaseの設定
+const firebaseConfig = {
+    apiKey: "AIzaSyCGgRBPAF2W0KKw0tX2zwZeyjDGgvv31KM",
+    authDomain: "deck-dreamers.firebaseapp.com",
+    projectId: "deck-dreamers",
+    storageBucket: "deck-dreamers.appspot.com",
+    messagingSenderId: "165933225805",
+    appId: "1:165933225805:web:4e5a3907fc5c7a30a28a6c"
+};
 
-const gachaCapsule = document.getElementById('gachaCapsule');
-const gachaButton = document.getElementById('gachaButton');
-const resultArea = document.getElementById('gachaResult');
-const gachaCapsuleImage = document.getElementById('gachaCapsuleImage');
-const resetButton = document.getElementById('resetButton');
-const endMessage = document.getElementById('endMessage');
+// ログインしているユーザーの情報を取得します。
+const user = firebase.auth().currentUser()
+
+// ユーザーコレクションへのリファレンスを作成します。
+const userRef = db.collection('user')
+
+userRef.doc().set({
+    name: 'アイテム1',
+    image: '写真/Deck.png',
+    effect: '攻撃力1',
+    count: 2,
+    birthday: new Date('1996-11-11'), // timestampe型にはDateオブジェクトを渡します。
+    createdAt: db.FieldValue.serverTimestamp() // サーバーの時間をセットすることもできます。
+})
 
 // ガチャボタンがクリックされたとき
 gachaButton.addEventListener('click', () => {
