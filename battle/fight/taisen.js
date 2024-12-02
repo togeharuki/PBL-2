@@ -688,6 +688,53 @@ class Game {
             this.unsubscribe();
         }
     }
+
+    getEffectDescription(effect) {
+        const effectDescriptions = {
+            'draw': 'カードを1枚ドローする',
+            'check': '相手の手札を2枚確認する',
+            'boost': 'カードの数値を+2する',
+            // 他の効果の説明を追加
+        };
+        return effectDescriptions[effect] || '効果カード';
+    }
+
+    getGodCardDescription(effect) {
+        const godCardDescriptions = {
+            'damage_up': 'ダメージ+5',
+            'discard': '手札を捨てる',
+            'nullify': 'ダメージを無効化',
+            'recover': 'カードを回収する'
+        };
+        return godCardDescriptions[effect] || '神の一手カード';
+    }
+
+    updateTurnIndicator() {
+        const turnIndicator = document.getElementById('turn-indicator');
+        if (turnIndicator) {
+            turnIndicator.textContent = this.isPlayerTurn ? 'あなたのターン' : '相手のターン';
+            turnIndicator.className = `turn-indicator ${this.isPlayerTurn ? 'your-turn' : 'opponent-turn'}`;
+        }
+    }
+
+    handleGameEnd() {
+        const resultModal = document.getElementById('result-modal');
+        const resultTitle = document.getElementById('result-title');
+        const resultMessage = document.getElementById('result-message');
+        
+        if (this.playerHp <= 0) {
+            resultTitle.textContent = '敗北...';
+            resultMessage.textContent = '相手の勝利です';
+        } else if (this.opponentHp <= 0) {
+            resultTitle.textContent = '勝利！';
+            resultMessage.textContent = 'あなたの勝利です！';
+        } else if (this.playerDeck.length === 0) {
+            resultTitle.textContent = 'デッキ切れ';
+            resultMessage.textContent = this.playerHp > this.opponentHp ? '勝利！' : '敗北...';
+        }
+        
+        resultModal.style.display = 'flex';
+    }
 }
 
 // DOMContentLoadedイベントで初期化
