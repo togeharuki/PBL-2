@@ -88,15 +88,12 @@ async function loadDeckCards() {
                 timestamp: card.timestamp
             }));
 
-        console.log('倉庫から読み込んだカード数:', cards.length);
-
         if (cards.length === 0) {
             console.error('倉庫にカードが存在しません');
             showNotification('効果カードが見つかりません', 'error');
             return;
         }
 
-        // 現在のデッキ状態を取得
         const deckRef = db.collection('Deck').doc(playerId);
         const deckDoc = await deckRef.get();
 
@@ -104,7 +101,6 @@ async function loadDeckCards() {
             deckDoc.data().cards.filter(card => !card.isCreated) : 
             [];
 
-        // カードを表示
         cards.forEach(card => {
             const cardElement = createCardElement(card);
             if (currentDeck.some(deckCard => deckCard.name === card.name)) {
@@ -149,7 +145,7 @@ async function loadCreatedCards() {
                     isCreated: true
                 }))
                 .sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0))
-                .slice(0, 20); // 最新の20枚のみ使用
+                .slice(0, 20);
 
             createdCards = cardsArray;
 
@@ -169,7 +165,6 @@ function createCardElement(card, isCreated = false) {
     const cardElement = document.createElement('div');
     cardElement.className = `card-item ${card.rarity || ''}`;
     
-    // チェックボックスは既存カードにのみ追加
     if (!isCreated) {
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
@@ -213,7 +208,6 @@ function createCardElement(card, isCreated = false) {
     return cardElement;
 }
 
-// カード画像のパスを取得
 function getCardImagePath(card) {
     const cardName = encodeURIComponent(card.name);
     return `https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/${cardName}.jpg`;
@@ -228,7 +222,6 @@ async function saveDeck() {
             return;
         }
 
-        // 選択された既存カードを取得
         const normalCards = selectedCards.map(card => ({
             name: card.name,
             effect: card.effect,
@@ -247,7 +240,6 @@ async function saveDeck() {
             return;
         }
 
-        // 作成カードを準備
         const createdCardData = createdCards.map(card => ({
             name: card.name,
             effect: card.effect,
@@ -256,43 +248,20 @@ async function saveDeck() {
             isCreated: true
         }));
 
-        // 全カードを結合
         const allDeckCards = [...normalCards, ...createdCardData];
 
-        // デッキを保存
         const deckRef = db.collection('Deck').doc(playerId);
         await deckRef.set({
             cards: allDeckCards,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        showSuccessNotification();
+        showNotification('デッキを保存しました', 'success');
 
     } catch (error) {
         console.error('デッキの保存に失敗しました:', error);
         showNotification('デッキの保存に失敗しました', 'error');
     }
-}
-
-// 成功通知を表示
-function showSuccessNotification() {
-    const notification = document.createElement('div');
-    notification.className = 'success-notification';
-    notification.innerHTML = `
-        <div class="success-content">
-            <h2>デッキ作成成功！</h2>
-            <p>既存カード10枚と作成カード20枚の<br>デッキを作成しました。</p>
-        </div>
-    `;
-    document.body.appendChild(notification);
-
-    setTimeout(() => {
-        notification.classList.add('fade-out');
-        setTimeout(() => {
-            notification.remove();
-            window.location.href = '../Menu/Menu.html';
-        }, 500);
-    }, 2000);
 }
 
 // 通知を表示
