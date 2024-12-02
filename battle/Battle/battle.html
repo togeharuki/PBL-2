@@ -14,7 +14,17 @@
         <button class="button back-to-menu" id="backToMenuButton">ルームを作成</button>
         <button class="button edit-deck" id="editDeckButton">デッキ編集</button> 
     </div>
-
+    <!-- スピーカーアイコン -->
+    <div id="speaker-icon">
+        <img src="syasin/off.png" alt="音量オフ">
+        <img src="syasin/on.png" alt="音量オン">
+    </div>
+    
+    <!-- BGMプレイヤー -->
+    <audio id="music-player" loop>
+        <source id="music-source" src="">
+    </audio>
     <script src="battle.js"></script>
+    <script src="bgm.js"></script>
 </body>
 </html>
