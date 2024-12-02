@@ -38,6 +38,11 @@ window.addEventListener('DOMContentLoaded', () => {
     updateSpeakerIcon();
 });
 
+// ページ終了時に再生時間を保存
+window.addEventListener('beforeunload', () => {
+    localStorage.setItem('currentTime', musicPlayer.currentTime);
+});
+
 // 音楽選択が変更されたときの処理（music.html専用機能）
 if (musicSelect) {
     musicSelect.addEventListener('change', () => {
@@ -61,7 +66,8 @@ function toggleVolume() {
     if (isMuted) {
         stopMusic();
     } else {
-        if (musicSelect.value !== 'none' && musicSource.src) {
+        // 選択されたBGMがあれば再生再開
+        if (musicSource.src) {
             musicPlayer.play();
         }
     }
@@ -84,17 +90,7 @@ function playMusic(src) {
 function stopMusic() {
     musicPlayer.pause();
     musicPlayer.currentTime = 0;
-
-    // 再生位置をリセット
-    localStorage.removeItem('currentTime');
 }
-
-// 再生位置をローカルストレージに保存
-musicPlayer.addEventListener('timeupdate', () => {
-    if (!isMuted && musicSource.src) {
-        localStorage.setItem('currentTime', musicPlayer.currentTime);
-    }
-});
 
 // スピーカーアイコンを更新する関数
 function updateSpeakerIcon() {
@@ -111,7 +107,9 @@ if (speakerIcon) {
 }
 
 // タイトルに戻るボタンのクリックイベントを設定
-titleButton.addEventListener('click', () => {
-    window.location.href = '../main/Menu/Menu.html';
-});
+if (titleButton) {
+    titleButton.addEventListener('click', () => {
+        window.location.href = '../main/Menu/Menu.html';
+    });
+}
 

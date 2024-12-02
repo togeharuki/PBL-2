@@ -65,3 +65,16 @@ h1 {
 .button.edit-deck {
     background: linear-gradient(45deg, #6a5acd, #8a2be2); /* デッキ編集ボタンのスタイル */
 }
+#speaker-icon {
+    color: #ff6b6b;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    cursor: pointer;
+    z-index: 1000;
+}
+
+#speaker-icon img {
+    width: 50px;
+    height: 50px;
+}

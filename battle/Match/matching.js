@@ -193,10 +193,31 @@ document.addEventListener('DOMContentLoaded', function() {
                         return;
                     }
 
+                    // 対戦相手の確認
+                    const tableNumber = index + 1;
+                    const roomRef = db.collection('rooms').doc(roomId);
+                    const roomDoc = await roomRef.get();
+                    
+                    if (!roomDoc.exists) {
+                        alert('ルーム情報が見つかりません');
+                        return;
+                    }
+
+                    const roomData = roomDoc.data();
+                    const players = roomData.players || {};
+                    const tablePlayers = Object.values(players).filter(p => 
+                        p.tableNumber === tableNumber.toString()
+                    );
+
+                    if (tablePlayers.length !== 2) {
+                        alert('対戦相手が見つかりません');
+                        return;
+                    }
+
+                    // 対戦画面へ遷移
                     const taisenUrl = new URL('../fight/taisen.html', window.location.href);
                     taisenUrl.searchParams.set('roomId', roomId);
-                    taisenUrl.searchParams.set('maxPlayers', maxPlayers);
-                    taisenUrl.searchParams.set('tableNumber', index + 1);
+                    taisenUrl.searchParams.set('tableNumber', tableNumber);
                     window.location.href = taisenUrl.toString();
                 } catch (error) {
                     console.error('対戦開始エラー:', error);

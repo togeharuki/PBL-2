@@ -63,7 +63,6 @@
             padding: 15px;
             border: none;
             border-radius: 25px;
-            background: linear-gradient(45deg, #4ecdc4, #45b7a8);
             color: white;
             font-size: 1.2em;
             cursor: pointer;
@@ -78,6 +77,12 @@
         }
         button:active {
             transform: translateY(0);
+        }
+        #loginButton {
+            background: linear-gradient(45deg, #4ecdc4, #45b7a8);
+        }
+        #logoutButton {
+            background: linear-gradient(45deg, #ff6b6b, #ff4757);
         }
         .message {
             color: #fff;
@@ -110,18 +115,23 @@
             font-size: 1.2em;
             color: #4ecdc4;
         }
+        .button-group {
+            margin: 20px 0;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>ログイン</h1>
+        <div id="playerInfo"></div>
         <div class="input-group">
             <label for="playerName">プレイヤー名</label>
             <input type="text" id="playerName" maxlength="20" placeholder="プレイヤー名を入力してください">
         </div>
-        <div id="playerInfo"></div>
-        <button id="loginButton">ログイン</button>
-        <button id="logoutButton" style="display:none;">ログアウト</button>
+        <div class="button-group">
+            <button id="loginButton">ログイン</button>
+            <button id="logoutButton">ログアウト</button>
+        </div>
         <div id="message" class="message"></div>
         <button class="back-button" onclick="location.href='title.html'">戻る</button>
     </div>

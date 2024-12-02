@@ -1,36 +1,46 @@
 // Firebase設定とSDKのインポート
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
-import { 
-    getFirestore, 
-    collection, 
-    doc, 
-    setDoc, 
-    getDoc, 
-    updateDoc, 
-    onSnapshot,
-    query,
-    limit,
-    getDocs
-} from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+const firebaseConfig = {
+    apiKey: "AIzaSyCGgRBPAF2W0KKw0tX2zwZeyjDGgvv31KM",
+    authDomain: "deck-dreamers.firebaseapp.com",
+    projectId: "deck-dreamers",
+    storageBucket: "deck-dreamers.appspot.com",
+    messagingSenderId: "165933225805",
+    appId: "1:165933225805:web:4e5a3907fc5c7a30a28a6c"
+};
+
+// Firebase初期化
+let db;
+try {
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    db = firebase.firestore();
+    console.log('Firebase初期化成功');
+} catch (error) {
+    console.error('Firebase初期化エラー:', error);
+}
 
 class Game {
     constructor() {
-        const firebaseConfig = {
-            apiKey: "AIzaSyCGgRBPAF2W0KKw0tX2zwZeyjDGgvv31KM",
-            authDomain: "deck-dreamers.firebaseapp.com",
-            projectId: "deck-dreamers",
-            storageBucket: "deck-dreamers.appspot.com",
-            messagingSenderId: "165933225805",
-            appId: "1:165933225805:web:4e5a3907fc5c7a30a28a6c"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        this.db = getFirestore(app);
+        this.db = db;
         
         // URLパラメータから情報を取得
         const urlParams = new URLSearchParams(window.location.search);
-        this.gameId = urlParams.get('gameId');
-        this.playerId = urlParams.get('playerId') || localStorage.getItem('playerId');
+        this.roomId = urlParams.get('roomId');
+        this.tableNumber = urlParams.get('tableNumber');
+        this.playerId = localStorage.getItem('playerId');
+
+        // デバッグ情報の出力
+        console.log('初期化パラメータ:', {
+            roomId: this.roomId,
+            tableNumber: this.tableNumber,
+            playerId: this.playerId,
+            urlParams: Object.fromEntries(urlParams.entries()),
+            localStorage: {
+                playerId: localStorage.getItem('playerId'),
+                playerName: localStorage.getItem('playerName')
+            }
+        });
 
         // ゲーム状態の初期化
         this.gameState = null;
@@ -46,11 +56,20 @@ class Game {
         this.unsubscribe = null;
         this.timer = null;
 
-        if (!this.gameId || !this.playerId) {
-            console.error('ゲーム情報が不正です');
+        if (!this.roomId || !this.tableNumber || !this.playerId) {
+            console.error('ゲーム情報が不正です:', {
+                roomId: this.roomId,
+                tableNumber: this.tableNumber,
+                playerId: this.playerId
+            });
+            alert('ゲーム情報が不正です。ルーム画面に戻ります。');
             window.location.href = '../Room/room.html';
             return;
         }
+
+        // ゲームIDを生成
+        this.gameId = `${this.roomId}_table${this.tableNumber}`;
+        console.log('ゲームID:', this.gameId);
 
         // ゲームの初期化
         this.initializeGame();
@@ -59,83 +78,170 @@ class Game {
 
     async initializeGame() {
         try {
-            const gameRef = doc(this.db, 'games', this.gameId);
-            const gameDoc = await getDoc(gameRef);
+            console.log('ゲーム初期化開始:', this.gameId);
+            
+            // ゲームドキュメントの作成または取得
+            const gameRef = db.collection('games').doc(this.gameId);
+            const gameDoc = await gameRef.get();
 
-            if (!gameDoc.exists()) {
-                throw new Error('ゲームが見つかりません');
+            if (!gameDoc.exists) {
+                console.log('新規ゲーム作成');
+                // 新しいゲームを作成
+                const initialGameState = {
+                    players: {
+                        [this.playerId]: {
+                            hp: 10,
+                            deck: [],
+                            hand: [],
+                            godHandRemaining: 2
+                        }
+                    },
+                    currentTurn: this.playerId,
+                    turnTime: 60,
+                    status: 'waiting'
+                };
+
+                await gameRef.set(initialGameState);
+                this.gameState = initialGameState;
+            } else {
+                console.log('既存ゲーム読み込み');
+                this.gameState = gameDoc.data();
             }
 
-            const gameData = gameDoc.data();
-            this.gameState = gameData;
-
             // プレイヤー情報の設定
-            const playerIds = Object.keys(gameData.players);
+            console.log('プレイヤー情報設定開始');
+            const playerIds = Object.keys(this.gameState.players || {});
+            console.log('現在のプレイヤー:', playerIds);
+            console.log('現在のプレイヤーID:', this.playerId);
+
             if (!playerIds.includes(this.playerId)) {
-                throw new Error('プレイヤー情報が不正です');
+                console.log('プレイヤー追加');
+                const playerUpdate = {
+                    [`players.${this.playerId}`]: {
+                        hp: 10,
+                        deck: [],
+                        hand: [],
+                        godHandRemaining: 2
+                    }
+                };
+                await gameRef.update(playerUpdate);
+                
+                // 更新後のゲーム状態を再取得
+                const updatedDoc = await gameRef.get();
+                this.gameState = updatedDoc.data();
             }
 
             this.opponentId = playerIds.find(id => id !== this.playerId);
+            console.log('対戦相手ID:', this.opponentId);
 
-            if (!gameData.players[this.playerId].deck.length) {
-                // デッキの初期化（まだ行われていない場合）
+            // デッキの初期化（まだ行われていない場合）
+            if (!this.gameState.players[this.playerId]?.deck?.length) {
+                console.log('デッキ初期化');
                 await this.initializePlayerDeck();
+                
+                // デッキ初期化後のゲーム状態を再取得
+                const updatedDoc = await gameRef.get();
+                this.gameState = updatedDoc.data();
             } else {
-                // 既存のデッキと手札を読み込む
-                this.playerDeck = gameData.players[this.playerId].deck;
-                this.playerHand = gameData.players[this.playerId].hand;
-                this.godHandsRemaining = gameData.players[this.playerId].godHandRemaining;
+                console.log('既存デッキ読み込み');
+                this.playerDeck = this.gameState.players[this.playerId].deck;
+                this.playerHand = this.gameState.players[this.playerId].hand;
+                this.godHandsRemaining = this.gameState.players[this.playerId].godHandRemaining;
             }
 
             // リアルタイム更新の監視を開始
+            console.log('リアルタイム更新の監視を開始');
             this.setupRealtimeListeners();
+
+            // UI更新
+            console.log('UI更新開始');
             this.updateUI();
-            this.startTimer();
+
+            // マッチング中のオーバーレイを非表示
+            const matchingOverlay = document.getElementById('matching-overlay');
+            if (matchingOverlay) {
+                matchingOverlay.style.display = 'none';
+            }
+
+            // タイマーを開始
+            console.log('タイマー開始');
+            this.initializeTimer();
+
+            console.log('ゲーム初期化完了');
 
         } catch (error) {
             console.error('ゲーム初期化エラー:', error);
+            console.error('エラーの詳細:', {
+                gameId: this.gameId,
+                playerId: this.playerId,
+                gameState: this.gameState,
+                error: error.message,
+                stack: error.stack
+            });
             alert('ゲームの初期化に失敗しました。ルームに戻ります。');
             window.location.href = '../Room/room.html';
         }
     }
 
     async initializePlayerDeck() {
-        const initialDeck = await this.getRandomCardsFromDatabase(30);
-        const initialHand = initialDeck.slice(0, 5);
-        const remainingDeck = initialDeck.slice(5);
-
-        const gameRef = doc(this.db, 'games', this.gameId);
-        await updateDoc(gameRef, {
-            [`players.${this.playerId}.deck`]: remainingDeck,
-            [`players.${this.playerId}.hand`]: initialHand
-        });
-
-        this.playerDeck = remainingDeck;
-        this.playerHand = initialHand;
-    }
-
-    async getRandomCardsFromDatabase(count) {
         try {
-            const deckRef = collection(this.db, 'deck');
-            const q = query(deckRef, limit(count * 2)); // 余裕を持って取得
-            const querySnapshot = await getDocs(q);
-            
-            const allCards = [];
-            querySnapshot.forEach((doc) => {
-                const cardData = doc.data();
-                allCards.push({
-                    id: doc.id,
-                    type: cardData.type,
-                    value: cardData.value,
-                    effect: cardData.effect,
-                    name: cardData.name
-                });
+            console.log('デッキ初期化開始');
+            const playerId = this.playerId;
+            console.log('プレイヤーID:', playerId);
+
+            // プレイヤーのデッキを取得
+            const deckRef = db.collection('Deck').doc(playerId);
+            const deckDoc = await deckRef.get();
+
+            if (!deckDoc.exists) {
+                throw new Error('デッキが見つかりません');
+            }
+
+            const deckData = deckDoc.data();
+            if (!deckData.cards || !Array.isArray(deckData.cards)) {
+                throw new Error('デッキのカードデータが不正です');
+            }
+
+            console.log('カード情報取得完了');
+            const allCards = deckData.cards.map(card => ({
+                id: card.name, // カード名をIDとして使用
+                type: card.type,
+                effect: card.effect,
+                name: card.name,
+                image: card.image,
+                isCreated: card.isCreated
+            }));
+
+            console.log(`取得したカード数: ${allCards.length}`);
+
+            if (allCards.length !== 30) {
+                throw new Error('デッキのカード枚数が不正です（30枚である必要があります）');
+            }
+
+            // カードをシャッフル
+            const shuffledDeck = this.shuffleArray(allCards);
+            const initialHand = shuffledDeck.slice(0, 5);
+            const remainingDeck = shuffledDeck.slice(5);
+
+            // Firestoreを更新
+            console.log('デッキ情報をFirestoreに保存');
+            const gameRef = db.collection('games').doc(this.gameId);
+            await gameRef.update({
+                [`players.${this.playerId}.deck`]: remainingDeck,
+                [`players.${this.playerId}.hand`]: initialHand
             });
 
-            // カードをシャッフルして必要な数だけ返す
-            return this.shuffleArray(allCards).slice(0, count);
+            this.playerDeck = remainingDeck;
+            this.playerHand = initialHand;
+            console.log('デッキ初期化完了');
         } catch (error) {
-            console.error('カード取得エラー:', error);
+            console.error('デッキ初期化エラー:', error);
+            console.error('エラーの詳細:', {
+                gameId: this.gameId,
+                playerId: this.playerId,
+                error: error.message,
+                stack: error.stack
+            });
             throw error;
         }
     }
@@ -149,70 +255,9 @@ class Game {
         return newArray;
     }
 
-    setupRealtimeListeners() {
-        if (this.unsubscribe) {
-            this.unsubscribe();
-        }
-
-        const gameRef = doc(this.db, 'games', this.gameId);
-        this.unsubscribe = onSnapshot(gameRef, (doc) => {
-            if (doc.exists()) {
-                const newState = doc.data();
-                this.handleGameStateUpdate(newState);
-            }
-        });
-    }
-
-    startTimer() {
-        if (this.timer) {
-            clearInterval(this.timer);
-        }
-
-        this.timer = setInterval(() => {
-            if (this.timeLeft > 0 && this.isPlayerTurn) {
-                this.timeLeft--;
-                const timerElement = document.querySelector('.timer');
-                if (timerElement) {
-                    timerElement.textContent = this.timeLeft;
-                }
-                
-                if (this.timeLeft <= 0) {
-                    this.handleTimeUp();
-                }
-            }
-        }, 1000);
-    }
-
-    handleTimeUp() {
-        if (this.isPlayerTurn) {
-            this.endTurn();
-        }
-    }
-
-    async handleGameStateUpdate(newState) {
-        this.gameState = newState;
-        const playerState = newState.players[this.playerId];
-        const opponentState = newState.players[this.opponentId];
-
-        // 状態の更新
-        this.playerHp = playerState.hp;
-        this.opponentHp = opponentState.hp;
-        this.isPlayerTurn = newState.currentTurn === this.playerId;
-        this.timeLeft = newState.turnTime;
-        this.godHandsRemaining = playerState.godHandRemaining;
-        this.playerDeck = playerState.deck;
-        this.playerHand = playerState.hand;
-
-        // UI更新
-        this.updateUI();
-        this.updateTurnIndicator();
-
-        // 勝敗判定
-        if (this.playerHp <= 0 || this.opponentHp <= 0) {
-            this.handleGameEnd();
-        }
-    }
     initializeEventListeners() {
+        console.log('イベントリスナー初期化開始');
+        
         // 神の一手カードのイベントリスナー
         document.querySelectorAll('.god-hand').forEach(card => {
             card.addEventListener('dragstart', this.handleDragStart.bind(this));
@@ -253,336 +298,185 @@ class Game {
                 window.location.href = '../Room/room.html';
             });
         }
+
+        console.log('イベントリスナー初期化完了');
     }
 
-    handleDragStart(e) {
-        if (!this.isPlayerTurn) {
-            e.preventDefault();
-            return;
-        }
-
-        const card = e.target.closest('.card');
+    handleDragStart(event) {
+        if (!this.isPlayerTurn) return;
+        
+        const card = event.target.closest('.card');
         if (!card) return;
         
-        // 神の一手の使用制限チェック
-        if (card.classList.contains('god-hand') && this.godHandsRemaining <= 0) {
-            e.preventDefault();
-            return;
-        }
+        event.dataTransfer.setData('text/plain', card.dataset.cardId);
+        event.dataTransfer.effectAllowed = 'move';
+        card.classList.add('dragging');
+    }
 
-        // 既にフィールドにカードがある場合はドラッグ禁止
-        if (this.gameState.players[this.playerId].field) {
-            e.preventDefault();
-            return;
+    handleDragEnd(event) {
+        const card = event.target.closest('.card');
+        if (card) {
+            card.classList.remove('dragging');
         }
+    }
 
-        const cardData = {
+    handleDrop(event) {
+        event.preventDefault();
+        const cardId = event.dataTransfer.getData('text/plain');
+        const targetSlot = event.target.closest('.card-slot');
+        
+        if (!cardId || !targetSlot || !this.isPlayerTurn) return;
+        
+        const card = this.playerHand.find(c => c.id === cardId);
+        if (card) {
+            this.playCard(card, targetSlot);
+        }
+        
+        targetSlot.style.borderColor = '#666';
+    }
+
+    showCardDetails(event) {
+        const card = event.target.closest('.card');
+        if (!card) return;
+        
+        const popup = document.querySelector('.card-popup');
+        const cardData = this.playerHand.find(c => c.id === card.dataset.cardId) || {
             type: card.dataset.type,
-            value: parseInt(card.dataset.value) || 0,
-            effect: card.dataset.effect,
-            id: card.dataset.id
+            effect: card.dataset.effect
         };
-
-        e.dataTransfer.setData('text/plain', JSON.stringify(cardData));
-        card.style.opacity = '0.5';
-    }
-
-    handleDragEnd(e) {
-        e.target.style.opacity = '1';
-    }
-
-    async handleDrop(e) {
-        e.preventDefault();
-        if (!this.isPlayerTurn) return;
-
-        const slot = e.target.closest('.card-slot');
-        if (!slot || slot.id !== 'player-battle-slot') return;
-
-        slot.style.borderColor = '#666';
-
-        try {
-            const cardData = JSON.parse(e.dataTransfer.getData('text/plain'));
-            
-            if (cardData.type === 'god') {
-                if (this.godHandsRemaining > 0) {
-                    await this.playGodCard(cardData);
-                }
-            } else {
-                await this.playNormalCard(cardData);
-            }
-        } catch (error) {
-            console.error('カードプレイエラー:', error);
-        }
-    }
-
-    async playNormalCard(cardData) {
-        const gameRef = doc(this.db, 'games', this.gameId);
         
-        try {
-            await updateDoc(gameRef, {
-                [`players.${this.playerId}.field`]: cardData,
-                [`players.${this.playerId}.hand`]: this.playerHand.filter(card => card.id !== cardData.id)
-            });
-
-            // カードの効果を処理
-            switch (cardData.type) {
-                case 'attack':
-                    await this.processAttack(cardData.value);
-                    break;
-                case 'heal':
-                    await this.processHeal(cardData.value);
-                    break;
-                case 'effect':
-                    await this.processEffect(cardData.effect);
-                    break;
-            }
-
-            await this.endTurn();
-        } catch (error) {
-            console.error('カード処理エラー:', error);
+        let details = '';
+        switch(cardData.type) {
+            case 'attack':
+                details = `攻撃力: ${cardData.value}`;
+                break;
+            case 'heal':
+                details = `回復量: ${cardData.value}`;
+                break;
+            case 'effect':
+                details = this.getEffectDescription(cardData.effect);
+                break;
+            case 'god':
+                details = this.getGodCardDescription(cardData.effect);
+                break;
         }
-    }
-
-    async processAttack(damage) {
-        const opponentField = this.gameState.players[this.opponentId].field;
         
-        if (opponentField && opponentField.type === 'attack') {
-            if (damage > opponentField.value) {
-                const actualDamage = damage - opponentField.value;
-                await this.updateOpponentHP(-actualDamage);
+        popup.textContent = details;
+        popup.style.display = 'block';
+        popup.style.left = `${event.pageX + 10}px`;
+        popup.style.top = `${event.pageY + 10}px`;
+    }
+
+    hideCardDetails() {
+        const popup = document.querySelector('.card-popup');
+        popup.style.display = 'none';
+    }
+
+    setupRealtimeListeners() {
+        if (this.unsubscribe) {
+            this.unsubscribe();
+        }
+
+        const gameRef = db.collection('games').doc(this.gameId);
+        this.unsubscribe = gameRef.onSnapshot((doc) => {
+            if (doc.exists) {
+                const newState = doc.data();
+                this.handleGameStateUpdate(newState);
             }
-        } else {
-            await this.updateOpponentHP(-damage);
+        });
+    }
+
+    handleGameStateUpdate(newState) {
+        this.gameState = newState;
+        const playerState = newState.players[this.playerId];
+        const opponentState = newState.players[this.opponentId];
+
+        if (playerState && opponentState) {
+            // 状態の更新
+            this.playerHp = playerState.hp;
+            this.opponentHp = opponentState.hp;
+            this.isPlayerTurn = newState.currentTurn === this.playerId;
+            this.timeLeft = newState.turnTime;
+            this.godHandsRemaining = playerState.godHandRemaining;
+            this.playerDeck = playerState.deck;
+            this.playerHand = playerState.hand;
+
+            // UI更新
+            this.updateUI();
+            this.updateTurnIndicator();
+
+            // 勝敗判定
+            if (this.playerHp <= 0 || this.opponentHp <= 0) {
+                this.handleGameEnd();
+            }
         }
-
-        // フィールドをクリア
-        const gameRef = doc(this.db, 'games', this.gameId);
-        await updateDoc(gameRef, {
-            [`players.${this.playerId}.field`]: null,
-            [`players.${this.opponentId}.field`]: null
-        });
-    }
-
-    async processHeal(amount) {
-        const newHp = Math.min(this.playerHp + amount, 10);
-        await this.updatePlayerHP(newHp);
-    }
-
-    async processEffect(effect) {
-        switch (effect) {
-            case 'draw':
-                await this.drawCard();
-                break;
-            case 'view_hand':
-                // 相手の手札を一時的に表示
-                this.showOpponentHand();
-                break;
-        }
-    }
-
-    async playGodCard(cardData) {
-        if (this.godHandsRemaining <= 0) return;
-
-        const gameRef = doc(this.db, 'games', this.gameId);
-        await updateDoc(gameRef, {
-            [`players.${this.playerId}.godHandRemaining`]: this.godHandsRemaining - 1
-        });
-
-        switch (cardData.effect) {
-            case 'damage_up':
-                await this.updateOpponentHP(-5);
-                break;
-            case 'discard':
-                await this.discardOpponentCard();
-                break;
-        }
-    }
-
-    async drawCard() {
-        if (this.playerDeck.length === 0) return;
-
-        const drawnCard = this.playerDeck[0];
-        const newDeck = this.playerDeck.slice(1);
-        const newHand = [...this.playerHand, drawnCard];
-
-        const gameRef = doc(this.db, 'games', this.gameId);
-        await updateDoc(gameRef, {
-            [`players.${this.playerId}.deck`]: newDeck,
-            [`players.${this.playerId}.hand`]: newHand
-        });
-    }
-
-    async discardOpponentCard() {
-        const gameRef = doc(this.db, 'games', this.gameId);
-        const opponentHand = this.gameState.players[this.opponentId].hand;
-        
-        if (opponentHand.length > 0) {
-            const randomIndex = Math.floor(Math.random() * opponentHand.length);
-            const newHand = [...opponentHand];
-            newHand.splice(randomIndex, 1);
-            
-            await updateDoc(gameRef, {
-                [`players.${this.opponentId}.hand`]: newHand
-            });
-        }
-    }
-
-    async updatePlayerHP(newValue) {
-        const gameRef = doc(this.db, 'games', this.gameId);
-        await updateDoc(gameRef, {
-            [`players.${this.playerId}.hp`]: Math.max(0, Math.min(10, newValue))
-        });
-    }
-
-    async updateOpponentHP(changeAmount) {
-        const gameRef = doc(this.db, 'games', this.gameId);
-        const newHp = Math.max(0, Math.min(10, this.opponentHp + changeAmount));
-        await updateDoc(gameRef, {
-            [`players.${this.opponentId}.hp`]: newHp
-        });
-    }
-
-    async endTurn() {
-        if (!this.isPlayerTurn) return;
-
-        const gameRef = doc(this.db, 'games', this.gameId);
-        await updateDoc(gameRef, {
-            currentTurn: this.opponentId,
-            turnTime: 60,
-            [`players.${this.playerId}.field`]: null
-        });
-    }
-
-    showOpponentHand() {
-        // 実装予定: 相手の手札を3秒間表示する処理
     }
 
     updateUI() {
-        this.updateHP();
-        this.updateHand();
-        this.updateField();
-        this.updateDeckCount();
-        this.updateGodHandDisplay();
+        // HP表示の更新
+        document.getElementById('player-hp').textContent = `${this.playerHp}/10`;
+        document.getElementById('opponent-hp').textContent = `${this.opponentHp}/10`;
+        
+        // HPバーの更新
+        document.getElementById('player-hp-bar').style.width = `${(this.playerHp / 10) * 100}%`;
+        document.getElementById('opponent-hp-bar').style.width = `${(this.opponentHp / 10) * 100}%`;
+        
+        // デッキ枚数の更新
+        document.getElementById('player-deck-count').textContent = this.playerDeck.length;
+        document.getElementById('opponent-deck-count').textContent = 
+            this.gameState.players[this.opponentId]?.deck.length || 0;
+        
+        // 手札の更新
+        this.updateHandDisplay();
+        
+        // 神の一手の残り使用回数
+        document.querySelector('.god-hand-remaining').textContent = 
+            `残り使用回数: ${this.godHandsRemaining}`;
     }
 
-    updateHP() {
-        const elements = {
-            playerHp: document.querySelector('#player-hp'),
-            playerHpBar: document.querySelector('#player-hp-bar'),
-            opponentHp: document.querySelector('#opponent-hp'),
-            opponentHpBar: document.querySelector('#opponent-hp-bar')
-        };
-
-        if (elements.playerHp && elements.playerHpBar) {
-            elements.playerHp.textContent = `${this.playerHp}/10`;
-            elements.playerHpBar.style.width = `${this.playerHp * 10}%`;
-        }
-
-        if (elements.opponentHp && elements.opponentHpBar) {
-            elements.opponentHp.textContent = `${this.opponentHp}/10`;
-            elements.opponentHpBar.style.width = `${this.opponentHp * 10}%`;
-        }
-    }
-
-    updateHand() {
-        const playerHand = document.querySelector('#player-hand');
-        const opponentHand = document.querySelector('#opponent-hand');
-
-        if (playerHand) {
-            playerHand.innerHTML = '';
-            this.playerHand.forEach(card => {
-                const cardElement = this.createCardElement(card);
-                playerHand.appendChild(cardElement);
-            });
-        }
-
-        if (opponentHand) {
-            opponentHand.innerHTML = '';
-            const opponentHandCount = this.gameState?.players[this.opponentId]?.hand.length || 0;
-            
-            for (let i = 0; i < opponentHandCount; i++) {
-                const hiddenCard = document.createElement('div');
-                hiddenCard.className = 'card hidden-card';
-                opponentHand.appendChild(hiddenCard);
-            }
-        }
-    }
-
-    updateField() {
-        const elements = {
-            playerField: document.querySelector('#player-battle-slot'),
-            opponentField: document.querySelector('#opponent-battle-slot')
-        };
-
-        const playerFieldCard = this.gameState?.players[this.playerId]?.field;
-        const opponentFieldCard = this.gameState?.players[this.opponentId]?.field;
-
-        if (elements.playerField) {
-            elements.playerField.innerHTML = playerFieldCard ? 
-                this.createCardElement(playerFieldCard).outerHTML : '';
-        }
-
-        if (elements.opponentField) {
-            elements.opponentField.innerHTML = opponentFieldCard ? 
-                this.createCardElement(opponentFieldCard).outerHTML : '';
-        }
-    }
-
-    updateDeckCount() {
-        const playerCount = document.querySelector('#player-deck-count');
-        const opponentCount = document.querySelector('#opponent-deck-count');
-
-        if (playerCount) {
-            playerCount.textContent = this.playerDeck.length;
-        }
-
-        if (opponentCount) {
-            opponentCount.textContent = this.gameState?.players[this.opponentId]?.deck.length || 0;
-        }
-    }
-
-    updateGodHandDisplay() {
-        const remainingDisplay = document.querySelector('.god-hand-remaining');
-        if (remainingDisplay) {
-            remainingDisplay.textContent = `残り使用回数: ${this.godHandsRemaining}`;
-        }
-
-        document.querySelectorAll('.god-hand').forEach(card => {
-            if (this.godHandsRemaining <= 0) {
-                card.classList.add('disabled');
-                card.draggable = false;
-            } else {
-                card.classList.remove('disabled');
-                card.draggable = true;
-            }
+    updateHandDisplay() {
+        const playerHandElement = document.getElementById('player-hand');
+        const opponentHandElement = document.getElementById('opponent-hand');
+        
+        // レイヤーの手札を更新
+        playerHandElement.innerHTML = '';
+        this.playerHand.forEach(card => {
+            const cardElement = this.createCardElement(card);
+            playerHandElement.appendChild(cardElement);
         });
-    }
-
-    updateTurnIndicator() {
-        const indicator = document.querySelector('#turn-indicator');
-        if (indicator) {
-            indicator.textContent = this.isPlayerTurn ? 'あなたのターン' : '相手のターン';
-            indicator.style.color = this.isPlayerTurn ? '#4ecdc4' : '#ff9800';
+        
+        // 相手の手札を更新（裏向き）
+        opponentHandElement.innerHTML = '';
+        const opponentHandCount = this.gameState.players[this.opponentId]?.hand.length || 0;
+        for (let i = 0; i < opponentHandCount; i++) {
+            const cardBack = document.createElement('div');
+            cardBack.className = 'card opponent-card';
+            opponentHandElement.appendChild(cardBack);
         }
     }
 
-    createCardElement(cardData) {
-        const card = document.createElement('div');
-        card.className = `card ${cardData.type}`;
-        card.draggable = true;
-        card.dataset.type = cardData.type;
-        card.dataset.value = cardData.value;
-        card.dataset.effect = cardData.effect;
-        card.dataset.id = cardData.id;
-
-        card.innerHTML = `
-            <div class="card-content">
-                <div class="card-value">${cardData.value || cardData.effect || ''}</div>
-                <div class="card-type">${this.getCardTypeText(cardData.type)}</div>
-            </div>
-        `;
-
-        return card;
+    createCardElement(card) {
+        const cardElement = document.createElement('div');
+        cardElement.className = `card ${card.type}`;
+        cardElement.draggable = true;
+        cardElement.dataset.cardId = card.id;
+        
+        const cardContent = document.createElement('div');
+        cardContent.className = 'card-content';
+        
+        const cardValue = document.createElement('div');
+        cardValue.className = 'card-value';
+        cardValue.textContent = card.value || card.effect || '';
+        
+        const cardType = document.createElement('div');
+        cardType.className = 'card-type';
+        cardType.textContent = card.name || this.getCardTypeText(card.type);
+        
+        cardContent.appendChild(cardValue);
+        cardContent.appendChild(cardType);
+        cardElement.appendChild(cardContent);
+        
+        return cardElement;
     }
 
     getCardTypeText(type) {
@@ -595,32 +489,120 @@ class Game {
         return typeMap[type] || type;
     }
 
-    handleGameEnd() {
-        const winner = this.playerHp > 0 ? 'あなた' : '相手';
-        const resultModal = document.getElementById('result-modal');
-        const resultTitle = document.getElementById('result-title');
-        const resultMessage = document.getElementById('result-message');
-
-        if (resultModal && resultTitle && resultMessage) {
-            resultTitle.textContent = 'ゲーム終了';
-            resultMessage.textContent = `${winner}の勝利です！`;
-            resultModal.style.display = 'flex';
+    initializeTimer() {
+        const timerElement = document.querySelector('.timer');
+        if (!timerElement) {
+            console.error('タイマー要素が見つかりません');
+            return;
         }
 
-        this.cleanup();
+        // 既存のタイマーをクリア
+        if (this.timer) {
+            clearInterval(this.timer);
+            this.timer = null;
+        }
+
+        // 初期値を設定
+        this.timeLeft = 60;
+        timerElement.textContent = this.timeLeft;
+
+        // タイマーを開始（自分のターンの場合のみ）
+        if (this.gameState.status === 'playing' && this.gameState.currentTurn === this.playerId) {
+            this.timer = setInterval(() => {
+                this.timeLeft--;
+                timerElement.textContent = this.timeLeft;
+
+                if (this.timeLeft <= 0) {
+                    clearInterval(this.timer);
+                    this.timer = null;
+                    this.handleTimeUp();
+                }
+            }, 1000);
+        }
+    }
+
+    handleTimeUp() {
+        console.log('タイムアップ');
+        // ランダムにカードを出す処理などを実装
+        if (this.isPlayerTurn && this.playerHand.length > 0) {
+            const randomIndex = Math.floor(Math.random() * this.playerHand.length);
+            const randomCard = this.playerHand[randomIndex];
+            const battleSlot = document.getElementById('player-battle-slot');
+            if (battleSlot) {
+                this.playCard(randomCard, battleSlot);
+            }
+        }
     }
 
     cleanup() {
+        // タイマーのクリーンアップ
+        if (this.timer) {
+            clearInterval(this.timer);
+            this.timer = null;
+        }
+
+        // リアルタイムリスナーのクリーンアップ
         if (this.unsubscribe) {
             this.unsubscribe();
         }
-        if (this.timer) {
-            clearInterval(this.timer);
+    }
+
+    getEffectDescription(effect) {
+        const effectDescriptions = {
+            'draw': 'カードを1枚ドローする',
+            'check': '相手の手札を2枚確認する',
+            'boost': 'カードの数値を+2する',
+            // 他の効果の説明を追加
+        };
+        return effectDescriptions[effect] || '効果カード';
+    }
+
+    getGodCardDescription(effect) {
+        const godCardDescriptions = {
+            'damage_up': 'ダメージ+5',
+            'discard': '手札を捨てる',
+            'nullify': 'ダメージを無効化',
+            'recover': 'カードを回収する'
+        };
+        return godCardDescriptions[effect] || '神の一手カード';
+    }
+
+    updateTurnIndicator() {
+        const turnIndicator = document.getElementById('turn-indicator');
+        if (turnIndicator) {
+            turnIndicator.textContent = this.isPlayerTurn ? 'あなたのターン' : '相手のターン';
+            turnIndicator.className = `turn-indicator ${this.isPlayerTurn ? 'your-turn' : 'opponent-turn'}`;
         }
+    }
+
+    handleGameEnd() {
+        const resultModal = document.getElementById('result-modal');
+        const resultTitle = document.getElementById('result-title');
+        const resultMessage = document.getElementById('result-message');
+        
+        if (this.playerHp <= 0) {
+            resultTitle.textContent = '敗北...';
+            resultMessage.textContent = '相手の勝利です';
+        } else if (this.opponentHp <= 0) {
+            resultTitle.textContent = '勝利！';
+            resultMessage.textContent = 'あなたの勝利です！';
+        } else if (this.playerDeck.length === 0) {
+            resultTitle.textContent = 'デッキ切れ';
+            resultMessage.textContent = this.playerHp > this.opponentHp ? '勝利！' : '敗北...';
+        }
+        
+        resultModal.style.display = 'flex';
     }
 }
 
-// ゲーム開始
+// DOMContentLoadedイベントで初期化
 document.addEventListener('DOMContentLoaded', () => {
-    const game = new Game();
+    // Firebaseの初期化を待ってからゲームを開始
+    if (db) {
+        console.log('ゲーム初期化開始');
+        const game = new Game();
+    } else {
+        console.error('Firebaseが初期化されていません');
+        alert('ゲームの初期化に失敗しました。ページを再読み込みしてください。');
+    }
 });

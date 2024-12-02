@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const backButton = document.getElementById('backButton');
     if (backButton) {
         backButton.addEventListener('click', function() {
-            window.location.href = '../Battle/battle.html'; // 戻る画面のURL
+            window.location.href = '../Battle/battle.html';
         });
     }
 
@@ -55,13 +55,8 @@ document.addEventListener('DOMContentLoaded', function() {
         cardCountDisplay.textContent = `作成したカード: ${count} / 20`;
         createButton.disabled = count >= 20;
         
-        // 20枚になったらデッキ編集ボタンを表示
         if (count >= 20) {
             deckEditContainer.style.display = 'block';
-            // スムーズにスクロール
-            setTimeout(() => {
-                deckEditContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
-            }, 100);
         } else {
             deckEditContainer.style.display = 'none';
         }
@@ -113,7 +108,6 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('カードの読み込みに失敗しました: ' + error.message);
         }
     }
-
     // カードをFirebaseに保存する関数
     async function saveCardToFirebase(card) {
         try {
@@ -171,12 +165,10 @@ document.addEventListener('DOMContentLoaded', function() {
         let value;
         let effectText;
         if (type === 'heal') {
-            // 回復効果の値を1から3の間で生成
-            value = Math.floor(Math.random() * 3) + 1; // 1から3の範囲
+            value = Math.floor(Math.random() * 3) + 1;
             effectText = `✨ 回復魔法 ${value} ✨`;
         } else if (type === 'attack') {
-            // 攻撃力の値を3から10の間で生成
-            value = Math.floor(Math.random() * 8) + 3; // 3から10の範囲
+            value = Math.floor(Math.random() * 8) + 3;
             effectText = `⚡ 攻撃力 ${value} ⚡`;
         }
         
@@ -219,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
         swordButton.disabled = false;
     }
 
-    // イベントリスナー設定
+    // イメージ入力のイベントリスナー
     imageInput.addEventListener('change', function(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -236,7 +228,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 
-                // リサイズ処理
                 const maxWidth = 300;
                 const maxHeight = 300;
                 let width = img.width;
@@ -254,7 +245,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 canvas.height = height;
                 ctx.drawImage(img, 0, 0, width, height);
 
-                // 圧縮した画像をプレビューに設定
                 const compressedImage = canvas.toDataURL('image/jpeg', 0.7);
                 previewImage.src = compressedImage;
                 previewImage.style.display = 'block';
@@ -269,7 +259,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const healCardCount = cards.filter(card => card.effect.startsWith('✨ 回復魔法')).length;
         if (healCardCount >= 4) {
             alert('回復カードは最大4枚までしか作成できません。');
-            return; // カード作成を中止
+            return;
         }
         if (!effectGenerated) {
             generateRandomEffect('heal');
@@ -301,15 +291,12 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // 回復カードの枚数をカウント
         const healCardCount = cards.filter(card => card.effect.startsWith('✨ 回復魔法')).length;
 
-        // 回復カードの制限チェック
         if (currentEffect.startsWith('✨ 回復魔法') && healCardCount >= 4) {
             alert('回復カードは最大4枚までしか作成できません。');
-            // 効果をリセットしてボタンを再度押せるようにする
             resetEffect();
-            return; // カード作成を中止
+            return;
         }
 
         try {
@@ -320,7 +307,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 timestamp: new Date()
             };
 
-            // Firebaseにカードを保存
             const firebaseId = await saveCardToFirebase(newCard);
             newCard.firebaseId = firebaseId;
 
@@ -328,21 +314,10 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const cardElement = createCardElement(newCard, cards.length - 1);
             cardListGrid.appendChild(cardElement);
-            cardElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             
             updateCardCount();
             showSuccessMessage();
             resetForm();
-
-            // カードが20枚になったらデッキ編集ボタンを表示してスクロール
-            if (cards.length >= 20) {
-                setTimeout(() => {
-                    document.getElementById('deck-edit-container').scrollIntoView({ 
-                        behavior: 'smooth', 
-                        block: 'center' 
-                    });
-                }, 500);
-            }
 
         } catch (error) {
             console.error('カードの作成に失敗しました:', error);
