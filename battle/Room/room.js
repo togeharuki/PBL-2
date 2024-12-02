@@ -37,7 +37,7 @@ function copyRoomId() {
         const copyButton = document.querySelector('.copy-button');
         copyButton.textContent = 'コピー完了!';
         copyButton.classList.add('success');
-        
+
         setTimeout(() => {
             copyButton.textContent = 'コピー';
             copyButton.classList.remove('success');
@@ -55,7 +55,7 @@ function copyGeneratedRoomId() {
         const copyButton = document.querySelector('.room-id-display .copy-button');
         copyButton.textContent = 'コピー完了!';
         copyButton.classList.add('success');
-        
+
         setTimeout(() => {
             copyButton.textContent = 'コピー';
             copyButton.classList.remove('success');
@@ -70,7 +70,7 @@ function copyGeneratedRoomId() {
 async function createRoom() {
     try {
         const roomId = document.getElementById('generatedRoomId').textContent;
-        
+
         // Firestoreにルームを作成
         await db.collection('rooms').doc(roomId).set({
             maxPlayers: selectedPlayerCount,
@@ -80,7 +80,7 @@ async function createRoom() {
         });
 
         console.log(`${selectedPlayerCount}人用のルーム ${roomId} が作成されました`);
-        
+
         // マッチング画面に遷移
         const url = new URL('../Match/matching.html', window.location.href);
         url.searchParams.set('roomId', roomId);
@@ -113,6 +113,7 @@ function closeModal() {
     document.getElementById('createRoomModal').style.display = 'none';
     resetPlayerCountSelection();
 }
+
 // プレイヤー数選択のリセット関数
 function resetPlayerCountSelection() {
     selectedPlayerCount = 2;
@@ -137,7 +138,7 @@ function confirmCreateRoom() {
 async function searchRoom() {
     const roomId = document.getElementById('roomIdInput').value;
     const regex = /^\d{3}-\d{4}$/;
-    
+
     if (!regex.test(roomId)) {
         alert('正しいフォーマットで入力してください（例：123-4567）');
         return;
@@ -146,12 +147,12 @@ async function searchRoom() {
     try {
         // Firestoreでルームを検索
         const roomDoc = await db.collection('rooms').doc(roomId).get();
-        
+
         if (roomDoc.exists) {
             const roomData = roomDoc.data();
             // プレイヤー数をチェック
             const currentPlayers = Object.keys(roomData.players || {}).length;
-            
+
             if (currentPlayers >= roomData.maxPlayers) {
                 alert('このルームは満員です');
                 return;
@@ -171,6 +172,22 @@ async function searchRoom() {
     }
 }
 
+// ルームのプレイヤー数が0人になった場合の削除
+function monitorRoomForDeletion(roomId) {
+    db.collection('rooms').doc(roomId).onSnapshot((doc) => {
+        if (doc.exists) {
+            const roomData = doc.data();
+            if (Object.keys(roomData.players || {}).length === 0) {
+                doc.ref.delete().then(() => {
+                    console.log(`ルーム ${roomId} が削除されました`);
+                }).catch((error) => {
+                    console.error('ルーム削除エラー:', error);
+                });
+            }
+        }
+    });
+}
+
 // 戻る関数
 function goBack() {
     window.location.href = '../Battle/battle.html';
@@ -180,7 +197,7 @@ function goBack() {
 document.addEventListener('DOMContentLoaded', function() {
     // プレイヤー数選択ボタンのイベントリスナー
     const playerCountButtons = document.querySelectorAll('.player-count-button');
-    
+
     playerCountButtons.forEach(button => {
         button.addEventListener('click', function() {
             playerCountButtons.forEach(btn => btn.classList.remove('selected'));
@@ -228,6 +245,13 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('クリーンアップエラー:', error);
         }
     }, 1000 * 60 * 15); // 15分ごと
+
+    // ルームのプレイヤー数が0人になった場合の削除を監視
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomId = urlParams.get('roomId');
+    if (roomId) {
+        monitorRoomForDeletion(roomId);
+    }
 });
 
 // エラーハンドリング
