@@ -8,30 +8,105 @@ const firebaseConfig = {
     appId: "1:165933225805:web:4e5a3907fc5c7a30a28a6c"
 };
 
-// ログインしているユーザーの情報を取得します。
-const user = firebase.auth().currentUser()
+// Firebase初期化
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-// ユーザーコレクションへのリファレンスを作成します。
-const userRef = db.collection('user')
+// DOM要素の取得
+const gachaButton = document.getElementById('gachaButton');
+const resetButton = document.getElementById('resetButton');
+const resultArea = document.getElementById('resultArea');
+const gachaCapsule = document.getElementById('gachaCapsule');
+const gachaCapsuleImage = document.getElementById('gachaCapsuleImage');
+const endMessage = document.getElementById('endMessage');
 
-userRef.doc().set({
-    name: 'アイテム1',
-    image: '写真/Deck.png',
-    effect: '攻撃力1',
-    count: 2,
-    birthday: new Date('1996-11-11'), // timestampe型にはDateオブジェクトを渡します。
-    createdAt: db.FieldValue.serverTimestamp() // サーバーの時間をセットすることもできます。
-})
+// グローバル変数
+let items = [];
+let playerId = null;
 
-// ガチャボタンがクリックされたとき
-gachaButton.addEventListener('click', () => {
-    triggerGachaAnimation();
-    handleGachaResult();
+// 初期化処理
+async function initializeGacha() {
+    playerId = localStorage.getItem('playerId');
+    if (!playerId) {
+        alert('ログインしてください');
+        window.location.href = '../../login.html';
+        return;
+    }
+
+    try {
+        const gachaRef = db.collection('Gacha').doc(playerId);
+        const gachaDoc = await gachaRef.get();
+
+        if (!gachaDoc.exists) {
+            // 初期ガチャデータの設定
+            const initialItems = [
+                {
+                    name: 'レアカード1',
+                    image: '写真/Deck.png',
+                    effect: '攻撃力+3',
+                    count: 5,
+                    rarity: 'rare',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                },
+                {
+                    name: 'ノーマルカード1',
+                    image: '写真/Deck.png',
+                    effect: '攻撃力+1',
+                    count: 10,
+                    rarity: 'normal',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                }
+            ];
+
+            await gachaRef.set({
+                items: initialItems,
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            items = initialItems;
+        } else {
+            items = gachaDoc.data().items;
+        }
+
+        displayItemsRemaining();
+    } catch (error) {
+        console.error('初期化エラー:', error);
+        alert('データの読み込みに失敗しました');
+    }
+}
+
+// ページ読み込み時の処理
+document.addEventListener('DOMContentLoaded', initializeGacha);
+
+// Firebaseのガチャデータを更新
+async function updateGachaData() {
+    if (!playerId) return;
+
+    try {
+        await db.collection('Gacha').doc(playerId).update({
+            items: items,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    } catch (error) {
+        console.error('ガチャデータの更新に失敗:', error);
+        throw error;
+    }
+}
+// ガチャボタンのクリックイベント
+gachaButton.addEventListener('click', async () => {
+    try {
+        triggerGachaAnimation();
+        await handleGachaResult();
+    } catch (error) {
+        console.error('ガチャ実行エラー:', error);
+        alert('ガチャの実行に失敗しました');
+    }
 });
 
-// 戻るボタンがクリックされたとき
+// 戻るボタンのクリックイベント
 resetButton.addEventListener('click', resetGacha);
 
+// ガチャアニメーション処理
 function triggerGachaAnimation() {
     gachaButton.classList.add('clicked');
     gachaButton.style.display = 'none';
@@ -42,16 +117,26 @@ function triggerGachaAnimation() {
     gachaCapsule.style.animation = 'rotateCapsule 2s ease forwards';
 }
 
-function handleGachaResult() {
+// ガチャ結果処理
+async function handleGachaResult() {
     let randomItem;
     do {
         randomItem = getRandomItem();
     } while (randomItem.count === 0);
 
     randomItem.count--;
-    setTimeout(() => {
-        resultArea.value = `アイテム名: ${randomItem.name}\n効果: ${randomItem.effect}`;
-        gachaCapsuleImage.src = randomItem.image;
+
+    try {
+        // Firebaseのデータを更新
+        await updateGachaData();
+
+        // カードコレクションに追加
+        await addToCardCollection(randomItem);
+
+        // 結果表示
+        setTimeout(() => {
+            resultArea.value = `アイテム名: ${randomItem.name}\n効果: ${randomItem.effect}`;
+            gachaCapsuleImage.src = randomItem.image;
 
             displayItemsRemaining();
             updateButtonState();
@@ -135,87 +220,31 @@ function handleGachaResult() {
         elements.gachaCapsule.style.animation = 'rotateCapsule 2s ease forwards';
     }
 
-    function resetGacha() {
-        elements.resetButton.style.display = 'none';
-        elements.gachaButton.disabled = false;
-        elements.gachaButton.style.display = 'inline-block';
-        elements.gachaResult.value = '';
-        elements.gachaCapsuleImage.src = 'https://togeharuki.github.io/Deck-Dreamers/battle/gatya/写真/00-カードの裏面.png';
-        elements.gachaCapsule.style.animation = 'none';
-    }
+function resetGacha() {
+    resetButton.style.display = 'none';
+    gachaButton.style.display = 'inline-block';
+    resultArea.value = '';
+    resultArea.style.display = 'block';
+    gachaCapsuleImage.src = '写真/カードの裏面.png';
+    endMessage.style.display = 'none';
+    gachaCapsule.style.transform = 'rotateY(0deg)';
+}
 
-    function displayItemsRemaining() {
-        console.clear();
-        items.forEach(item => {
-            console.log(`${item.rarity} ${item.name}: 残り ${item.count} 個`);
+function displayItemsRemaining() {
+    console.clear();
+    items.forEach(item => console.log(`${item.name}: 残り ${item.count} 個`));
+}
+
+function checkAllItemsOutOfStock() {
+    const allOutOfStock = items.every(item => item.count === 0);
+    if (allOutOfStock) {
+        endMessage.style.display = 'block';
+        gachaButton.style.display = 'none';
+        resultArea.style.display = 'none';
+        resetButton.style.display = 'inline-block';
+        resetButton.addEventListener('click', () => {
+            window.location.href = '../../main/Menu/Menu.html';  // 遷移先のURLを指定
         });
     }
+}
 
-    function updateButtonState() {
-        const hasAvailableItems = items.some(item => item.count > 0);
-        elements.gachaButton.disabled = !hasAvailableItems;
-        if (!hasAvailableItems) showEndMessage();
-    }
-
-    function showEndMessage() {
-        elements.endMessage.style.display = 'block';
-        elements.gachaButton.style.display = 'none';
-        elements.gachaResult.style.display = 'none';
-    }
-
-    // 成功通知を表示する関数
-    function showSuccessNotification(message) {
-        const notification = document.createElement('div');
-        notification.className = 'success-notification';
-        notification.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgb(78, 205, 196);
-            padding: 20px 40px;
-            border-radius: 10px;
-            color: white;
-            text-align: center;
-            z-index: 1000;
-            font-size: 1.2em;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        `;
-        notification.textContent = message;
-        document.body.appendChild(notification);
-        setTimeout(() => {
-            notification.style.opacity = '0';
-            notification.style.transition = 'opacity 0.5s ease';
-            setTimeout(() => notification.remove(), 500);
-        }, 2000);
-    }
-
-    // イベントリスナーの設定
-    elements.gachaButton.addEventListener('click', async () => {
-        try {
-            elements.gachaButton.disabled = true;
-            triggerGachaAnimation();
-            await handleGachaResult();
-        } catch (error) {
-            console.error('ガチャ実行エラー:', error);
-            showSuccessNotification('ガチャの実行に失敗しました');
-            elements.gachaButton.disabled = false;
-        }
-    });
-
-    elements.resetButton.addEventListener('click', resetGacha);
-
-    // 初期化の実行
-    initializeGacha();
-});
-
-// エラーハンドリング
-window.addEventListener('error', function(event) {
-    console.error('エラーが発生しました:', event.error);
-    showSuccessNotification('エラーが発生しました');
-});
-
-window.addEventListener('unhandledrejection', function(event) {
-    console.error('未処理のPromiseエラー:', event.reason);
-    showSuccessNotification('エラーが発生しました');
-});
