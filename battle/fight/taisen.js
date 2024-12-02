@@ -20,10 +20,7 @@ class Game {
         const urlParams = new URLSearchParams(window.location.search);
         this.roomId = urlParams.get('roomId');
         this.tableNumber = urlParams.get('tableNumber');
-        this.playerId = localStorage.getItem('playerId');
-        this.roomId = urlParams.get('roomId');
-        this.tableNumber = urlParams.get('tableNumber');
-        this.playerId = localStorage.getItem('playerId');
+        this.playerId = localStorage.getItem('userId');
 
         // ゲーム状態の初期化
         this.gameState = null;
@@ -163,33 +160,37 @@ class Game {
     async initializePlayerDeck() {
         try {
             console.log('デッキ初期化開始');
-            // ログインプレイヤーのデッキを取得
-            const deckRef = db.collection('deck').where('playerId', '==', this.playerId);
-            const deckSnapshot = await deckRef.get();
-            
-            if (deckSnapshot.empty) {
-                throw new Error('プレイヤーのデッキが見つかりません');
+            const playerId = this.playerId;
+            console.log('プレイヤーID:', playerId);
+
+            // プレイヤーのデッキを取得
+            const deckRef = db.collection('Deck').doc(playerId);
+            const deckDoc = await deckRef.get();
+
+            if (!deckDoc.exists) {
+                throw new Error('デッキが見つかりません');
             }
 
-            // プレイヤーの最新のデッキを使用
-            const deckDoc = deckSnapshot.docs[0];
             const deckData = deckDoc.data();
-            
-            if (!deckData.cards) {
+            if (!deckData.cards || !Array.isArray(deckData.cards)) {
                 throw new Error('デッキのカードデータが不正です');
             }
 
             console.log('カード情報取得完了');
-            const allCards = Object.entries(deckData.cards).map(([id, cardData]) => ({
-                id,
-                type: cardData.type,
-                effect: cardData.effect,
-                name: cardData.name,
-                image: cardData.image,
-                isCreated: cardData.isCreated
+            const allCards = deckData.cards.map(card => ({
+                id: card.name, // カード名をIDとして使用
+                type: card.type,
+                effect: card.effect,
+                name: card.name,
+                image: card.image,
+                isCreated: card.isCreated
             }));
 
             console.log(`取得したカード数: ${allCards.length}`);
+
+            if (allCards.length !== 30) {
+                throw new Error('デッキのカード枚数が不正です（30枚である必要があります）');
+            }
 
             // カードをシャッフル
             const shuffledDeck = this.shuffleArray(allCards);
