@@ -28,6 +28,9 @@ playerNameInput.addEventListener('input', function() {
 
 // ページ読み込み時の処理
 window.addEventListener('load', async () => {
+    // ログアウトボタンは常に表示
+    logoutButton.style.display = 'block';
+    
     const savedPlayerId = localStorage.getItem('playerId');
     const savedPlayerName = localStorage.getItem('playerName');
     
@@ -41,20 +44,46 @@ window.addEventListener('load', async () => {
         if (isLoggedIn) {
             playerInfoDiv.textContent = `現在のログイン: ${savedPlayerName} (ID: ${savedPlayerId})`;
             playerInfoDiv.style.display = 'block';
-            logoutButton.style.display = 'block';
+            loginButton.style.display = 'none';
         } else {
-            // ログイン状態が不整合の場合、ローカルストレージをクリア
+            // ログイン状態が不整合の場合
             localStorage.removeItem('playerName');
             localStorage.removeItem('playerId');
-            playerInfoDiv.style.display = 'none';
-            logoutButton.style.display = 'none';
+            playerInfoDiv.textContent = 'ログインしていません';
+            playerInfoDiv.style.display = 'block';
+            loginButton.style.display = 'block';
         }
     } else {
-        playerInfoDiv.style.display = 'none';
-        logoutButton.style.display = 'none';
+        playerInfoDiv.textContent = 'ログインしていません';
+        playerInfoDiv.style.display = 'block';
+        loginButton.style.display = 'block';
     }
 });
 
+// ログイン状態の確認関数
+async function checkLoginState(playerId) {
+    try {
+        const currentLoginDoc = await db.collection('CurrentLogin').doc('active').get();
+        return currentLoginDoc.exists && 
+               currentLoginDoc.data().playerIds && 
+               currentLoginDoc.data().playerIds.includes(playerId);
+    } catch (error) {
+        console.error('ログイン状態の確認に失敗:', error);
+        return false;
+    }
+}
+
+// UIの更新関数
+function updateUI(isLoggedIn, playerName = '', playerId = '') {
+    if (isLoggedIn) {
+        playerInfoDiv.textContent = `現在のログイン: ${playerName} (ID: ${playerId})`;
+        loginButton.style.display = 'none';
+    } else {
+        playerInfoDiv.textContent = 'ログインしていません';
+        loginButton.style.display = 'block';
+    }
+    playerInfoDiv.style.display = 'block';
+}
 // ログイン処理
 loginButton.addEventListener('click', async () => {
     const playerName = playerNameInput.value.trim();
@@ -110,10 +139,7 @@ loginButton.addEventListener('click', async () => {
         localStorage.setItem('playerId', playerId);
 
         // UI更新
-        playerInfoDiv.style.display = 'block';
-        playerInfoDiv.textContent = `現在のログイン: ${playerName} (ID: ${playerId})`;
-        logoutButton.style.display = 'block';
-        
+        updateUI(true, playerName, playerId);
         showMessage('ログインしました', 'success');
 
         // 3秒後にタイトル画面に遷移
@@ -134,7 +160,7 @@ logoutButton.addEventListener('click', async () => {
     try {
         const playerId = localStorage.getItem('playerId');
         if (!playerId) {
-            showMessage('ログイン情報が見つかりません', 'error');
+            showMessage('ログインしていません', 'error');
             return;
         }
 
@@ -161,10 +187,7 @@ logoutButton.addEventListener('click', async () => {
         localStorage.removeItem('playerId');
 
         // UI更新
-        playerInfoDiv.style.display = 'none';
-        logoutButton.style.display = 'none';
-        playerNameInput.value = '';
-
+        updateUI(false);
         showMessage('ログアウトしました', 'success');
 
         // 3秒後にページをリロード
@@ -182,9 +205,21 @@ logoutButton.addEventListener('click', async () => {
 function showMessage(text, type) {
     messageDiv.textContent = text;
     messageDiv.className = `message ${type} show`;
+
+    // 5秒後にメッセージを非表示
+    setTimeout(() => {
+        messageDiv.className = messageDiv.className.replace(' show', '');
+    }, 5000);
 }
 
 // エラーハンドリング
 window.addEventListener('error', function(event) {
     console.error('グローバルエラー:', event.error);
+    showMessage('エラーが発生しました', 'error');
+});
+
+// データベース接続の監視
+db.enableNetwork().catch(error => {
+    console.error('データベース接続エラー:', error);
+    showMessage('サーバーに接続できません', 'error');
 });
