@@ -92,26 +92,65 @@ export class CardSystem {
             const deckRef = this.db.collection('Deck').doc(this.playerId);
             const deckDoc = await deckRef.get();
 
+            // デッキが存在しない場合は新しく作成
             if (!deckDoc.exists) {
-                throw new Error('デッキが見つかりません');
+                console.log('デッキが存在しないため、新規作成します');
+                const defaultDeck = this.createDefaultDeck();
+                await deckRef.set({
+                    cards: defaultDeck,
+                    timestamp: this.db.FieldValue.serverTimestamp()
+                });
+                const allCards = this.mapCardsData(defaultDeck);
+                return await this.setupInitialHand(allCards);
             }
 
             const deckData = deckDoc.data();
             if (!deckData.cards || !Array.isArray(deckData.cards)) {
-                throw new Error('デッキのカードデータが不正です');
+                console.log('デッキデータが不正なため、新規作成します');
+                const defaultDeck = this.createDefaultDeck();
+                await deckRef.set({
+                    cards: defaultDeck,
+                    timestamp: this.db.FieldValue.serverTimestamp()
+                });
+                const allCards = this.mapCardsData(defaultDeck);
+                return await this.setupInitialHand(allCards);
             }
 
             const allCards = this.mapCardsData(deckData.cards);
             if (allCards.length !== 30) {
-                throw new Error('デッキのカード枚数が不正です（30枚である必要があります）');
+                console.log('デッキのカード枚数が不正なため、新規作成します');
+                const defaultDeck = this.createDefaultDeck();
+                await deckRef.set({
+                    cards: defaultDeck,
+                    timestamp: this.db.FieldValue.serverTimestamp()
+                });
+                const newCards = this.mapCardsData(defaultDeck);
+                return await this.setupInitialHand(newCards);
             }
 
-            await this.setupInitialHand(allCards);
+            return await this.setupInitialHand(allCards);
 
         } catch (error) {
             console.error('デッキ初期化エラー:', error);
             throw error;
         }
+    }
+
+    createDefaultDeck() {
+        // デフォルトデッキの作成
+        const defaultDeck = [
+            ...this.cardTemplates.attackCards.slice(0, 15),  // 攻撃カード15枚
+            ...this.cardTemplates.healCards.slice(0, 8),     // 回復カード8枚
+            ...this.cardTemplates.effectCards.slice(0, 4),   // 効果カード4枚
+            ...this.cardTemplates.godCards.slice(0, 3)       // 神の一手カード3枚
+        ];
+
+        // 30枚になるように調整
+        while (defaultDeck.length < 30) {
+            defaultDeck.push(this.cardTemplates.attackCards[0]);
+        }
+
+        return defaultDeck;
     }
 
     mapCardsData(cards) {
