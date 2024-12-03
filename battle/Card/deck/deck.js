@@ -49,7 +49,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         console.log('カードデータ読み込み開始');
         await loadDeckCards();
         await loadCreatedCards();
-        await loadGachaCards(); // 追加: ガチャカードの読み込み
         updateSaveButton();
         console.log('カードデータ読み込み完了');
 
@@ -118,7 +117,6 @@ async function loadDeckCards() {
         showNotification('デッキの読み込みに失敗しました', 'error');
     }
 }
-
 // 作成したカードを読み込む
 async function loadCreatedCards() {
     try {
@@ -160,103 +158,167 @@ async function loadCreatedCards() {
         showNotification('作成カードの読み込みに失敗しました', 'error');
     }
 }
-const normalCards = selectedCards.map(card => ({
-    name: card.name,
-    effect: card.effect,
-    type: 'normal',
-    image: card.image,
-    isCreated: false
-}));
 
-if (normalCards.length !== 10) {
-    showNotification('既存カードを10枚選択してください', 'warning');
-    return;
+// カード要素を作成
+function createCardElement(card, isCreated = false) {
+    const cardElement = document.createElement('div');
+    cardElement.className = `card-item ${card.rarity || ''}`;
+    
+    if (!isCreated) {
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'card-checkbox';
+        checkbox.dataset.cardType = 'normal';
+        
+        checkbox.addEventListener('change', function() {
+            const checkedCount = document.querySelectorAll('input[data-card-type="normal"]:checked').length;
+            
+            if (this.checked && checkedCount > 10) {
+                this.checked = false;
+                showNotification('既存カードは10枚までしか選択できません', 'warning');
+                return;
+            }
+            
+            if (this.checked) {
+                selectedCards.push(card);
+            } else {
+                selectedCards = selectedCards.filter(c => c.name !== card.name);
+            }
+            updateSaveButton();
+        });
+        
+        cardElement.appendChild(checkbox);
+    }
+
+    const cardContent = document.createElement('div');
+    cardContent.className = 'card-content';
+    cardContent.innerHTML = `
+        <div class="card-image">
+            <img src="${card.image || getCardImagePath(card)}" alt="${card.name}" loading="lazy">
+        </div>
+        <div class="card-info">
+            <div class="card-name">${card.name}</div>
+            <div class="card-effect">${card.effect || ''}</div>
+            ${isCreated ? '<div class="created-card-label">作成カード</div>' : ''}
+        </div>
+    `;
+
+    cardElement.appendChild(cardContent);
+    return cardElement;
 }
 
-if (createdCards.length !== 20) {
-    showNotification('作成カードが20枚必要です', 'warning');
-    return;
+function getCardImagePath(card) {
+    const cardName = encodeURIComponent(card.name);
+    return `https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/${cardName}.jpg`;
 }
 
-const createdCardData = createdCards.map(card => ({
-    name: card.name,
-    effect: card.effect,
-    type: 'created',
-    image: card.image,
-    isCreated: true
-}));
+// デッキを保存
+async function saveDeck() {
+    try {
+        const playerId = localStorage.getItem('playerId');
+        if (!playerId) {
+            showNotification('ログインしてください', 'error');
+            return;
+        }
 
-const allDeckCards = [...normalCards, ...createdCardData];
+        const normalCards = selectedCards.map(card => ({
+            name: card.name,
+            effect: card.effect,
+            type: 'normal',
+            image: card.image,
+            isCreated: false
+        }));
 
-const deckRef = db.collection('Deck').doc(playerId);
-await deckRef.set({
-    cards: allDeckCards,
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-});
+        if (normalCards.length !== 10) {
+            showNotification('既存カードを10枚選択してください', 'warning');
+            return;
+        }
 
-// 成功通知を表示
-const notification = document.createElement('div');
-notification.className = 'success-notification';
-notification.style.cssText = `
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgb(78, 205, 196);
-    padding: 20px 40px;
-    border-radius: 10px;
-    color: white;
-    text-align: center;
-    z-index: 1000;
-    font-size: 1.2em;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-`;
-notification.textContent = 'デッキを保存しました！';
-document.body.appendChild(notification);
+        if (createdCards.length !== 20) {
+            showNotification('作成カードが20枚必要です', 'warning');
+            return;
+        }
 
-setTimeout(() => {
-    notification.style.opacity = '0';
-    notification.style.transition = 'opacity 0.5s ease';
-    setTimeout(() => notification.remove(), 500);
-}, 2000);
+        const createdCardData = createdCards.map(card => ({
+            name: card.name,
+            effect: card.effect,
+            type: 'created',
+            image: card.image,
+            isCreated: true
+        }));
 
-} catch (error) {
-console.error('デッキの保存に失敗しました:', error);
-showNotification('デッキの保存に失敗しました', 'error');
-}
+        const allDeckCards = [...normalCards, ...createdCardData];
+
+        const deckRef = db.collection('Deck').doc(playerId);
+        await deckRef.set({
+            cards: allDeckCards,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // 成功通知を表示
+        const notification = document.createElement('div');
+        notification.className = 'success-notification';
+        notification.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgb(78, 205, 196);
+            padding: 20px 40px;
+            border-radius: 10px;
+            color: white;
+            text-align: center;
+            z-index: 1000;
+            font-size: 1.2em;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        `;
+        notification.textContent = 'デッキを保存しました！';
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => notification.remove(), 500);
+        }, 2000);
+
+    } catch (error) {
+        console.error('デッキの保存に失敗しました:', error);
+        showNotification('デッキの保存に失敗しました', 'error');
+    }
 }
 
 // 通知を表示
 function showNotification(message, type = 'info') {
-const notification = document.createElement('div');
-notification.className = `notification ${type}`;
-notification.textContent = message;
-document.body.appendChild(notification);
-
-setTimeout(() => {
-notification.classList.add('fade-out');
-setTimeout(() => notification.remove(), 500);
-}, 3000);
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.classList.add('fade-out');
+        setTimeout(() => notification.remove(), 500);
+    }, 3000);
 }
 
 // 保存ボタンの状態を更新
 function updateSaveButton() {
-const saveButton = document.getElementById('save-deck-button');
-const cardCounter = document.getElementById('card-counter');
-
-const checkedCount = document.querySelectorAll('input[data-card-type="normal"]:checked').length;
-const isValid = checkedCount === 10 && createdCards.length === 20;
-
-if (saveButton) {
-saveButton.disabled = !isValid;
-saveButton.classList.toggle('ready', isValid);
+    const saveButton = document.getElementById('save-deck-button');
+    const cardCounter = document.getElementById('card-counter');
+    
+    const checkedCount = document.querySelectorAll('input[data-card-type="normal"]:checked').length;
+    const isValid = checkedCount === 10 && createdCards.length === 20;
+    
+    if (saveButton) {
+        saveButton.disabled = !isValid;
+        saveButton.classList.toggle('ready', isValid);
+    }
+    
+    if (cardCounter) {
+        cardCounter.textContent = `選択中: ${checkedCount}/10枚 (作成カード: ${createdCards.length}/20枚)`;
+        cardCounter.classList.toggle('complete', isValid);
+    }
 }
 
-if (cardCounter) {
-cardCounter.textContent = `選択中: ${checkedCount}/10枚 (作成カード: ${createdCards.length}/20枚)`;
-cardCounter.classList.toggle('complete', isValid);
-}
-}
 // デッキをリセット
 function resetDeck() {
     if (confirm('デッキの選択をリセットしますか？')) {
@@ -272,11 +334,5 @@ function resetDeck() {
 // エラーハンドリング
 window.addEventListener('error', function(event) {
     console.error('エラーが発生しました:', event.error);
-    showNotification('エラーが発生しました', 'error');
-});
-
-// 追加のエラーハンドリング
-window.addEventListener('unhandledrejection', function(event) {
-    console.error('未処理のPromiseエラー:', event.reason);
     showNotification('エラーが発生しました', 'error');
 });
