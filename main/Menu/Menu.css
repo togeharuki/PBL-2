@@ -50,6 +50,9 @@ h1 {
 .button.settings {
     background: linear-gradient(45deg, #ffa41b, #ff5151);
 }
+.button.return-menu {
+    background: linear-gradient(45deg, #ff6b6b, #ff4757);
+}
 
 .rule {
     font-size: 1.2em;
