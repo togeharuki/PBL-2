@@ -1,4 +1,10 @@
-// Firebase設定とSDKのインポート
+import { GameCore } from './modules/GameCore.js';
+import { BattleSystem } from './modules/BattleSystem.js';
+import { CardSystem } from './modules/CardSystem.js';
+import { UIManager } from './modules/UIManager.js';
+import { EventHandler } from './modules/EventHandler.js';
+
+// Firebase設定
 const firebaseConfig = {
     apiKey: "AIzaSyCGgRBPAF2W0KKw0tX2zwZeyjDGgvv31KM",
     authDomain: "deck-dreamers.firebaseapp.com",
@@ -20,185 +26,38 @@ try {
     console.error('Firebase初期化エラー:', error);
 }
 
-class Game {
-    constructor() {
-        this.db = db;
-        
-        // URLパラメータから情報を取得
-        const urlParams = new URLSearchParams(window.location.search);
-        this.roomId = urlParams.get('roomId');
-        this.tableNumber = urlParams.get('tableNumber');
-        this.playerId = localStorage.getItem('playerId');
-
-        // デバッグ情報の出力
-        console.log('初期化パラメータ:', {
-            roomId: this.roomId,
-            tableNumber: this.tableNumber,
-            playerId: this.playerId,
-            urlParams: Object.fromEntries(urlParams.entries()),
-            localStorage: {
-                playerId: localStorage.getItem('playerId'),
-                playerName: localStorage.getItem('playerName')
-            }
-        });
-
-        // ゲーム状態の初期化
-        this.gameState = null;
-        this.opponentId = null;
-        this.playerHp = 10;
-        this.opponentHp = 10;
-        this.timeLeft = 60;
-        this.isPlayerTurn = false;
-        this.effectCardUsed = false;
-        this.godHandsRemaining = 2;
-        this.playerDeck = [];
-        this.playerHand = [];
-        this.unsubscribe = null;
-        this.timer = null;
-
-        if (!this.roomId || !this.tableNumber || !this.playerId) {
-            console.error('ゲーム情報が不正です:', {
-                roomId: this.roomId,
-                tableNumber: this.tableNumber,
-                playerId: this.playerId
-            });
-            alert('ゲーム情報が不正です。ルーム画面に戻ります。');
-            window.location.href = '../Room/room.html';
-            return;
-        }
-
-        // ゲームIDを生成
-        this.gameId = `${this.roomId}_table${this.tableNumber}`;
-        console.log('ゲームID:', this.gameId);
-
-        // ゲーム���初期化
-        this.initializeGame();
-        this.initializeEventListeners();
-
-        // バトルゾーンの初期化を追加
-        this.initializeBattleZone();
+// ゲーム初期化
+document.addEventListener('DOMContentLoaded', async () => {
+    if (!db) {
+        console.error('Firebaseが初期化されていません');
+        alert('ゲームの初期化に失敗しました。ページを再読み込みしてください。');
+        return;
     }
 
-    async initializeGame() {
-        try {
-            console.log('ゲーム初期化開始:', this.gameId);
-            
-            // ゲームドキュメントの作成または取得
-            const gameRef = db.collection('games').doc(this.gameId);
-            const gameDoc = await gameRef.get();
+    try {
+        // URLパラメータから情報を取得
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomId = urlParams.get('roomId');
+        const tableNumber = urlParams.get('tableNumber');
+        const playerId = localStorage.getItem('playerId');
 
-            if (!gameDoc.exists) {
-                console.log('新規ゲーム作成');
-                // 新しいゲームを作成
-                const initialGameState = {
-                    players: {
-                        [this.playerId]: {
-                            hp: 10,
-                            deck: [],
-                            hand: [],
-                            godHandRemaining: 2
-                        }
-                    },
-                    currentTurn: this.playerId,
-                    turnTime: 60,
-                    status: 'waiting'
-                };
-
-            await gameRef.set(initialGameState);
-            this.gameState = initialGameState;
-        } else {
-            console.log('既存ゲーム読み込み');
-            this.gameState = gameDoc.data();
+        if (!roomId || !tableNumber || !playerId) {
+            throw new Error('ゲーム情報が不正です');
         }
 
-            // プレイヤー情報の設定
-            console.log('プレイヤー情報設定開始');
-            const playerIds = Object.keys(this.gameState.players || {});
-            console.log('現在のプレイヤー:', playerIds);
+        // 各モジュールのインスタンスを作成
+        const gameCore = new GameCore(db, roomId, tableNumber, playerId);
+        const cardSystem = new CardSystem(gameCore);
+        const battleSystem = new BattleSystem(gameCore);
+        const uiManager = new UIManager(gameCore, cardSystem);
+        const eventHandler = new EventHandler(gameCore, battleSystem, uiManager);
 
-            // 自分のプレイヤー情報を追加（まだ存在しない場合）
-            if (!playerIds.includes(this.playerId)) {
-                console.log('自分のプレイヤー情報を追加:', this.playerId);
-                await gameRef.update({
-                    [`players.${this.playerId}`]: {
-                        hp: 10,
-                        deck: [],
-                        hand: [],
-                        godHandRemaining: 2
-                    }
-                });
-                
-                // 更新後のゲーム状態を再取得
-                const updatedDoc = await gameRef.get();
-                this.gameState = updatedDoc.data();
-                playerIds.push(this.playerId);
-            }
-
-            // 対戦相手の参加を待つ
-            if (playerIds.length < 2) {
-                console.log('対戦相手の参加を待機中...');
-                await new Promise((resolve, reject) => {
-                    const waitOpponent = gameRef.onSnapshot((doc) => {
-                        const currentState = doc.data();
-                        const currentPlayers = Object.keys(currentState.players || {});
-                        if (currentPlayers.length === 2) {
-                            waitOpponent();
-                            this.gameState = currentState;
-                            this.opponentId = currentPlayers.find(id => id !== this.playerId);
-                            console.log('対戦相手が参加しました:', this.opponentId);
-                            resolve();
-                        }
-                    });
-
-                    // 60秒でタイムアウト
-                    setTimeout(() => {
-                        waitOpponent();
-                        reject(new Error('対戦相手の待機がタイムアウトしました'));
-                    }, 60000);
-                });
-            } else {
-                this.opponentId = playerIds.find(id => id !== this.playerId);
-                console.log('既存の対戦相手が見つかりました:', this.opponentId);
-            }
-
-            if (!this.opponentId) {
-                throw new Error('対戦相手が見つかりません');
-            }
-
-            // デッキの初期化（まだ行われていない場合）
-            if (!this.gameState.players[this.playerId]?.deck?.length) {
-                console.log('デッキ初期化');
-                await this.initializePlayerDeck();
-                
-                // デッキ初期化後のゲーム状態を再取得
-                const updatedDoc = await gameRef.get();
-                this.gameState = updatedDoc.data();
-            } else {
-                console.log('既存デッキ読み込み');
-                this.playerDeck = this.gameState.players[this.playerId].deck;
-                this.playerHand = this.gameState.players[this.playerId].hand;
-                this.godHandsRemaining = this.gameState.players[this.playerId].godHandRemaining;
-            }
-
-            // リアルタイム更新の監視を開始
-            console.log('リアルタイム更新の監視を開始');
-            this.setupRealtimeListeners();
-
-            // UI更新
-            console.log('UI更新開始');
-            this.updateUI();
-
-            // マッチング中のオーバーレイを非表示
-            const matchingOverlay = document.getElementById('matching-overlay');
-            if (matchingOverlay) {
-                matchingOverlay.style.display = 'none';
-            }
-
-            // タイマーを開始
-            console.log('タイマー開始');
-            this.initializeTimer();
-
-            console.log('ゲーム初期化完了');
+        // ゲームの初期化
+        await gameCore.initializeGame();
+        await cardSystem.initializePlayerDeck();
+        eventHandler.initializeEventListeners();
+        uiManager.updateUI();
+        uiManager.initializeTimer();
 
         } catch (error) {
             console.error('ゲーム初期化エラー:', error);
