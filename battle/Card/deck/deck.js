@@ -1,9 +1,12 @@
 // Firebase設定とSDKのインポート
 // Firebase設定とSDKのインポート
 const firebaseConfig = {
+    apiKey: "AIzaSyCGgRBPAF2W0KKw0tX2zwZeyjDGgvv31KM",
+    authDomain: "deck-dreamers.firebaseapp.com",
     projectId: "deck-dreamers",
-    organizationId: "oic-ok.ac.jp",
-    projectNumber: "165933225805"
+    storageBucket: "deck-dreamers.appspot.com",
+    messagingSenderId: "165933225805",
+    appId: "1:165933225805:web:4e5a3907fc5c7a30a28a6c"
 };
 
 // Firebase初期化
@@ -79,7 +82,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         console.log('カードデータ読み込み開始');
         await loadDeckCards();
         await loadCreatedCards();
-        await loadGachaCards(); // 追加: ガチャカードの読み込み
         updateSaveButton();
         console.log('カードデータ読み込み完了');
 
@@ -149,27 +151,45 @@ async function loadDeckCards() {
         showNotification('デッキの読み込みに失敗しました', 'error');
     }
 }
-// ガチャカードを読み込む関数を追加
-async function loadGachaCards() {
+// 作成したカードを読み込む
+async function loadCreatedCards() {
     try {
         const playerId = localStorage.getItem('playerId');
-        const soukoRef = db.collection('Souko').doc(playerId);
-        const soukoDoc = await soukoRef.get();
+        const cardRef = db.collection('Card').doc(playerId);
+        const doc = await cardRef.get();
 
-        if (soukoDoc.exists) {
-            const gachaData = soukoDoc.data().cards || {};
-            const gachaGrid = document.getElementById('gacha-cards-grid');
-            gachaGrid.innerHTML = '';
+        if (doc.exists) {
+            const cardData = doc.data();
+            const createdCardsSection = document.createElement('div');
+            createdCardsSection.className = 'deck-container';
+            createdCardsSection.innerHTML = `
+                <h2 class="section-title">作成したカード</h2>
+                <div class="deck-grid" id="created-cards-grid"></div>
+            `;
+            
+            document.querySelector('.deck-container').after(createdCardsSection);
+            const createdCardsGrid = document.getElementById('created-cards-grid');
 
-            Object.entries(gachaData).forEach(([cardId, card]) => {
-                const cardElement = createCardElement(card);
-                cardElement.querySelector('.card-checkbox').dataset.cardType = 'gacha'; // データ属性を追加
-                gachaGrid.appendChild(cardElement);
+            const cardsArray = Object.entries(cardData)
+                .filter(([key, _]) => key !== 'timestamp')
+                .map(([id, card]) => ({
+                    ...card,
+                    id,
+                    isCreated: true
+                }))
+                .sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0))
+                .slice(0, 20);
+
+            createdCards = cardsArray;
+
+            cardsArray.forEach(card => {
+                const cardElement = createCardElement(card, true);
+                createdCardsGrid.appendChild(cardElement);
             });
         }
     } catch (error) {
-        console.error('ガチャカードの読み込みに失敗しました:', error);
-        showNotification('ガチャカードの読み込みに失敗しました', 'error');
+        console.error('作成したカードの読み込みに失敗しました:', error);
+        showNotification('作成カードの読み込みに失敗しました', 'error');
     }
 }
 
