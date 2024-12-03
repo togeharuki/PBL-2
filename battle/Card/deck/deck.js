@@ -30,7 +30,6 @@ try {
 
 let selectedCards = [];
 let createdCards = [];
-let gachaCards = [];
 let allCards = new Set();
 
 // ページ読み込み時の処理
@@ -73,8 +72,16 @@ document.addEventListener('DOMContentLoaded', async function() {
         document.getElementById('player-name').textContent = `プレイヤー名: ${playerName}`;
         document.getElementById('player-id').textContent = `ID: ${playerId}`;
 
-        await loadAllCards();
+        if (!db) {
+            throw new Error('Firebaseデータベースが初期化されていません');
+        }
+
+        console.log('カードデータ読み込み開始');
+        await loadDeckCards();
+        await loadCreatedCards();
+        await loadGachaCards(); // 追加: ガチャカードの読み込み
         updateSaveButton();
+        console.log('カードデータ読み込み完了');
 
     } catch (error) {
         console.error('初期化エラー:', error);
@@ -82,35 +89,27 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 });
 
-async function loadAllCards() {
-    const playerId = localStorage.getItem('playerId');
-    try {
-        await Promise.all([
-            loadDeckCards(),
-            loadCreatedCards(),
-            loadGachaCards()
-        ]);
-    } catch (error) {
-        console.error('カードの読み込みに失敗:', error);
-        throw error;
-    }
-}
-
+// デッキのカードを読み込む
 async function loadDeckCards() {
     try {
         console.log('既存カードの読み込み開始');
         console.log('既存カードの読み込み開始');
         const playerId = localStorage.getItem('playerId');
+        
         const soukoRef = db.collection('Souko').doc(playerId);
         const soukoDoc = await soukoRef.get();
 
         const deckGrid = document.getElementById('deck-grid');
         deckGrid.innerHTML = '';
 
-        if (!soukoDoc.exists) return;
+        if (!soukoDoc.exists) {
+            console.error('倉庫データが見つかりません');
+            showNotification('カードデータの読み込みに失敗しました', 'error');
+            return;
+        }
 
         const cardData = soukoDoc.data();
-        const defaultCards = Object.entries(cardData)
+        const cards = Object.entries(cardData)
             .filter(([key]) => key.startsWith('default_card_'))
             .map(([_, card]) => ({
                 name: card.name,
@@ -120,14 +119,21 @@ async function loadDeckCards() {
                 timestamp: card.timestamp
             }));
 
+        if (cards.length === 0) {
+            console.error('倉庫にカードが存在しません');
+            showNotification('効果カードが見つかりません', 'error');
+            return;
+        }
+
         const deckRef = db.collection('Deck').doc(playerId);
         const deckDoc = await deckRef.get();
+
         const currentDeck = deckDoc.exists ? 
             deckDoc.data().cards.filter(card => !card.isCreated) : 
             [];
 
-        defaultCards.forEach(card => {
-            const cardElement = createCardElement(card, false);
+        cards.forEach(card => {
+            const cardElement = createCardElement(card);
             if (currentDeck.some(deckCard => deckCard.name === card.name)) {
                 const checkbox = cardElement.querySelector('.card-checkbox');
                 if (checkbox) {
@@ -139,80 +145,75 @@ async function loadDeckCards() {
         });
 
     } catch (error) {
-        console.error('デッキカードの読み込みに失敗:', error);
-        throw error;
+        console.error('デッキの読み込みに失敗しました:', error);
+        showNotification('デッキの読み込みに失敗しました', 'error');
     }
 }
-async function loadCreatedCards() {
+// ガチャカードを読み込む関数を追加
+async function loadGachaCards() {
     try {
         const playerId = localStorage.getItem('playerId');
-        const cardRef = db.collection('Card').doc(playerId);
-        const doc = await cardRef.get();
+        const soukoRef = db.collection('Souko').doc(playerId);
+        const soukoDoc = await soukoRef.get();
 
-        if (doc.exists) {
-            const cardData = doc.data();
-            const createdCardsSection = createCardsSection('作成したカード', 'created-cards-grid');
-            const createdCardsGrid = document.getElementById('created-cards-grid');
+        if (soukoDoc.exists) {
+            const gachaData = soukoDoc.data().cards || {};
+            const gachaGrid = document.getElementById('gacha-cards-grid');
+            gachaGrid.innerHTML = '';
 
-            const cardsArray = Object.entries(cardData)
-                .filter(([key, _]) => key !== 'timestamp')
-                .map(([id, card]) => ({
-                    ...card,
-                    id,
-                    isCreated: true
-                }))
-                .sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0))
-                .slice(0, 20);
-
-            createdCards = cardsArray;
-
-            cardsArray.forEach(card => {
-                const cardElement = createCardElement(card, true);
-                createdCardsGrid.appendChild(cardElement);
+            Object.entries(gachaData).forEach(([cardId, card]) => {
+                const cardElement = createCardElement(card);
+                cardElement.querySelector('.card-checkbox').dataset.cardType = 'gacha'; // データ属性を追加
+                gachaGrid.appendChild(cardElement);
             });
         }
     } catch (error) {
-        console.error('作成カードの読み込みに失敗:', error);
-        throw error;
+        console.error('ガチャカードの読み込みに失敗しました:', error);
+        showNotification('ガチャカードの読み込みに失敗しました', 'error');
     }
 }
 
-function createCardsSection(title, gridId) {
-    const section = document.createElement('div');
-    section.className = 'deck-container';
-    section.innerHTML = `
-        <h2 class="section-title">${title}</h2>
-        <div class="deck-grid" id="${gridId}"></div>
-    `;
-    document.querySelector('.deck-container').after(section);
-    return section;
-}
-
-function createCardElement(card, isSpecial = false) {
+// カード要素を作成
+function createCardElement(card, isCreated = false) {
     const cardElement = document.createElement('div');
     cardElement.className = `card-item ${card.rarity || ''}`;
     
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.className = 'card-checkbox';
-    checkbox.dataset.cardType = isSpecial ? 'special' : 'normal';
-    
-    checkbox.addEventListener('change', function() {
-        handleCardSelection(this, card, isSpecial);
-    });
-    
-    cardElement.appendChild(checkbox);
+    if (!isCreated) {
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'card-checkbox';
+        checkbox.dataset.cardType = 'normal';
+        
+        checkbox.addEventListener('change', function() {
+            const checkedCount = document.querySelectorAll('input[data-card-type="normal"]:checked').length;
+            
+            if (this.checked && checkedCount > 10) {
+                this.checked = false;
+                showNotification('既存カードは10枚までしか選択できません', 'warning');
+                return;
+            }
+            
+            if (this.checked) {
+                selectedCards.push(card);
+            } else {
+                selectedCards = selectedCards.filter(c => c.name !== card.name);
+            }
+            updateSaveButton();
+        });
+        
+        cardElement.appendChild(checkbox);
+    }
 
     const cardContent = document.createElement('div');
     cardContent.className = 'card-content';
     cardContent.innerHTML = `
         <div class="card-image">
-            <img src="${card.image}" alt="${card.name}" loading="lazy">
+            <img src="${card.image || getCardImagePath(card)}" alt="${card.name}" loading="lazy">
         </div>
         <div class="card-info">
             <div class="card-name">${card.name}</div>
             <div class="card-effect">${card.effect || ''}</div>
-            ${card.rarity ? `<div class="card-rarity">${card.rarity}</div>` : ''}
+            ${isCreated ? '<div class="created-card-label">作成カード</div>' : ''}
         </div>
     `;
 
@@ -319,28 +320,38 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
+// 保存ボタンの状態を更新
 function updateSaveButton() {
     const saveButton = document.getElementById('save-deck-button');
-    if (!saveButton) return;
-
-    const normalCount = selectedCards.filter(card => !card.isSpecial && !card.isGacha).length;
-    const specialCount = selectedCards.filter(card => card.isSpecial || card.isGacha).length;
-    
-    const isValid = normalCount === 10 && specialCount === 20;
-    saveButton.disabled = !isValid;
-    saveButton.classList.toggle('ready', isValid);
-    
-    updateCardCounter(normalCount, specialCount);
-}
-
-function updateCardCounter(normalCount, specialCount) {
     const cardCounter = document.getElementById('card-counter');
+    
+    const checkedCount = document.querySelectorAll('input[data-card-type="normal"]:checked').length;
+    const isValid = checkedCount === 10 && createdCards.length === 20;
+    
+    if (saveButton) {
+        saveButton.disabled = !isValid;
+        saveButton.classList.toggle('ready', isValid);
+    }
+    
     if (cardCounter) {
-        cardCounter.textContent = `選択中: 通常${normalCount}/10枚 特殊${specialCount}/20枚`;
-        cardCounter.classList.toggle('complete', normalCount === 10 && specialCount === 20);
+        cardCounter.textContent = `選択中: ${checkedCount}/10枚 (作成カード: ${createdCards.length}/20枚)`;
+        cardCounter.classList.toggle('complete', isValid);
     }
 }
 
+// デッキをリセット
+function resetDeck() {
+    if (confirm('デッキの選択をリセットしますか？')) {
+        selectedCards = [];
+        document.querySelectorAll('.card-checkbox').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        updateSaveButton();
+        showNotification('選択をリセットしました');
+    }
+}
+
+// エラーハンドリング
 window.addEventListener('error', function(event) {
     console.error('エラーが発生しました:', event.error);
     showNotification('エラーが発生しました', 'error');
