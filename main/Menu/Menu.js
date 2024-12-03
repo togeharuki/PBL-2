@@ -24,3 +24,7 @@ document.getElementById('gatyaBth').addEventListener('click', function() {
 document.getElementById('RuleBtn').addEventListener('click', function() {
     navigateTo('../Rule/Rule.html')
 });
+// 追加した戻るボタンのイベントリスナー
+document.getElementById('returnButton').addEventListener('click', function() {
+    navigateTo('../title.html')
+});
