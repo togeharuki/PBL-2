@@ -26,5 +26,5 @@ document.getElementById('RuleBtn').addEventListener('click', function() {
 });
 // 追加した戻るボタンのイベントリスナー
 document.getElementById('returnButton').addEventListener('click', function() {
-    navigateTo('../title.html')
+    navigateTo('../../title.html')
 });
