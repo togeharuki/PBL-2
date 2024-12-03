@@ -82,6 +82,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         console.log('カードデータ読み込み開始');
         await loadDeckCards();
         await loadCreatedCards();
+        await loadGachaCards(); // 追加: ガチャカードの読み込み
         updateSaveButton();
         console.log('カードデータ読み込み完了');
 
@@ -151,45 +152,27 @@ async function loadDeckCards() {
         showNotification('デッキの読み込みに失敗しました', 'error');
     }
 }
-// 作成したカードを読み込む
-async function loadCreatedCards() {
+// ガチャカードを読み込む関数を追加
+async function loadGachaCards() {
     try {
         const playerId = localStorage.getItem('playerId');
-        const cardRef = db.collection('Card').doc(playerId);
-        const doc = await cardRef.get();
+        const soukoRef = db.collection('Souko').doc(playerId);
+        const soukoDoc = await soukoRef.get();
 
-        if (doc.exists) {
-            const cardData = doc.data();
-            const createdCardsSection = document.createElement('div');
-            createdCardsSection.className = 'deck-container';
-            createdCardsSection.innerHTML = `
-                <h2 class="section-title">作成したカード</h2>
-                <div class="deck-grid" id="created-cards-grid"></div>
-            `;
-            
-            document.querySelector('.deck-container').after(createdCardsSection);
-            const createdCardsGrid = document.getElementById('created-cards-grid');
+        if (soukoDoc.exists) {
+            const gachaData = soukoDoc.data().cards || {};
+            const gachaGrid = document.getElementById('gacha-cards-grid'); // ガチャカード用のグリッド
+            gachaGrid.innerHTML = '';
 
-            const cardsArray = Object.entries(cardData)
-                .filter(([key, _]) => key !== 'timestamp')
-                .map(([id, card]) => ({
-                    ...card,
-                    id,
-                    isCreated: true
-                }))
-                .sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0))
-                .slice(0, 20);
-
-            createdCards = cardsArray;
-
-            cardsArray.forEach(card => {
-                const cardElement = createCardElement(card, true);
-                createdCardsGrid.appendChild(cardElement);
+            Object.entries(gachaData).forEach(([cardId, card]) => {
+                const cardElement = createCardElement(card);
+                cardElement.querySelector('.card-checkbox').dataset.cardType = 'gacha'; // データ属性を追加
+                gachaGrid.appendChild(cardElement);
             });
         }
     } catch (error) {
-        console.error('作成したカードの読み込みに失敗しました:', error);
-        showNotification('作成カードの読み込みに失敗しました', 'error');
+        console.error('ガチャカードの読み込みに失敗しました:', error);
+        showNotification('ガチャカードの読み込みに失敗しました', 'error');
     }
 }
 
