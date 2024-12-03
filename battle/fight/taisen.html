@@ -2,8 +2,14 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Deck Dreamers - バトル</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>バトル - Deck Dreamers</title>
     <link rel="stylesheet" href="taisen.css">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <!-- Game Scripts -->
+    <script type="module" src="taisen.js"></script>
 </head>
 <body>
     <div class="battle-container">
@@ -102,10 +108,5 @@
             <div class="spinner"></div>
         </div>
     </div>
-
-    <!-- Firebase SDKの読み込み -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-    <script src="taisen.js"></script>
 </body>
 </html>
