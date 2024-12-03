@@ -26,9 +26,11 @@ h1 {
 
 .button-container {
     display: flex;
-    flex-direction: row; /* 横並びに変更 */
+    flex-direction: row;
     gap: 20px;
-    justify-content: center; /* ボタンを中央寄せ */
+    justify-content: center;
+    flex-wrap: wrap;
+    max-width: 800px;
 }
 
 .button {
@@ -63,8 +65,13 @@ h1 {
 }
 
 .button.edit-deck {
-    background: linear-gradient(45deg, #6a5acd, #8a2be2); /* デッキ編集ボタンのスタイル */
+    background: linear-gradient(45deg, #6a5acd, #8a2be2);
 }
+
+.button.return-menu {
+    background: linear-gradient(45deg, #ff6b6b, #ff4757);
+}
+
 #speaker-icon {
     color: #ff6b6b;
     position: fixed;
@@ -77,4 +84,16 @@ h1 {
 #speaker-icon img {
     width: 50px;
     height: 50px;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .button-container {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .button {
+        width: 200px;
+    }
 }
