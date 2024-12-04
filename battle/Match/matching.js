@@ -151,35 +151,41 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // 退室ボタンのイベントリスナー
-    document.querySelector('.exit-button').addEventListener('click', async function() {
-        if (confirm('本当に退室しますか？')) {
-            const playerId = localStorage.getItem('playerId');
-            if (roomId && playerId) {
-                try {
-                    const roomRef = db.collection('rooms').doc(roomId);
-                    await db.runTransaction(async (transaction) => {
-                        const roomDoc = await transaction.get(roomRef);
-                        if (roomDoc.exists) {
-                            const roomData = roomDoc.data();
-                            const players = roomData.players || {};
-                            
-                            // プレイヤーの位置情報を削除
-                            Object.keys(players).forEach(key => {
-                                if (players[key].playerId === playerId) {
-                                    delete players[key];
-                                }
-                            });
+document.querySelector('.exit-button').addEventListener('click', async function() {
+    if (confirm('本当に退室しますか？')) {
+        const playerId = localStorage.getItem('playerId');
+        if (roomId && playerId) {
+            try {
+                const roomRef = db.collection('rooms').doc(roomId);
+                await db.runTransaction(async (transaction) => {
+                    const roomDoc = await transaction.get(roomRef);
+                    if (roomDoc.exists) {
+                        const roomData = roomDoc.data();
+                        const players = roomData.players || {};
+                        
+                        // プレイヤーの位置情報を削除
+                        Object.keys(players).forEach(key => {
+                            if (players[key].playerId === playerId) {
+                                delete players[key];
+                            }
+                        });
 
+                        // プレイヤーが0人になったら、ルームを削除
+                        if (Object.keys(players).length === 0) {
+                            transaction.delete(roomRef);
+                            console.log(`ルーム ${roomId} のプレイヤーが0人になったため、ルームを削除しました`);
+                        } else {
                             transaction.update(roomRef, { players });
                         }
-                    });
-                } catch (error) {
-                    console.error('退室エラー:', error);
-                }
+                    }
+                });
+            } catch (error) {
+                console.error('退室エラー:', error);
             }
-            window.location.href = '../Room/room.html';
         }
-    });
+        window.location.href = '../Room/room.html';
+    }
+});
 
     // 対戦開始ボタンのイベント
     const startButtons = document.querySelectorAll('.start-button');
