@@ -118,6 +118,19 @@
         .button-group {
             margin: 20px 0;
         }
+        #speaker-icon {
+            color: #ff6b6b;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        #speaker-icon img {
+            width: 50px;
+            height: 50px;
+        }
     </style>
 </head>
 <body>
@@ -136,11 +149,23 @@
         <button class="back-button" onclick="location.href='title.html'">戻る</button>
     </div>
 
+     <!-- スピーカーアイコン -->
+     <div id="speaker-icon">
+        <img src="syasin/off.png" alt="音量オフ">
+        <img src="syasin/on.png" alt="音量オン">
+    </div>
+            
+    <!-- BGMプレイヤー -->
+    <audio id="music-player" loop>
+        <source id="music-source" src="">
+    </audio>
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     
     <!-- ログインスクリプト -->
     <script src="login.js"></script>
+    <script src="battle/Battle/bgm.js"></script>
 </body>
 </html>
