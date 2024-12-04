@@ -75,6 +75,19 @@
         #startButton {
             width: 380px;  /* スタートボタンの幅を2つのボタンの合計に合わせる */
         }
+        #speaker-icon {
+            color: #ff6b6b;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        #speaker-icon img {
+            width: 50px;
+            height: 50px;
+        }
     </style>
     <script src="./Music/bgm.js"></script>
 </head>
@@ -87,7 +100,16 @@
         </div>
         <button id="startButton">スタート</button>
     </div>
-
+    <!-- スピーカーアイコン -->
+    <div id="speaker-icon">
+        <img src="syasin/off.png" alt="音量オフ">
+        <img src="syasin/on.png" alt="音量オン">
+    </div>
+            
+    <!-- BGMプレイヤー -->
+    <audio id="music-player" loop>
+        <source id="music-source" src="">
+    </audio>
 
 
     <script>
@@ -97,5 +119,6 @@
             }, 500); // 遷移の遅延（0.5秒）
         });
     </script>
+    <script src="battle/Battle/bgm.js"></script>
 </body>
 </html>

@@ -224,7 +224,7 @@ body {
 #speaker-icon {
     color: #ff6b6b;
     position: fixed;
-    bottom: 20px;
+    bottom: 70px;
     right: 20px;
     cursor: pointer;
     z-index: 1000;
