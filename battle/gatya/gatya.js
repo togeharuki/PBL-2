@@ -19,7 +19,7 @@ const GACHA_ITEMS = [
         name: '河合家のりょうちゃん',
         image: '写真/河合家のりょうちゃん.png',
         effect: '攻撃力+5',
-        count: 3,
+        count: 2,
         rarity: 'SSR',
         weight: 5
     },
@@ -27,7 +27,7 @@ const GACHA_ITEMS = [
         name: '金田家のしょうちゃん',
         image: '写真/金田家のしょうちゃん.png',
         effect: '攻撃力+3',
-        count: 7,
+        count: 5,
         rarity: 'SR',
         weight: 15
     },
@@ -35,7 +35,7 @@ const GACHA_ITEMS = [
         name: '佐藤家のてんちゃん',
         image: '写真/佐藤家のてんちゃん.png',
         effect: '攻撃力+1',
-        count: 10,
+        count: 7,
         rarity: 'R',
         weight: 30
     }
