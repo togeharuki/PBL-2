@@ -11,17 +11,89 @@ const firebaseConfig = {
 const app = window.initializeApp(firebaseConfig);
 const db = window.getFirestore(app);
 
-// 初期カードデータ
+// 初期カードデータを拡充
 const initialCards = [
+    // 攻撃カード
     {
-        name: "レゴブロック",
-        effect: "数値+2",
-        type: "normal"
+        name: "斬撃",
+        effect: "ダメージ3",
+        type: "attack"
     },
     {
-        name: "ちくちく",
-        effect: "強制ダメージ",
-        type: "normal"
+        name: "突撃",
+        effect: "ダメージ4",
+        type: "attack"
+    },
+    {
+        name: "大斬撃",
+        effect: "ダメージ5",
+        type: "attack"
+    },
+    {
+        name: "連撃",
+        effect: "ダメージ2x2",
+        type: "attack"
+    },
+    // 防御カード
+    {
+        name: "盾",
+        effect: "防御+2",
+        type: "defense"
+    },
+    {
+        name: "鉄壁",
+        effect: "防御+3",
+        type: "defense"
+    },
+    // 回復カード
+    {
+        name: "回復",
+        effect: "HP+2",
+        type: "heal"
+    },
+    {
+        name: "大回復",
+        effect: "HP+3",
+        type: "heal"
+    },
+    // 特殊効果カード
+    {
+        name: "ドロー",
+        effect: "カードを1枚引く",
+        type: "effect"
+    },
+    {
+        name: "強化",
+        effect: "次の攻撃+2",
+        type: "effect"
+    },
+    // 追加の攻撃カード
+    {
+        name: "炎撃",
+        effect: "ダメージ4+燃焼1",
+        type: "attack"
+    },
+    {
+        name: "氷撃",
+        effect: "ダメージ3+スロー",
+        type: "attack"
+    },
+    // 追加の防御カード
+    {
+        name: "反射",
+        effect: "防御+2+反射1",
+        type: "defense"
+    },
+    {
+        name: "回避",
+        effect: "次の攻撃回避",
+        type: "defense"
+    },
+    // 追加の効果カード
+    {
+        name: "強奪",
+        effect: "相手の手札を1枚奪う",
+        type: "effect"
     }
 ];
 
@@ -69,7 +141,7 @@ export class Game {
         // 初期化を非同期で実行
         this.initializeGame().catch(error => {
             console.error('ゲーム初期化中にエラーが発生:', error);
-            alert('ゲームの初期化に失敗しました。ページを再読み込みしてください。');
+            alert('ゲームの初期化に失敗しました。ページを再読み込みしてくだ��い。');
         });
 
         // イベントリスナーの設定
@@ -104,9 +176,6 @@ export class Game {
     async initializeGame() {
         try {
             console.log('initializeGame開始');
-            
-            // デッキの初期化を確認
-            await this.initializeDeckIfNeeded();
             
             console.log('Firestoreリファレンス作成開始');
             const gamesRef = window.collection(db, 'games');
@@ -399,55 +468,58 @@ export class Game {
         return newArray;
     }
 
-    async initializeDeckIfNeeded() {
-        try {
-            console.log('デッキ初期化チェック開始');
-            const deckRef = window.collection(db, 'deck');
-            const deckSnapshot = await window.getDocs(deckRef);
-
-            if (deckSnapshot.empty) {
-                console.log('デッキが空のため、初期カードを追加します');
-                for (const card of initialCards) {
-                    await window.addDoc(deckRef, {
-                        ...card,
-                        isCreated: false
-                    });
-                }
-                console.log('初期カードの追加完了');
-            } else {
-                console.log('既存のデッキが見つかりました');
-            }
-        } catch (error) {
-            console.error('デッキ初期化エラー:', error);
-            throw error;
-        }
-    }
-
     async getCardEffect() {
         try {
             console.log('getCardEffect開始');
-            const deckRef = window.collection(db, 'deck');
-            console.log('デッキコレクション参照作成');
-            
-            const querySnapshot = await window.getDocs(deckRef);
-            console.log('デッキドキュメント取得完了');
-            
-            const cards = [];
-            querySnapshot.forEach((doc) => {
-                const cardData = doc.data();
-                cards.push({
-                    id: doc.id,
-                    effect: cardData.effect,
-                    name: cardData.name,
-                    type: cardData.type
-                });
-            });
-            
-            console.log(`${cards.length}枚のカードを取得`);
-            return cards;
+            const playerId = this.playerId;
+            console.log('プレイヤーID:', playerId);
+
+            // プレイヤーのデッキを取得
+            const deckRef = window.doc(db, 'Deck', playerId);
+            const deckDoc = await window.getDoc(deckRef);
+
+            if (!deckDoc.exists()) {
+                console.log('デッキが見つからないため、新規作成します');
+                // 新規デッキを作成
+                const newDeck = {
+                    cards: initialCards.map(card => ({
+                        ...card,
+                        isCreated: false
+                    }))
+                };
+                await window.setDoc(deckRef, newDeck);
+                return newDeck.cards;
+            }
+
+            const deckData = deckDoc.data();
+            if (!deckData.cards || !Array.isArray(deckData.cards)) {
+                throw new Error('デッキのカードデータが不正です');
+            }
+
+            console.log('カード情報取得完了');
+            const allCards = deckData.cards.map(card => ({
+                id: card.name, // カード名をIDとして使用
+                type: card.type,
+                effect: card.effect,
+                name: card.name,
+                isCreated: card.isCreated
+            }));
+
+            console.log(`取得したカード数: ${allCards.length}`);
+
+            if (allCards.length === 0) {
+                throw new Error('カードが取得できませんでした');
+            }
+
+            return allCards;
         } catch (error) {
             console.error('カード効果の取得に失敗:', error);
-            console.error('エラーのスタックトレース:', error.stack);
+            console.error('エラーの詳細:', {
+                gameId: this.gameId,
+                playerId: this.playerId,
+                error: error.message,
+                stack: error.stack
+            });
             throw error;
         }
     }
@@ -455,6 +527,13 @@ export class Game {
     async createNewGame(gameDocRef) {
         console.log('新規ゲーム作成開始');
         const cards = await this.getCardEffect();
+        console.log('取得したカード:', cards);
+        
+        if (!Array.isArray(cards) || cards.length === 0) {
+            throw new Error('有効なカードが取得できませんでした');
+        }
+
+        // カードをシャッフル
         const shuffledDeck = this.shuffleArray([...cards]);
         const initialHand = shuffledDeck.slice(0, 5);
         const remainingDeck = shuffledDeck.slice(5);
@@ -476,6 +555,7 @@ export class Game {
             createdAt: new Date().getTime()
         };
         
+        console.log('初期ゲーム状態:', initialGameState);
         await window.setDoc(gameDocRef, initialGameState);
         console.log('初期状態の保存完了');
         return this.waitForOpponent(gameDocRef);
@@ -487,6 +567,13 @@ export class Game {
         if (gameData.status === 'waiting' && !gameData.players[this.playerId]) {
             try {
                 const cards = await this.getCardEffect();
+                console.log('取得したカード:', cards);
+                
+                if (!Array.isArray(cards) || cards.length === 0) {
+                    throw new Error('有効なカ���ドが取得できませんでした');
+                }
+
+                // カードをシャッフル
                 const shuffledDeck = this.shuffleArray([...cards]);
                 const initialHand = shuffledDeck.slice(0, 5);
                 const remainingDeck = shuffledDeck.slice(5);
