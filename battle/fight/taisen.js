@@ -141,7 +141,7 @@ export class Game {
         // 初期化を非同期で実行
         this.initializeGame().catch(error => {
             console.error('ゲーム初期化中にエラーが発生:', error);
-            alert('ゲームの初期化に失敗しました。ページを再読み込みしてくだ。');
+            alert('ゲームの初期化に失敗しました。ページを再読み込みしてくだ��');
         });
 
         // イベントリスナーの設定
@@ -274,7 +274,7 @@ export class Game {
                     console.error('ゲームドキュメントの削除に失敗:', error);
                 });
                 
-                reject(new Error('対戦相手が見つかりまんでした'));
+                reject(new Error('対戦相手が見つかりまんで��た'));
             }, 120000); // タイムアウトを2分延長
         });
     }
@@ -371,7 +371,7 @@ export class Game {
             // ターン表示の更新
             const turnIndicator = document.getElementById('turn-indicator');
             if (turnIndicator) {
-                turnIndicator.textContent = this.gameState.isPlayerTurn ? '���なたのターン' : '相手のターン';
+                turnIndicator.textContent = this.gameState.isPlayerTurn ? 'なたのターン' : '相手のターン';
                 turnIndicator.className = this.gameState.isPlayerTurn ? 'turn-indicator your-turn' : 'turn-indicator opponent-turn';
             }
 
@@ -442,7 +442,7 @@ export class Game {
         for (let i = 0; i < opponentHandCount; i++) {
             const cardBack = document.createElement('div');
             cardBack.className = 'card card-back';
-            // カードの位置を少しずつずらす
+            // カー���の位置を少しずつずらす
             cardBack.style.position = 'absolute';
             cardBack.style.left = `${i * 120}px`; // カード同士の間隔を調整
             cardBack.style.zIndex = i;
@@ -517,7 +517,9 @@ export class Game {
                 const newDeck = {
                     cards: initialCards.map(card => ({
                         ...card,
-                        isCreated: false
+                        isCreated: false,
+                        // ユニークなIDを生成
+                        id: `${card.name}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
                     }))
                 };
                 await window.setDoc(deckRef, newDeck);
@@ -531,7 +533,8 @@ export class Game {
 
             console.log('カード情報取得完了');
             const allCards = deckData.cards.map(card => ({
-                id: card.name, // カード名をIDとして使用
+                // カードのIDを保持、ない場合は新しく生成
+                id: card.id || `${card.name}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
                 type: card.type,
                 effect: card.effect,
                 name: card.name,
@@ -606,7 +609,7 @@ export class Game {
                     throw new Error('有効なカードが取得できませんでした');
                 }
 
-                // カードをシャッフル
+                // カード���シャッフル
                 const shuffledDeck = this.shuffleArray([...cards]);
                 const initialHand = shuffledDeck.slice(0, 5);
                 const remainingDeck = shuffledDeck.slice(5);
@@ -682,7 +685,7 @@ export class Game {
         // ターンの終了処理を実装
     }
 
-    // playCard メソッドを追加
+    // playCard メソッドを修正
     async playCard(cardId) {
         try {
             console.log('カードをプレイ:', cardId);
@@ -691,15 +694,16 @@ export class Game {
                 return;
             }
 
-            // プレイするカードを手札から探す
+            // プレイするカードを手札から探す（IDで完全一致）
             const cardToPlay = this.gameState.playerHand.find(card => card.id === cardId);
             if (!cardToPlay) {
                 console.error('プレイしようとしたカードが見つかりません:', cardId);
                 return;
             }
 
-            // 手札からプレイしたカードのみを除去
+            // 手札から特定のIDのカードのみを除去
             const newHand = this.gameState.playerHand.filter(card => card.id !== cardId);
+            console.log('更新後の手札:', newHand);
 
             // バトルスロットにカードを配置
             const battleSlot = document.getElementById('player-battle-slot');
@@ -707,6 +711,7 @@ export class Game {
                 battleSlot.innerHTML = '';
                 const cardElement = document.createElement('div');
                 cardElement.className = `card ${cardToPlay.type}`;
+                cardElement.dataset.cardId = cardToPlay.id; // IDを設定
                 cardElement.innerHTML = `
                     <div class="card-content">
                         <div class="card-front">
@@ -727,8 +732,8 @@ export class Game {
                 [`players.${this.playerId}.hand`]: newHand,
                 [`players.${this.playerId}.handCount`]: newHand.length,
                 'battleState.playerCard': cardToPlay,
-                'currentTurn': opponentId, // ターンを相手に渡す
-                'turnTime': 60 // タイマーをリセット
+                'currentTurn': opponentId,
+                'turnTime': 60
             });
 
             // ローカルの状態を更新
