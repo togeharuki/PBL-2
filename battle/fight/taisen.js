@@ -526,8 +526,15 @@ export class Game {
 
         if (playerHand) {
             playerHand.addEventListener('dragstart', (e) => {
-                if (e.target.classList.contains('card')) {
+                if (e.target.classList.contains('card') && this.gameState.isPlayerTurn) {
                     e.dataTransfer.setData('text/plain', e.target.dataset.cardId);
+                    e.target.classList.add('dragging');
+                }
+            });
+
+            playerHand.addEventListener('dragend', (e) => {
+                if (e.target.classList.contains('card')) {
+                    e.target.classList.remove('dragging');
                 }
             });
         }
@@ -619,7 +626,7 @@ export class Game {
             const unsubscribe = window.onSnapshot(gameDocRef, (doc) => {
                 const gameData = doc.data();
                 if (gameData && gameData.status === 'playing' && Object.keys(gameData.players).length === 2) {
-                    console.log('対戦相手が見つかりました');
+                    console.log('対戦相手が見つかりまし');
                     clearTimeout(timeoutId); // タイムアウトをクリア
                     unsubscribe(); // リスナーを解除
                     
@@ -649,14 +656,14 @@ export class Game {
                     console.error('ゲームドキュメントの削除に失敗:', error);
                 });
                 
-                reject(new Error('対戦相手が見つかりませんでした'));
-            }, 120000); // タイムアウトを2分に延長
+                reject(new Error('対戦相手が見つかりまんでした'));
+            }, 120000); // タイムアウトを2分延長
         });
     }
 
     setupRealtimeListener() {
         const gameRef = window.doc(db, 'games', this.gameId);
-        window.onSnapshot(gameRef, (doc) => {
+        window.onSnapshot(gameRef, async (doc) => {
             if (doc.exists()) {
                 const gameData = doc.data();
                 if (gameData.status === 'playing') {
@@ -666,7 +673,14 @@ export class Game {
                         matchingOverlay.style.display = 'none';
                     }
                     
-                    this.updateGameState(gameData);
+                    const previousTurn = this.gameState?.isPlayerTurn;
+                    await this.updateGameState(gameData);
+                    
+                    // 自分のターンが始まった時にカードを引く
+                    if (!previousTurn && this.gameState.isPlayerTurn) {
+                        await this.drawCard();
+                    }
+                    
                     this.updateUI();
                 }
             }
@@ -681,6 +695,9 @@ export class Game {
                 console.error('無効なゲームデータ:', gameData);
                 return;
             }
+
+            // gameDataを保存
+            this.gameData = gameData;
 
             const playerState = gameData.players[this.playerId];
             if (!playerState) {
@@ -703,6 +720,11 @@ export class Game {
                 isPlayerTurn: gameData.currentTurn === this.playerId,
                 turnTime: gameData.turnTime || 60
             };
+
+            // バトル状態も更新
+            if (gameData.battleState) {
+                this.battleState = gameData.battleState;
+            }
 
             console.log('ゲーム状態を更新しました:', this.gameState);
         } catch (error) {
@@ -731,11 +753,11 @@ export class Game {
             // ターン表示の更新
             const turnIndicator = document.getElementById('turn-indicator');
             if (turnIndicator) {
-                turnIndicator.textContent = this.gameState.isPlayerTurn ? 'あなたのターン' : '相手のターン';
+                turnIndicator.textContent = this.gameState.isPlayerTurn ? '���なたのターン' : '相手のターン';
                 turnIndicator.className = this.gameState.isPlayerTurn ? 'turn-indicator your-turn' : 'turn-indicator opponent-turn';
             }
 
-            // タイマーの更新
+            // タマーの更新
             if (this.gameState.isPlayerTurn) {
                 this.setupTimer();
             }
