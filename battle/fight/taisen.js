@@ -656,7 +656,7 @@ export class Game {
                     console.error('ゲームドキュメントの削除に失敗:', error);
                 });
                 
-                reject(new Error('対戦相手が見つかりまんでした'));
+                reject(new Error('対戦相手が見つかりまんで��た'));
             }, 120000); // タイムアウトを2分延長
         });
     }
@@ -753,7 +753,7 @@ export class Game {
             // ターン表示の更新
             const turnIndicator = document.getElementById('turn-indicator');
             if (turnIndicator) {
-                turnIndicator.textContent = this.gameState.isPlayerTurn ? '���なたのターン' : '相手のターン';
+                turnIndicator.textContent = this.gameState.isPlayerTurn ? 'なたのターン' : '相手のターン';
                 turnIndicator.className = this.gameState.isPlayerTurn ? 'turn-indicator your-turn' : 'turn-indicator opponent-turn';
             }
 
@@ -824,7 +824,7 @@ export class Game {
         for (let i = 0; i < opponentHandCount; i++) {
             const cardBack = document.createElement('div');
             cardBack.className = 'card card-back';
-            // カードの位置を少しずつずらす
+            // カー���の位置を少しずつずらす
             cardBack.style.position = 'absolute';
             cardBack.style.left = `${i * 120}px`; // カード同士の間隔を調整
             cardBack.style.zIndex = i;
@@ -861,6 +861,16 @@ export class Game {
         cardElement.appendChild(cardContent);
         
         return cardElement;
+    }
+
+    getCardTypeText(type) {
+        const typeMap = {
+            attack: '攻撃',
+            heal: '回復',
+            effect: '効果',
+            god: '神'
+        };
+        return typeMap[type] || type;
     }
 
     getCardTypeText(type) {
