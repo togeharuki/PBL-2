@@ -11,17 +11,89 @@ const firebaseConfig = {
 const app = window.initializeApp(firebaseConfig);
 const db = window.getFirestore(app);
 
-// 初期カードデータ
+// 初期カードデータを拡充
 const initialCards = [
+    // 攻撃カード
     {
-        name: "レゴブロック",
-        effect: "数値+2",
-        type: "normal"
+        name: "斬撃",
+        effect: "ダメージ3",
+        type: "attack"
     },
     {
-        name: "ちくちく",
-        effect: "強制ダメージ",
-        type: "normal"
+        name: "突撃",
+        effect: "ダメージ4",
+        type: "attack"
+    },
+    {
+        name: "大斬撃",
+        effect: "ダメージ5",
+        type: "attack"
+    },
+    {
+        name: "連撃",
+        effect: "ダメージ2x2",
+        type: "attack"
+    },
+    // 防御カード
+    {
+        name: "盾",
+        effect: "防御+2",
+        type: "defense"
+    },
+    {
+        name: "鉄壁",
+        effect: "防御+3",
+        type: "defense"
+    },
+    // 回復カード
+    {
+        name: "回復",
+        effect: "HP+2",
+        type: "heal"
+    },
+    {
+        name: "大回復",
+        effect: "HP+3",
+        type: "heal"
+    },
+    // 特殊効果カード
+    {
+        name: "ドロー",
+        effect: "カードを1枚引く",
+        type: "effect"
+    },
+    {
+        name: "強化",
+        effect: "次の攻撃+2",
+        type: "effect"
+    },
+    // 追加の攻撃カード
+    {
+        name: "炎撃",
+        effect: "ダメージ4+燃焼1",
+        type: "attack"
+    },
+    {
+        name: "氷撃",
+        effect: "ダメージ3+スロー",
+        type: "attack"
+    },
+    // 追加の防御カード
+    {
+        name: "反射",
+        effect: "防御+2+反射1",
+        type: "defense"
+    },
+    {
+        name: "回避",
+        effect: "次の攻撃回避",
+        type: "defense"
+    },
+    // 追加の効果カード
+    {
+        name: "強奪",
+        effect: "相手の手札を1枚奪う",
+        type: "effect"
     }
 ];
 
