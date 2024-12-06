@@ -23,7 +23,7 @@ const cardEffect = document.getElementById('card-effect');
 const specialCard = {
     name: "伝説のカード",
     image: "kami.jpg", 
-    effect: "⚡ D:15 ⚡",
+    effect: "⚡ D:15 ⚡"
 };
 
 // ページ読み込み時の処理
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 受け取るボタンのイベントリスナー
     receiveButton.addEventListener('click', async () => {
         try {
-            await saveCardToFirebase(playerId, specialCard);
+            await saveCardToSouko(playerId, specialCard);
             showSuccessMessage();
             receiveButton.disabled = true;
             setTimeout(() => {
@@ -63,8 +63,8 @@ function updateCardDisplay() {
     cardEffect.textContent = specialCard.effect;
 }
 
-// カードをFirebaseに保存する関数
-async function saveCardToFirebase(playerId, card) {
+// カードをSoukoコレクションに保存する関数
+async function saveCardToSouko(playerId, card) {
     const cardId = `special_card_${Date.now()}`;
     const cardData = {
         name: card.name,
@@ -73,14 +73,14 @@ async function saveCardToFirebase(playerId, card) {
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
     };
 
-    // Card/{playerId} のパスでドキュメントを更新
-    const playerCardsRef = db.collection('Card').doc(playerId.toString());
+    // Souko/{playerId} のパスでドキュメントを更新
+    const playerSoukoRef = db.collection('Souko').doc(playerId.toString());
     
     try {
-        await playerCardsRef.set({
+        await playerSoukoRef.set({
             [cardId]: cardData
         }, { merge: true });
-        console.log('特別なカードが保存されました');
+        console.log('特別なカードが倉庫に保存されました');
     } catch (error) {
         console.error('カードの保存中にエラーが発生しました:', error);
         throw error;
