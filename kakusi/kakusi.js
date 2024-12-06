@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
             showSuccessMessage();
             receiveButton.disabled = true;
             setTimeout(() => {
-                window.location.href = '../main/Menu/Menu.html'; 
+                window.location.href = '../main/Menu/Menu.html';
             }, 2000);
         } catch (error) {
             console.error('カードの保存に失敗しました:', error);
