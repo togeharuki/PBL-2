@@ -2,7 +2,7 @@
 const GACHA_ITEMS = [
     {
         name: '学祭のピザ',
-        image: '写真/R-学祭のピザ.png',
+        image: 'https://togeharuki.github.io/Deck-Dreamers/gatya/写真/R-学祭のピザ.png',
         effect: '攻撃力+1',
         count: 10,
         rarity: 'R',
@@ -10,7 +10,7 @@ const GACHA_ITEMS = [
     },
     {
         name: '二郎系',
-        image: '写真/R-二郎系.png',
+        image: 'https://togeharuki.github.io/Deck-Dreamers/gatya/写真/R-二郎系.png',
         effect: '攻撃力+1',
         count: 10,
         rarity: 'R',
@@ -18,7 +18,7 @@ const GACHA_ITEMS = [
     },
     {
         name: '先生集合',
-        image: '写真/R-先生集合.png',
+        image: 'https://togeharuki.github.io/Deck-Dreamers/gatya/写真/R-先生集合.png',
         effect: '攻撃力+1',
         count: 10,
         rarity: 'R',
@@ -26,7 +26,7 @@ const GACHA_ITEMS = [
     },
     {
         name: '河合家のりょうちゃん',
-        image: '写真/SR-河合家のりょうちゃん.png',
+        image: 'https://togeharuki.github.io/Deck-Dreamers/gatya/写真/SR-河合家のりょうちゃん.png',
         effect: '攻撃力+5',
         count: 5,
         rarity: 'SR',
@@ -34,7 +34,7 @@ const GACHA_ITEMS = [
     },
     {
         name: '金田家のしょうちゃん',
-        image: '写真/SR-金田家のしょうちゃん.png',
+        image: 'https://togeharuki.github.io/Deck-Dreamers/gatya/写真/SR-金田家のしょうちゃん.png',
         effect: '攻撃力+3',
         count: 5,
         rarity: 'SR',
@@ -42,7 +42,7 @@ const GACHA_ITEMS = [
     },
     {
         name: '喜友名家のともちゃん',
-        image: '写真/SR-喜友名家のともちゃん.png',
+        image: 'https://togeharuki.github.io/Deck-Dreamers/gatya/写真/SR-喜友名家のともちゃん.png',
         effect: '攻撃力+2',
         count: 5,
         rarity: 'SR',
@@ -50,7 +50,7 @@ const GACHA_ITEMS = [
     },
     {
         name: '佐藤家のてんちゃん',
-        image: '写真/SSR-佐藤家のてんちゃん.png',
+        image: 'https://togeharuki.github.io/Deck-Dreamers/gatya/写真/SSR-佐藤家のてんちゃん.png',
         effect: '回復+10',
         count: 2,
         rarity: 'SSR',
@@ -58,7 +58,7 @@ const GACHA_ITEMS = [
     },
     {
         name: 'マーモット系男子',
-        image: '写真/SSR-マーモット系男子.png',
+        image: 'https://togeharuki.github.io/Deck-Dreamers/gatya/写真/SSR-マーモット系男子.png',
         effect: '回復+10',
         count: 2,
         rarity: 'SSR',
