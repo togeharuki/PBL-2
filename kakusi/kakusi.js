@@ -19,8 +19,8 @@ const cardImage = document.getElementById('card-image');
 const cardName = document.getElementById('card-name');
 const cardEffect = document.getElementById('card-effect');
 
-// 特別なカードのデータ
-const specialCard = {
+// 隠しカードのデータ
+const hiddenCard = {
     name: "伝説のカード",
     image: "kami.jpg", 
     effect: "⚡ D:15 ⚡"
@@ -43,11 +43,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // 受け取るボタンのイベントリスナー
     receiveButton.addEventListener('click', async () => {
         try {
-            await saveCardToSouko(playerId, specialCard);
+            await saveDefaultCard(playerId, hiddenCard);
             showSuccessMessage();
             receiveButton.disabled = true;
             setTimeout(() => {
-                window.location.href = '../main/Menu/Menu.html'; 
+                window.location.href = '../main/Menu/Menu.html';
             }, 2000);
         } catch (error) {
             console.error('カードの保存に失敗しました:', error);
@@ -58,14 +58,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // カードの表示を更新する関数
 function updateCardDisplay() {
-    cardImage.src = specialCard.image;
-    cardName.textContent = specialCard.name;
-    cardEffect.textContent = specialCard.effect;
+    cardImage.src = hiddenCard.image;
+    cardName.textContent = hiddenCard.name;
+    cardEffect.textContent = hiddenCard.effect;
 }
 
-// カードをSoukoコレクションに保存する関数
-async function saveCardToSouko(playerId, card) {
-    const cardId = `special_card_${Date.now()}`;
+// カードをデフォルトカードとしてSoukoに保存する関数
+async function saveDefaultCard(playerId, card) {
+    // default_card_のIDを生成（既存のデフォルトカードの形式に合わせる）
+    const cardId = `default_card_${Date.now()}`;
     const cardData = {
         name: card.name,
         image: card.image,
@@ -73,14 +74,14 @@ async function saveCardToSouko(playerId, card) {
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
     };
 
-    // Souko/{playerId} のパスでドキュメントを更新
+    // Soukoコレクションに保存
     const playerSoukoRef = db.collection('Souko').doc(playerId.toString());
     
     try {
         await playerSoukoRef.set({
             [cardId]: cardData
         }, { merge: true });
-        console.log('特別なカードが倉庫に保存されました');
+        console.log('デフォルトカードとして保存されました');
     } catch (error) {
         console.error('カードの保存中にエラーが発生しました:', error);
         throw error;
