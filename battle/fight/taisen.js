@@ -656,7 +656,7 @@ export class Game {
                     console.error('ゲームドキュメントの削除に失敗:', error);
                 });
                 
-                reject(new Error('対戦相手が見つかりまんで��た'));
+                reject(new Error('対戦相手が見つかりまんでた'));
             }, 120000); // タイムアウトを2分延長
         });
     }
@@ -696,7 +696,6 @@ export class Game {
                 return;
             }
 
-            // gameDataを保存
             this.gameData = gameData;
 
             const playerState = gameData.players[this.playerId];
@@ -717,11 +716,11 @@ export class Game {
                 playerDeck: playerState.deck || [],
                 playerHand: playerState.hand || [],
                 opponentHandCount: opponentState?.handCount || 5,
+                opponentDeckCount: opponentState?.deck?.length || 25,
                 isPlayerTurn: gameData.currentTurn === this.playerId,
                 turnTime: gameData.turnTime || 60
             };
 
-            // バトル状態も更新
             if (gameData.battleState) {
                 this.battleState = gameData.battleState;
             }
@@ -743,6 +742,7 @@ export class Game {
 
             // デッキ枚数の更新
             document.getElementById('player-deck-count').textContent = this.gameState.playerDeck.length;
+            document.getElementById('opponent-deck-count').textContent = this.gameState.opponentDeckCount;
 
             // 手札の更新
             this.updateHandDisplay();
@@ -753,11 +753,11 @@ export class Game {
             // ターン表示の更新
             const turnIndicator = document.getElementById('turn-indicator');
             if (turnIndicator) {
-                turnIndicator.textContent = this.gameState.isPlayerTurn ? 'なたのターン' : '相手のターン';
+                turnIndicator.textContent = this.gameState.isPlayerTurn ? 'あなたのターン' : '相手のターン';
                 turnIndicator.className = this.gameState.isPlayerTurn ? 'turn-indicator your-turn' : 'turn-indicator opponent-turn';
             }
 
-            // タマーの更新
+            // タイマーの更新
             if (this.gameState.isPlayerTurn) {
                 this.setupTimer();
             }
@@ -824,7 +824,7 @@ export class Game {
         for (let i = 0; i < opponentHandCount; i++) {
             const cardBack = document.createElement('div');
             cardBack.className = 'card card-back';
-            // カー���の位置を少しずつずらす
+            // カーの位置を少しずつずらす
             cardBack.style.position = 'absolute';
             cardBack.style.left = `${i * 120}px`; // カード同士の間隔を調整
             cardBack.style.zIndex = i;
