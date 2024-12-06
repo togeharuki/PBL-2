@@ -20,6 +20,14 @@ const endMessage = document.getElementById('endMessage');  // ガチャ終了メ
 // ガチャアイテムのデータ
 const GACHA_ITEMS = [
     {
+        name: '徳田家ののりちゃん',
+        image: '写真/SR-徳田家ののりちゃん.png',
+        effect: '攻撃力+1',  // アイテムの効果
+        count: 20,  // 残り個数
+        rarity: 'N',  // レアリティ
+        weight: 35  // 抽選時の重み（確率）
+    },
+    {
         name: '学祭のピザ',
         image: '写真/R-学祭のピザ.png',
         effect: '回復+1',  // アイテムの効果
@@ -78,14 +86,6 @@ const GACHA_ITEMS = [
     {
         name: '中野家のてんちゃん',
         image: '写真/SR-中野家のてんちゃん.png',
-        effect: '攻撃力+3',  // アイテムの効果
-        count: 5,  // 残り個数
-        rarity: 'SR',  // レアリティ
-        weight: 15  // 抽選時の重み（確率）
-    },
-    {
-        name: '徳田家ののりちゃん',
-        image: '写真/SR-徳田家ののりちゃん.png',
         effect: '攻撃力+3',  // アイテムの効果
         count: 5,  // 残り個数
         rarity: 'SR',  // レアリティ
