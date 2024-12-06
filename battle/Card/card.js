@@ -50,8 +50,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 自動生成ボタンのイベントリスナー
-    autoGenerateButton.addEventListener('click', async function() {
+      // 自動生成ボタンのイベントリスナー
+      autoGenerateButton.addEventListener('click', async function() {
         try {
             autoGenerateButton.disabled = true;
             createButton.disabled = true;
@@ -114,6 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('カードの自動生成に失敗しました: ' + error.message);
         }
     });
+
 
     // カード数の更新とデッキ編集ボタンの表示制御
     function updateCardCount() {
@@ -198,6 +199,36 @@ document.addEventListener('DOMContentLoaded', function() {
             throw error;
         }
     }
+
+    // カードリストの表示
+    function showCardList() {
+        cardListGrid.innerHTML = '';
+        cards.forEach((card, index) => {
+            const cardElement = createCardElement(card, index);
+            cardListGrid.appendChild(cardElement);
+        });
+        updateCardCount();
+    }
+
+    // カードの削除
+    async function deleteCard(index) {
+        try {
+            const cardId = cards[index].firebaseId;
+            if (cardId) {
+                await playerCardsRef.update({
+                    [cardId]: firebase.firestore.FieldValue.delete()
+                });
+            }
+            cards.splice(index, 1);
+            updateCardCount();
+            showCardList();
+            showSuccessMessage('カードを削除しました');
+        } catch (error) {
+            console.error('カードの削除に失敗しました:', error);
+            alert('カードの削除に失敗しました: ' + error.message);
+        }
+    }
+
     // ランダム効果の生成
     function generateRandomEffect(type) {
         let value;
