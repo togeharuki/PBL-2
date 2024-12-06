@@ -116,12 +116,11 @@
             background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
         }
         #speaker-icon {
-            color: #ff6b6b;
-            position: fixed;
-            bottom: 1%;
-            right: 10px;
-            cursor: pointer;
-            z-index: 1001;
+            position: fixed; /* 固定位置 */
+            bottom: 100px;    /* 画面下からの距離調整 */
+            right: 20px;     /* 画面右からの距離調整 */
+            cursor: pointer; /* クリック可能に */
+            z-index: 1001;   /* 上層に表示 */
         }
 
         #speaker-icon img {
