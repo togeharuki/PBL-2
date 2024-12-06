@@ -43,7 +43,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // 受け取るボタンのイベントリスナー
     receiveButton.addEventListener('click', async () => {
         try {
-            await saveCardToFirebase(playerId, specialCard);
+            const isDuplicate = await checkDuplicateCard(playerId, hiddenCard.name);
+            if (isDuplicate) {
+                alert('このカードは既に所持しています');
+                receiveButton.disabled = true;
+                return;
+            }
+
+            await saveDefaultCard(playerId, hiddenCard);
             showSuccessMessage();
             receiveButton.disabled = true;
             setTimeout(() => {
@@ -63,9 +70,27 @@ function updateCardDisplay() {
     cardEffect.textContent = hiddenCard.effect;
 }
 
-// カードをFirebaseに保存する関数
-async function saveCardToFirebase(playerId, card) {
-    const cardId = `special_card_${Date.now()}`;
+// 重複カードをチェックする関数
+async function checkDuplicateCard(playerId, cardName) {
+    try {
+        const soukoRef = db.collection('Souko').doc(playerId.toString());
+        const doc = await soukoRef.get();
+
+        if (!doc.exists) {
+            return false;
+        }
+
+        const cardData = doc.data();
+        return Object.values(cardData).some(card => card.name === cardName);
+    } catch (error) {
+        console.error('重複チェックに失敗しました:', error);
+        throw error;
+    }
+}
+
+// カードをデフォルトカードとしてSoukoに保存する関数
+async function saveDefaultCard(playerId, card) {
+    const cardId = `default_card_${Date.now()}`;
     const cardData = {
         name: card.name,
         image: card.image,
