@@ -10,6 +10,23 @@ const gachaCapsule = document.getElementById('gachaCapsule');
 const gachaCapsuleImage = document.getElementById('gachaCapsuleImage');
 const endMessage = document.getElementById('endMessage');
 
+// アイテムを重み付けでランダムに選ぶ関数
+function weightedRandomSelect() {
+    const availableItems = items.filter(item => item.count > 0);
+    if (availableItems.length === 0) return null;
+
+    const totalWeight = availableItems.reduce((sum, item) => sum + item.weight, 0);
+    let random = Math.random() * totalWeight;
+
+    for (const item of availableItems) {
+        random -= item.weight;
+        if (random <= 0) {
+            return item;
+        }
+    }
+    return availableItems[0];
+}
+
 // ガチャの初期化
 async function initializeGacha() {
     playerId = localStorage.getItem('playerId');
@@ -63,6 +80,35 @@ async function addCardToSouko(card) {
     }
 }
 
+// ガチャ結果を処理する関数
+async function handleGachaResult() {
+    const selectedItem = weightedRandomSelect();
+    if (!selectedItem) {
+        showEndMessage();
+        return;
+    }
+
+    const itemIndex = items.findIndex(item => item.name === selectedItem.name);
+    if (itemIndex !== -1) {
+        items[itemIndex].count--;
+    }
+
+    try {
+        await addCardToSouko(selectedItem);
+        await updateGachaData();
+
+        setTimeout(() => {
+            gachaResult.value = `★${selectedItem.rarity}★\n${selectedItem.name}\n効果: ${selectedItem.effect}`;
+            gachaCapsuleImage.src = selectedItem.image;
+            displayItemsRemaining();
+            updateButtonState();
+        }, 2000);
+    } catch (error) {
+        console.error('結果処理エラー:', error);
+        showSuccessNotification('処理に失敗しました');
+    }
+}
+
 // Firestoreのデータ更新
 async function updateGachaData() {
     if (!playerId) return;
@@ -78,6 +124,41 @@ async function updateGachaData() {
         console.error('エラーの詳細:', error.message);
         throw error;
     }
+}
+
+// UI操作関連の関数
+function triggerGachaAnimation() {
+    gachaButton.style.display = 'none';
+    resetButton.style.display = 'inline-block';
+    gachaCapsule.style.animation = 'rotateCapsule 2s ease forwards';
+}
+
+function resetGacha() {
+    resetButton.style.display = 'none';
+    gachaButton.disabled = false;
+    gachaButton.style.display = 'inline-block';
+    gachaResult.value = '';
+    gachaCapsuleImage.src = 'https://togeharuki.github.io/Deck-Dreamers/gatya/写真/00-カードの裏面.png';
+    gachaCapsule.style.animation = 'none';
+}
+
+function displayItemsRemaining() {
+    console.clear();
+    items.forEach(item => {
+        console.log(`${item.rarity} ${item.name}: 残り ${item.count} 個`);
+    });
+}
+
+function updateButtonState() {
+    const hasAvailableItems = items.some(item => item.count > 0);
+    gachaButton.disabled = !hasAvailableItems;
+    if (!hasAvailableItems) showEndMessage();
+}
+
+function showEndMessage() {
+    endMessage.style.display = 'block';
+    gachaButton.style.display = 'none';
+    gachaResult.style.display = 'none';
 }
 
 // 成功通知を表示する関数
@@ -107,11 +188,7 @@ function showSuccessNotification(message) {
     }, 2000);
 }
 
-// その他の関数は変更なし
-// weightedRandomSelect, handleGachaResult, triggerGachaAnimation, resetGacha,
-// displayItemsRemaining, updateButtonState, showEndMessage は既存のまま
-
-// イベントリスナー
+// イベントリスナーの設定
 document.addEventListener('DOMContentLoaded', initializeGacha);
 
 gachaButton.addEventListener('click', async () => {
