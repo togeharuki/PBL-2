@@ -371,7 +371,7 @@ export class Game {
             // ターン表示の更新
             const turnIndicator = document.getElementById('turn-indicator');
             if (turnIndicator) {
-                turnIndicator.textContent = this.gameState.isPlayerTurn ? 'なたのターン' : '相手のターン';
+                turnIndicator.textContent = this.gameState.isPlayerTurn ? 'あなたのターン' : '相手のターン';
                 turnIndicator.className = this.gameState.isPlayerTurn ? 'turn-indicator your-turn' : 'turn-indicator opponent-turn';
             }
 
