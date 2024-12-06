@@ -113,7 +113,6 @@ function closeModal() {
     document.getElementById('createRoomModal').style.display = 'none';
     resetPlayerCountSelection();
 }
-
 // プレイヤー数選択のリセット関数
 function resetPlayerCountSelection() {
     selectedPlayerCount = 2;
@@ -199,46 +198,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    let previousValue = '';
-
+    // ルームIDの入力フォーマット制御
     const roomIdInput = document.getElementById('roomIdInput');
     if (roomIdInput) {
         roomIdInput.addEventListener('input', function(e) {
-            let value = e.target.value;
-            
-            // 前回の値と同じ場合は処理をスキップ
-            if (value === previousValue) return;
-            
-            // 数字以外を削除
-            value = value.replace(/\D/g, '');
-            
-            // 7桁までに制限
-            value = value.slice(0, 7);
-            
-            // 表示用の値（3桁目の後にハイフンを挿入）
-            let displayValue = value;
+            let value = e.target.value.replace(/\D/g, '');
             if (value.length > 3) {
-                displayValue = value.slice(0, 3) + '-' + value.slice(3);
+                value = value.slice(0, 3) + '-' + value.slice(3, 7);
             }
-            
-            // 値が変更された場合のみDOMを更新
-            if (displayValue !== e.target.value) {
-                e.target.value = displayValue;
-            }
-            
-            previousValue = displayValue;
-        });
-        
-        // フォーカス時にプレースホルダーを一時的に隠す
-        roomIdInput.addEventListener('focus', function() {
-            this.placeholder = '';
-        });
-        
-        // フォーカスを失った時にプレースホルダーを復帰
-        roomIdInput.addEventListener('blur', function() {
-            if (!this.value) {
-                this.placeholder = 'ルームID（例：123-4567）';
-            }
+            e.target.value = value;
         });
     }
 
