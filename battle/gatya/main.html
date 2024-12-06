@@ -7,9 +7,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="main.css">
     
-    <!-- Firebase SDKs - 非同期読み込み -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <!-- Firebase SDKs -->
+    <script defer src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
 </head>
 <body>
     <div class="gacha-container">
@@ -31,17 +32,10 @@
         </div>
     </div>
 
-    <!-- 自作スクリプトの読み込み - 順序重要 -->
-    <script src="Firebase-config.js"></script>
-    <script src="CardDate.js"></script>
-    <script>
-        // Firebaseの初期化完了を待つ
-        window.addEventListener('load', function() {
-            // メインスクリプトを動的に読み込み
-            const script = document.createElement('script');
-            script.src = 'main.js';
-            document.body.appendChild(script);
-        });
-    </script>
+    <!-- 自作スクリプト -->
+    <script defer src="Firebase-config.js"></script>
+    <script defer src="CardDate.js"></script>
+    <script defer src="main.js"></script>
+    
 </body>
 </html>
