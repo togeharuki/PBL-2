@@ -138,7 +138,7 @@ function resetGacha() {
     gachaButton.disabled = false;
     gachaButton.style.display = 'inline-block';
     gachaResult.value = '';
-    gachaCapsuleImage.src = 'https://togeharuki.github.io/Deck-Dreamers/gatya/写真/00-カードの裏面.png';
+    gachaCapsuleImage.src = '/写真/00-カードの裏面.png';
     gachaCapsule.style.animation = 'none';
 }
 
