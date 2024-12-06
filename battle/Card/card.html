@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="card.css">
 </head>
 <body>
-
     <h1>トレーディングカード作成</h1>
 
     <div class="card-creator">
@@ -35,6 +34,7 @@
 
         <input type="file" id="card-image" accept="image/*">
         <button id="create-card">カードを保存</button>
+        <button id="auto-generate" class="auto-generate-button">20枚自動生成</button>
     </div>
 
     <div id="card-count">作成したカード: 0 / 20</div>
@@ -59,7 +59,7 @@
         <img src="syasin/off.png" alt="音量オフ">
         <img src="syasin/on.png" alt="音量オン">
     </div>
-        
+    
     <!-- BGMプレイヤー -->
     <audio id="music-player" loop>
         <source id="music-source" src="">
@@ -69,7 +69,7 @@
     <!-- メインのJavaScriptファイル -->
     <script src="card.js"></script>
 
-    <!-- 戻るボタンを追加 -->
+    <!-- 戻るボタン -->
     <button id="backButton">戻る</button>
 </body>
 </html>

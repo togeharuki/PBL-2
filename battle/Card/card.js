@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // DOM要素の取得
     const imageInput = document.getElementById('card-image');
     const createButton = document.getElementById('create-card');
+    const autoGenerateButton = document.getElementById('auto-generate');
     const previewImage = document.getElementById('preview-image');
     const previewEffect = document.getElementById('preview-effect');
     const heartButton = document.getElementById('heart-button');
@@ -49,11 +50,55 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // 自動生成ボタンのイベントリスナー
+    autoGenerateButton.addEventListener('click', async function() {
+        try {
+            autoGenerateButton.disabled = true;
+            createButton.disabled = true;
+
+            const currentCardCount = cards.length;
+            if (currentCardCount >= 20) {
+                alert('既に20枚のカードが作成されています。');
+                return;
+            }
+
+            const cardsToCreate = 20 - currentCardCount;
+
+            for (let i = 0; i < cardsToCreate; i++) {
+                const value = Math.floor(Math.random() * 8) + 3; // 3から10のランダムな値
+                const newCard = {
+                    name: `カード${cards.length + 1}`,
+                    image: "https://togeharuki.github.io/Deck-Dreamers/kakusi/kami.jpg",
+                    effect: `⚡ D ${value} ⚡`,
+                    timestamp: new Date()
+                };
+
+                const firebaseId = await saveCardToFirebase(newCard);
+                newCard.firebaseId = firebaseId;
+                cards.push(newCard);
+                
+                const cardElement = createCardElement(newCard, cards.length - 1);
+                cardListGrid.appendChild(cardElement);
+                updateCardCount();
+
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+
+            showSuccessMessage('20枚のカードを生成しました！');
+            autoGenerateButton.disabled = true;
+
+        } catch (error) {
+            console.error('カードの自動生成に失敗しました:', error);
+            alert('カードの自動生成に失敗しました: ' + error.message);
+        }
+    });
+
     // カード数の更新とデッキ編集ボタンの表示制御
     function updateCardCount() {
         const count = cards.length;
         cardCountDisplay.textContent = `作成したカード: ${count} / 20`;
         createButton.disabled = count >= 20;
+        autoGenerateButton.disabled = count >= 20;
         
         if (count >= 20) {
             deckEditContainer.style.display = 'block';
@@ -108,6 +153,7 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('カードの読み込みに失敗しました: ' + error.message);
         }
     }
+
     // カードをFirebaseに保存する関数
     async function saveCardToFirebase(card) {
         try {
@@ -256,7 +302,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 効果ボタンのイベントリスナー
     heartButton.addEventListener('click', function() {
-        const healCardCount = cards.filter(card => card.effect.startsWith('✨ 回復魔法')).length;
+        const healCardCount = cards.filter(card => card.effect.startsWith('✨')).length;
         if (healCardCount >= 4) {
             alert('回復カードは最大4枚までしか作成できません。');
             return;
@@ -291,9 +337,9 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const healCardCount = cards.filter(card => card.effect.startsWith('✨ 回復魔法')).length;
+        const healCardCount = cards.filter(card => card.effect.startsWith('✨')).length;
 
-        if (currentEffect.startsWith('✨ 回復魔法') && healCardCount >= 4) {
+        if (currentEffect.startsWith('✨') && healCardCount >= 4) {
             alert('回復カードは最大4枚までしか作成できません。');
             resetEffect();
             return;
