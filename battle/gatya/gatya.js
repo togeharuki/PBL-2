@@ -20,37 +20,45 @@ const endMessage = document.getElementById('endMessage');  // ガチャ終了メ
 // ガチャアイテムのデータ
 const GACHA_ITEMS = [
     {
+        name: '先生集合',
+        image: '写真/R-先生集合.png',
+        effect: '攻撃力+1',  // アイテムの効果
+        count: 10,  // 残り個数
+        rarity: 'R',  // レアリティ
+        weight: 20  // 抽選時の重み（確率）
+    },
+    {
         name: '河合家のりょうちゃん',
-        image: '写真/河合家のりょうちゃん.png',
+        image: '写真/SR-河合家のりょうちゃん.png',
         effect: '攻撃力+5',  // アイテムの効果
-        count: 2,  // 残り個数
-        rarity: 'SSR',  // レアリティ
-        weight: 5  // 抽選時の重み（確率）
+        count: 5,  // 残り個数
+        rarity: 'SR',  // レアリティ
+        weight: 10  // 抽選時の重み（確率）
     },
     {
         name: '金田家のしょうちゃん',
-        image: '写真/金田家のしょうちゃん.png',
+        image: '写真/SR-金田家のしょうちゃん.png',
         effect: '攻撃力+3',  // アイテムの効果
         count: 5,  // 残り個数
         rarity: 'SR',  // レアリティ
         weight: 10  // 抽選時の重み（確率）
     },
     {
-        name: '佐藤家のてんちゃん',
-        image: '写真/佐藤家のてんちゃん.png',
-        effect: '攻撃力+1',  // アイテムの効果
-        count: 7,  // 残り個数
-        rarity: 'R',  // レアリティ
-        weight: 15  // 抽選時の重み（確率）
+        name: '喜友名家のともちゃん',
+        image: '写真/SR-喜友名家のともちゃん.png',
+        effect: '攻撃力+2',  // アイテムの効果
+        count: 5,  // 残り個数
+        rarity: 'SR',  // レアリティ
+        weight: 10  // 抽選時の重み（確率）
     },
     {
-        name: '喜友名家のともちゃん',
-        image: '写真/喜友名家のともちゃん.png',
-        effect: '攻撃力+2',  // アイテムの効果
-        count: 7,  // 残り個数
-        rarity: 'R',  // レアリティ
-        weight: 15  // 抽選時の重み（確率）
-    }
+        name: '佐藤家のてんちゃん',
+        image: '写真/SSR-佐藤家のてんちゃん.png',
+        effect: '回復+10',  // アイテムの効果
+        count: 2,  // 残り個数
+        rarity: 'SSR',  // レアリティ
+        weight: 2  // 抽選時の重み（確率）
+    },
 ];
 
 let items = [];  // ガチャアイテムの状態（残り個数など）
