@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ガチャガチャ</title>
     <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap" rel="stylesheet">
-    
-    <!-- Firebase SDKs -->
-    <script defer src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    
     <link rel="stylesheet" href="main.css">
+    
+    <!-- Firebase SDKs - 非同期読み込み -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 </head>
 <body>
     <div class="gacha-container">
@@ -31,9 +30,18 @@
             <h2>ガチャの在庫がすべてなくなりました。<br>天井あざす！！！笑</h2>
         </div>
     </div>
-    <!-- 自作スクリプトの読み込み -->
+
+    <!-- 自作スクリプトの読み込み - 順序重要 -->
     <script src="Firebase-config.js"></script>
     <script src="CardDate.js"></script>
-    <script src="main.js"></script>
+    <script>
+        // Firebaseの初期化完了を待つ
+        window.addEventListener('load', function() {
+            // メインスクリプトを動的に読み込み
+            const script = document.createElement('script');
+            script.src = 'main.js';
+            document.body.appendChild(script);
+        });
+    </script>
 </body>
 </html>
