@@ -20,20 +20,20 @@ const endMessage = document.getElementById('endMessage');  // ガチャ終了メ
 // ガチャアイテムのデータ
 const GACHA_ITEMS = [
     {
-        name: '先生集合',
+        name: '学祭のピザ',
         image: '写真/R-学祭のピザ.png',
         effect: '攻撃力+1',  // アイテムの効果
         count: 10,  // 残り個数
         rarity: 'R',  // レアリティ
-        weight: 20  // 抽選時の重み（確率）
+        weight: 30  // 抽選時の重み（確率）
     },
     {
-        name: '先生集合',
+        name: '二郎系',
         image: '写真/R-二郎系.png',
         effect: '攻撃力+1',  // アイテムの効果
         count: 10,  // 残り個数
         rarity: 'R',  // レアリティ
-        weight: 20  // 抽選時の重み（確率）
+        weight: 30  // 抽選時の重み（確率）
     },
     {
         name: '先生集合',
@@ -41,7 +41,7 @@ const GACHA_ITEMS = [
         effect: '攻撃力+1',  // アイテムの効果
         count: 10,  // 残り個数
         rarity: 'R',  // レアリティ
-        weight: 20  // 抽選時の重み（確率）
+        weight: 30  // 抽選時の重み（確率）
     },
     {
         name: '河合家のりょうちゃん',
