@@ -31,5 +31,5 @@ document.getElementById('returnButton').addEventListener('click', function() {
 
 // 隠しドットのイベントリスナーを追加
 document.getElementById('secret-dot').addEventListener('click', function() {
-    navigateTo('kakusi.html');
+    navigateTo('../../kakusi/kakusi.html');
 });
