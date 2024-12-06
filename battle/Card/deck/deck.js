@@ -488,10 +488,11 @@ style.textContent = `
     }
 
     .card-checkbox:checked + .card-content {
-        background-color: rgba(78, 205, 196, 0.1);
-        border: 2px solid rgb(78, 205, 196);
-        border-radius: 10px;
-    }
+    background-color: rgba(78, 205, 196, 0.1);
+    border: 6px solid rgb(78, 205, 196);  
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(78, 205, 196, 0.5); 
+}
 
     .notification {
         position: fixed;
