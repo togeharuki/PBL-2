@@ -63,11 +63,33 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const cardsToCreate = 20 - currentCardCount;
+            const healCardCount = Math.min(4, 20 - currentCardCount); // 最大4枚の回復カード
+            const attackCardCount = cardsToCreate - healCardCount; // 残りは攻撃カード
 
-            for (let i = 0; i < cardsToCreate; i++) {
+            for (let i = 0; i < healCardCount; i++) {
+                const value = Math.floor(Math.random() * 3) + 1; // 1から3のランダムな値
+                const newCard = {
+                    name: `回復カード ${cards.length + 1}`,
+                    image: "https://togeharuki.github.io/Deck-Dreamers/kakusi/kami.jpg",
+                    effect: `✨ H ${value} ✨`,
+                    timestamp: new Date()
+                };
+
+                const firebaseId = await saveCardToFirebase(newCard);
+                newCard.firebaseId = firebaseId;
+                cards.push(newCard);
+                
+                const cardElement = createCardElement(newCard, cards.length - 1);
+                cardListGrid.appendChild(cardElement);
+                updateCardCount();
+
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+
+            for (let i = 0; i < attackCardCount; i++) {
                 const value = Math.floor(Math.random() * 8) + 3; // 3から10のランダムな値
                 const newCard = {
-                    name: `カード${cards.length + 1}`,
+                    name: `攻撃カード ${cards.length + 1}`,
                     image: "https://togeharuki.github.io/Deck-Dreamers/kakusi/kami.jpg",
                     effect: `⚡ D ${value} ⚡`,
                     timestamp: new Date()
@@ -176,36 +198,6 @@ document.addEventListener('DOMContentLoaded', function() {
             throw error;
         }
     }
-
-    // カードリストの表示
-    function showCardList() {
-        cardListGrid.innerHTML = '';
-        cards.forEach((card, index) => {
-            const cardElement = createCardElement(card, index);
-            cardListGrid.appendChild(cardElement);
-        });
-        updateCardCount();
-    }
-
-    // カードの削除
-    async function deleteCard(index) {
-        try {
-            const cardId = cards[index].firebaseId;
-            if (cardId) {
-                await playerCardsRef.update({
-                    [cardId]: firebase.firestore.FieldValue.delete()
-                });
-            }
-            cards.splice(index, 1);
-            updateCardCount();
-            showCardList();
-            showSuccessMessage('カードを削除しました');
-        } catch (error) {
-            console.error('カードの削除に失敗しました:', error);
-            alert('カードの削除に失敗しました: ' + error.message);
-        }
-    }
-
     // ランダム効果の生成
     function generateRandomEffect(type) {
         let value;
