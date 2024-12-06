@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.gachaButton.disabled = false;
         elements.gachaButton.style.display = 'inline-block';
         elements.gachaResult.value = '';
-        elements.gachaCapsuleImage.src = '写真/00-カードの裏面.png';
+        elements.gachaCapsuleImage.src = 'https://togeharuki.github.io/Deck-Dreamers/battle/gatya/写真/00-カードの裏面.png';
         elements.gachaCapsule.style.animation = 'none';
     }
 
