@@ -59,6 +59,14 @@ const GACHA_ITEMS = [
         rarity: 'SSR',  // レアリティ
         weight: 2  // 抽選時の重み（確率）
     },
+    {
+        name: 'マーモット系男子',
+        image: '写真/SSR-マーモット系男子.png',
+        effect: '回復+10',  // アイテムの効果
+        count: 2,  // 残り個数
+        rarity: 'SSR',  // レアリティ
+        weight: 2  // 抽選時の重み（確率）
+    },
 ];
 
 let items = [];  // ガチャアイテムの状態（残り個数など）
@@ -199,7 +207,7 @@ function resetGacha() {
     gachaButton.disabled = false;  // ガチャボタンを有効化
     gachaButton.style.display = 'inline-block';  // ガチャボタンを表示
     gachaResult.value = '';  // 結果をクリア
-    gachaCapsuleImage.src = '写真/カードの裏面.png';  // 画像を元に戻す
+    gachaCapsuleImage.src = '写真/00-カードの裏面.png';  // 画像を元に戻す
     gachaCapsule.style.animation = 'none';  // アニメーションをリセット
 }
 
