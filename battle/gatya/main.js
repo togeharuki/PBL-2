@@ -75,24 +75,24 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Soukoにカードを追加（修正版）
-    async function addCardToSouko(card) {
+    // カードをデフォルトカードとしてSoukoに保存する関数
+    async function saveDefaultCard(card) {
         try {
-            const soukoRef = db.collection('Souko').doc(playerId.toString());
-            const cardId = `gacha_card_${Date.now()}`;
+            const cardId = `default_card_${Date.now()}`;
             const cardData = {
-                [cardId]: {
-                    name: card.name,
-                    image: card.image,
-                    effect: card.effect,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                }
+                name: card.name,
+                image: card.image,
+                effect: card.effect,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
-            
-            await soukoRef.set(cardData, { merge: true });
-            console.log('ガチャカードとして保存されました');
+
+            const playerSoukoRef = db.collection('Souko').doc(playerId.toString());
+            await playerSoukoRef.set({
+                [cardId]: cardData
+            }, { merge: true });
+            console.log('デフォルトカードとして保存されました');
         } catch (error) {
-            console.error('カード追加エラー:', error);
+            console.error('カードの保存中にエラーが発生しました:', error);
             throw error;
         }
     }
@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            await addCardToSouko(selectedItem);
+            await saveDefaultCard(selectedItem);
             await updateGachaData();
 
             setTimeout(() => {
