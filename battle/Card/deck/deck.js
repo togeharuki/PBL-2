@@ -170,6 +170,16 @@ function createCardElement(card, isCreated = false) {
         checkbox.className = 'card-checkbox';
         checkbox.dataset.cardType = 'normal';
         
+        // カード全体をクリッカブルにする
+        cardElement.addEventListener('click', function(e) {
+            // チェックボックス自体のクリックは2重発火を防ぐ
+            if (e.target !== checkbox) {
+                checkbox.checked = !checkbox.checked;
+                // change イベントを手動で発火
+                checkbox.dispatchEvent(new Event('change'));
+            }
+        });
+
         checkbox.addEventListener('change', function() {
             const checkedCount = document.querySelectorAll('input[data-card-type="normal"]:checked').length;
             
@@ -203,6 +213,8 @@ function createCardElement(card, isCreated = false) {
         </div>
     `;
 
+    // カードをクリッカブルに見せるスタイルを追加
+    cardElement.style.cursor = 'pointer';
     cardElement.appendChild(cardContent);
     return cardElement;
 }
@@ -211,7 +223,6 @@ function getCardImagePath(card) {
     const cardName = encodeURIComponent(card.name);
     return `https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/${cardName}.jpg`;
 }
-
 // デッキを保存
 async function saveDeck() {
     try {
@@ -336,3 +347,61 @@ window.addEventListener('error', function(event) {
     console.error('エラーが発生しました:', event.error);
     showNotification('エラーが発生しました', 'error');
 });
+
+// スタイルの追加
+const style = document.createElement('style');
+style.textContent = `
+    .card-item {
+        transition: transform 0.2s, box-shadow 0.2s;
+        position: relative;
+    }
+
+    .card-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .card-checkbox {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 2;
+        opacity: 0;
+    }
+
+    .card-checkbox:checked + .card-content {
+        background-color: rgba(78, 205, 196, 0.1);
+        border: 2px solid rgb(78, 205, 196);
+        border-radius: 10px;
+    }
+
+    .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        border-radius: 5px;
+        color: white;
+        z-index: 1000;
+        opacity: 1;
+        transition: opacity 0.5s ease;
+    }
+
+    .notification.info {
+        background-color: #4e73df;
+    }
+
+    .notification.warning {
+        background-color: #f6c23e;
+    }
+
+    .notification.error {
+        background-color: #e74a3b;
+    }
+
+    .notification.fade-out {
+        opacity: 0;
+    }
+`;
+
+document.head.appendChild(style);
