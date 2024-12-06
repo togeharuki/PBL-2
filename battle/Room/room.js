@@ -113,6 +113,7 @@ function closeModal() {
     document.getElementById('createRoomModal').style.display = 'none';
     resetPlayerCountSelection();
 }
+
 // プレイヤー数選択のリセット関数
 function resetPlayerCountSelection() {
     selectedPlayerCount = 2;
