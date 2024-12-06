@@ -18,7 +18,7 @@ document.getElementById('battleButton').addEventListener('click', function() {
 });
 
 document.getElementById('gatyaBth').addEventListener('click', function() {
-    navigateTo('../../battle/main.html');
+    navigateTo('../../battle/main/main.html');
 });
 
 document.getElementById('RuleBtn').addEventListener('click', function() {
