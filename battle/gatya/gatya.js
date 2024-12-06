@@ -46,7 +46,7 @@ const GACHA_ITEMS = [
     {
         name: '河合家のりょうちゃん',
         image: '写真/SR-河合家のりょうちゃん.png',
-        effect: '攻撃力+5',  // アイテムの効果
+        effect: '攻撃力+3',  // アイテムの効果
         count: 5,  // 残り個数
         rarity: 'SR',  // レアリティ
         weight: 15  // 抽選時の重み（確率）
@@ -54,7 +54,7 @@ const GACHA_ITEMS = [
     {
         name: '喜友名家のともちゃん',
         image: '写真/SR-喜友名家のともちゃん.png',
-        effect: '攻撃力+2',  // アイテムの効果
+        effect: '攻撃力+3',  // アイテムの効果
         count: 5,  // 残り個数
         rarity: 'SR',  // レアリティ
         weight: 15  // 抽選時の重み（確率）
@@ -70,7 +70,7 @@ const GACHA_ITEMS = [
     {
         name: '佐藤家のやまちゃん',
         image: '写真/SR-佐藤家のやまちゃん.png',
-        effect: '攻撃力+1',  // アイテムの効果
+        effect: '攻撃力+3',  // アイテムの効果
         count: 5,  // 残り個数
         rarity: 'SR',  // レアリティ
         weight: 15  // 抽選時の重み（確率）
@@ -78,15 +78,23 @@ const GACHA_ITEMS = [
     {
         name: '中野家のてんちゃん',
         image: '写真/SR-中野家のてんちゃん.png',
-        effect: '攻撃力+2',  // アイテムの効果
-        count: 7,  // 残り個数
+        effect: '攻撃力+3',  // アイテムの効果
+        count: 5,  // 残り個数
+        rarity: 'SR',  // レアリティ
+        weight: 15  // 抽選時の重み（確率）
+    },
+    {
+        name: '徳田家ののりちゃん',
+        image: '写真/SR-徳田家ののりちゃん.png',
+        effect: '攻撃力+3',  // アイテムの効果
+        count: 5,  // 残り個数
         rarity: 'SR',  // レアリティ
         weight: 15  // 抽選時の重み（確率）
     },
     {
         name: 'マーモット系男子',
         image: '写真/SSR-マーモット系男子.png',
-        effect: '攻撃力+2',  // アイテムの効果
+        effect: '攻撃力+10',  // アイテムの効果
         count: 2,  // 残り個数
         rarity: 'SSR',  // レアリティ
         weight: 5  // 抽選時の重み（確率）
@@ -94,7 +102,7 @@ const GACHA_ITEMS = [
     {
         name: '佐藤家のてんちゃん',
         image: '写真/SSR-佐藤家のてんちゃん.png',
-        effect: '攻撃力+2',  // アイテムの効果
+        effect: '回復力+10',  // アイテムの効果
         count: 2,  // 残り個数
         rarity: 'SSR',  // レアリティ
         weight: 5  // 抽選時の重み（確率）
