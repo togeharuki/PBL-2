@@ -22,8 +22,8 @@ const cardEffect = document.getElementById('card-effect');
 // 隠しカードのデータ
 const hiddenCard = {
     name: "伝説のカード",
-    image: "https://togeharuki.github.io/Deck-Dreamers/kakusi/kami.jpg", 
-    effect: "⚡ D:15 ⚡"
+    image: "kami.jpg", 
+    effect: "⚡ D:15 ⚡",
 };
 
 // ページ読み込み時の処理
@@ -43,14 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 受け取るボタンのイベントリスナー
     receiveButton.addEventListener('click', async () => {
         try {
-            const isDuplicate = await checkDuplicateCard(playerId, hiddenCard.name);
-            if (isDuplicate) {
-                alert('このカードは既に所持しています');
-                receiveButton.disabled = true;
-                return;
-            }
-
-            await saveDefaultCard(playerId, hiddenCard);
+            await saveCardToFirebase(playerId, specialCard);
             showSuccessMessage();
             receiveButton.disabled = true;
             setTimeout(() => {
@@ -70,27 +63,9 @@ function updateCardDisplay() {
     cardEffect.textContent = hiddenCard.effect;
 }
 
-// 重複カードをチェックする関数
-async function checkDuplicateCard(playerId, cardName) {
-    try {
-        const soukoRef = db.collection('Souko').doc(playerId.toString());
-        const doc = await soukoRef.get();
-
-        if (!doc.exists) {
-            return false;
-        }
-
-        const cardData = doc.data();
-        return Object.values(cardData).some(card => card.name === cardName);
-    } catch (error) {
-        console.error('重複チェックに失敗しました:', error);
-        throw error;
-    }
-}
-
-// カードをデフォルトカードとしてSoukoに保存する関数
-async function saveDefaultCard(playerId, card) {
-    const cardId = `default_card_${Date.now()}`;
+// カードをFirebaseに保存する関数
+async function saveCardToFirebase(playerId, card) {
+    const cardId = `special_card_${Date.now()}`;
     const cardData = {
         name: card.name,
         image: card.image,
@@ -98,14 +73,14 @@ async function saveDefaultCard(playerId, card) {
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
     };
 
-    // Soukoコレクションに保存
-    const playerSoukoRef = db.collection('Souko').doc(playerId.toString());
+    // Card/{playerId} のパスでドキュメントを更新
+    const playerCardsRef = db.collection('Card').doc(playerId.toString());
     
     try {
         await playerSoukoRef.set({
             [cardId]: cardData
         }, { merge: true });
-        console.log('デフォルトカードとして保存されました');
+        console.log('特別なカードが保存されました');
     } catch (error) {
         console.error('カードの保存中にエラーが発生しました:', error);
         throw error;
