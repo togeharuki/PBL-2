@@ -22,8 +22,8 @@ const cardEffect = document.getElementById('card-effect');
 // 特別なカードのデータ
 const specialCard = {
     name: "伝説のカード",
-    image: "kami.jpg", // 同じディレクトリ内のkami.jpgを参照
-    effect: "⚡ 攻撃力 15 ⚡",
+    image: "kami.jpg", 
+    effect: "⚡ D:15 ⚡",
 };
 
 // ページ読み込み時の処理

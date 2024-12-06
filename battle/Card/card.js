@@ -166,10 +166,10 @@ document.addEventListener('DOMContentLoaded', function() {
         let effectText;
         if (type === 'heal') {
             value = Math.floor(Math.random() * 3) + 1;
-            effectText = `✨ 回復魔法 ${value} ✨`;
+            effectText = `✨ H ${value} ✨`;
         } else if (type === 'attack') {
             value = Math.floor(Math.random() * 8) + 3;
-            effectText = `⚡ 攻撃力 ${value} ⚡`;
+            effectText = `⚡ D ${value} ⚡`;
         }
         
         previewEffect.textContent = effectText;
