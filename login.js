@@ -34,10 +34,13 @@ window.addEventListener('load', async () => {
 
         if (savedPlayerId && savedPlayerName) {
             const currentLoginDoc = await db.collection('CurrentLogin')
-                                         .doc(savedPlayerId)
+                                         .doc('active')
                                          .get();
             
-            if (currentLoginDoc.exists) {
+            const currentData = currentLoginDoc.data() || {};
+            const playerIds = currentData.playerIds || [];
+            
+            if (playerIds.includes(savedPlayerId)) {
                 updateUIForLoggedInUser(savedPlayerName, savedPlayerId);
             } else {
                 const playerDoc = await db.collection('Player')
@@ -45,7 +48,7 @@ window.addEventListener('load', async () => {
                                         .get();
                 
                 if (playerDoc.exists) {
-                    await addToCurrentLogin(savedPlayerId, savedPlayerName);
+                    await addToCurrentLogin(savedPlayerId);
                     updateUIForLoggedInUser(savedPlayerName, savedPlayerId);
                 } else {
                     resetLoginState();
@@ -85,15 +88,18 @@ loginButton.addEventListener('click', async () => {
         const playerId = playerData.playerId;
 
         const currentLoginDoc = await db.collection('CurrentLogin')
-                                      .doc(playerId)
+                                      .doc('active')
                                       .get();
         
-        if (currentLoginDoc.exists) {
+        const currentData = currentLoginDoc.data() || {};
+        const playerIds = currentData.playerIds || [];
+
+        if (playerIds.includes(playerId)) {
             showMessage('このアカウントは既にログインしています', 'error');
             return;
         }
 
-        await addToCurrentLogin(playerId, playerName);
+        await addToCurrentLogin(playerId);
         
         localStorage.setItem('playerName', playerName);
         localStorage.setItem('playerId', playerId);
@@ -113,13 +119,23 @@ loginButton.addEventListener('click', async () => {
     }
 });
 // CurrentLoginにプレイヤーを追加
-async function addToCurrentLogin(playerId, playerName) {
+async function addToCurrentLogin(playerId) {
     try {
-        const currentLoginRef = db.collection('CurrentLogin').doc(playerId);
-        await currentLoginRef.set({
-            playerName: playerName,
-            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        const currentLoginRef = db.collection('CurrentLogin').doc('active');
+        const doc = await currentLoginRef.get();
+        
+        let playerIds = [];
+        if (doc.exists) {
+            playerIds = doc.data().playerIds || [];
+        }
+        
+        if (!playerIds.includes(playerId)) {
+            playerIds.push(playerId);
+            await currentLoginRef.set({
+                playerIds: playerIds,
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
     } catch (error) {
         console.error('CurrentLogin更新エラー:', error);
         throw error;
@@ -135,11 +151,23 @@ logoutButton.addEventListener('click', async () => {
             return;
         }
 
-        const currentLoginRef = db.collection('CurrentLogin').doc(playerId);
+        const currentLoginRef = db.collection('CurrentLogin').doc('active');
         const doc = await currentLoginRef.get();
 
         if (doc.exists) {
-            await currentLoginRef.delete();
+            const currentData = doc.data();
+            const currentPlayerIds = currentData.playerIds || [];
+            const updatedPlayerIds = currentPlayerIds.filter(id => id !== playerId);
+
+            if (updatedPlayerIds.length === 0) {
+                await currentLoginRef.delete();
+            } else {
+                await currentLoginRef.set({
+                    playerIds: updatedPlayerIds,
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+
             localStorage.removeItem('playerName');
             localStorage.removeItem('playerId');
 
