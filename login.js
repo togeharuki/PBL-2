@@ -94,6 +94,7 @@ async function addToCurrentLogin(playerId) {
         });
     }
 }
+
 // ログイン処理
 loginButton.addEventListener('click', async () => {
     const playerName = playerNameInput.value.trim();
@@ -172,13 +173,20 @@ logoutButton.addEventListener('click', async () => {
             const currentPlayerIds = currentLoginDoc.data().playerIds || [];
             const updatedPlayerIds = currentPlayerIds.filter(id => id !== playerId);
 
-            if (updatedPlayerIds.length === 0) {
-                await currentLoginRef.delete();
-            } else {
-                await currentLoginRef.set({
-                    playerIds: updatedPlayerIds,
-                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                });
+            // プレイヤー名を使ってIDを削除
+            const playerDoc = await db.collection('Player').doc(playerId).get();
+            if (playerDoc.exists) {
+                const playerName = playerDoc.data().playerName;
+                const updatedPlayerIds = currentPlayerIds.filter(id => id !== playerId);
+                
+                if (updatedPlayerIds.length === 0) {
+                    await currentLoginRef.delete();
+                } else {
+                    await currentLoginRef.set({
+                        playerIds: updatedPlayerIds,
+                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
             }
 
             // ローカルストレージをクリア
@@ -197,7 +205,6 @@ logoutButton.addEventListener('click', async () => {
         showMessage('ログアウトに失敗しました', 'error');
     }
 });
-
 // メッセージ表示関数
 function showMessage(text, type) {
     const notification = document.createElement('div');
