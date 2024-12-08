@@ -662,7 +662,14 @@ export class Game {
         console.log('初期ゲーム状態:', initialGameState);
         await window.setDoc(gameDocRef, initialGameState);
         console.log('初期状態の保存完了');
-        return this.waitForOpponent(gameDocRef);
+        
+        // 対戦相手を待つ
+        const gameData = await this.waitForOpponent(gameDocRef);
+        
+        // バトルスタート表示を追加
+        this.showBattleStart();
+        
+        return gameData;
     }
 
     async joinExistingGame(gameDocRef, gameData) {
@@ -728,6 +735,9 @@ export class Game {
                 console.log('ゲーム状態を更新します:', updatedGameData);
                 await this.updateGameState(updatedGameData);
 
+                // バトルスタート表示を追加
+                this.showBattleStart();
+
                 // 自分のターンの場合は初期ドローを実行
                 if (updatedGameData.currentTurn === this.playerId) {
                     console.log('参加プレイヤーの初期ドロー処理を実行');
@@ -765,7 +775,7 @@ export class Game {
                 timeLeft--;
                 timerElement.textContent = timeLeft;
                 
-                // ��り5秒になったら警告表示
+                // り5秒になったら警告表示
                 if (timeLeft <= 5) {
                     timerElement.style.color = 'red';
                 }
@@ -801,7 +811,7 @@ export class Game {
                 clearInterval(this.timerInterval);
             }
 
-            // 手札がある場合、適切なカード���選択して出す
+            // 手札がある場合、適切なカード選択して出す
             if (this.gameState.playerHand.length > 0) {
                 // バトルフェーズに応じて適切なカードを選択
                 let validCards;
@@ -825,7 +835,7 @@ export class Game {
                 const randomCard = validCards[randomIndex];
                 console.log('選択されたカード:', randomCard);
 
-                // カードをプレイ
+                // カード��プレイ
                 await this.playCard(randomCard);
             } else {
                 console.log('手札がないため、ターンを終了します');
@@ -851,7 +861,7 @@ export class Game {
             }
         } catch (error) {
             console.error('ターン終了処理でエラーが発生:', error);
-            console.error('エ���ーの詳細:', {
+            console.error('エラーの詳細:', {
                 error: error.message,
                 stack: error.stack,
                 gameState: this.gameState,
@@ -961,7 +971,7 @@ export class Game {
                 // 攻撃カードを出す場合
                 newBattleState = {
                     battlePhase: 'defense',
-                    canPlayCard: true, // 防御側がカ�を出せるようにする
+                    canPlayCard: true, // 防御側がカを出せるようにする
                     isAttacker: true,
                     attackerCard: {
                         id: cardToPlay.id || cardToPlay.name,
@@ -979,7 +989,7 @@ export class Game {
                 newBattleState = {
                     ...this.battleState,
                     battlePhase: 'result',
-                    canPlayCard: true, // 結果計算�に次のカードを出せるようにする
+                    canPlayCard: true, // 結果計算に次のカードを出せるようにする
                     defenderCard: {
                         id: cardToPlay.id || cardToPlay.name,
                         name: cardToPlay.name,
@@ -1052,7 +1062,7 @@ export class Game {
         const attackValue = parseInt(attackerCard.value) || 0;
         const defendValue = parseInt(defenderCard.value) || 0;
 
-        console.log('バトル数値値:', {
+        console.log('バトル数��値:', {
             attackValue,
             defendValue
         });
@@ -1217,6 +1227,64 @@ export class Game {
                 opponentBattleSlot.appendChild(cardElement);
             }
         }
+    }
+
+    // バトルスタート表示用の新しいメソッドを追加
+    showBattleStart() {
+        // バトルスタートのオーバーレイを作成
+        const battleStartOverlay = document.createElement('div');
+        battleStartOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        `;
+
+        // バトルスタートのテキストを作成
+        const battleStartText = document.createElement('div');
+        battleStartText.textContent = 'バトルスタート！';
+        battleStartText.style.cssText = `
+            color: #fff;
+            font-size: 48px;
+            font-weight: bold;
+            text-shadow: 0 0 10px #ff0, 0 0 20px #ff0, 0 0 30px #ff0;
+            animation: battleStart 1.5s ease-out forwards;
+        `;
+
+        // アニメーションのスタイルを追加
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes battleStart {
+                0% {
+                    transform: scale(0.5);
+                    opacity: 0;
+                }
+                50% {
+                    transform: scale(1.2);
+                    opacity: 1;
+                }
+                100% {
+                    transform: scale(1);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // オーバーレイにテキストを追加
+        battleStartOverlay.appendChild(battleStartText);
+        document.body.appendChild(battleStartOverlay);
+
+        // アニメーション終了後にオーバーレイを削除
+        setTimeout(() => {
+            battleStartOverlay.remove();
+        }, 1500);
     }
 }
 
