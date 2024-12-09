@@ -21,7 +21,7 @@ const endMessage = document.getElementById('endMessage');  // ガチャ終了メ
 const GACHA_ITEMS = [
     {
         name: '徳田家ののりちゃん',
-        image: '写真/SR-徳田家ののりちゃん.png',
+        image: '写真/N-徳田家ののりちゃん.png',
         effect: '攻撃力+1',  // アイテムの効果
         count: 20,  // 残り個数
         rarity: 'N',  // レアリティ
