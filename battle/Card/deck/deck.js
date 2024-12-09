@@ -1,5 +1,4 @@
 // Firebase設定とSDKのインポート
-// Firebase設定とSDKのインポート
 const firebaseConfig = {
     apiKey: "AIzaSyCGgRBPAF2W0KKw0tX2zwZeyjDGgvv31KM",
     authDomain: "deck-dreamers.firebaseapp.com",
@@ -10,45 +9,29 @@ const firebaseConfig = {
 };
 
 // Firebase初期化
-let db;
-try {
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
+const initializeFirebase = () => {
+    try {
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        return firebase.firestore();
+    } catch (error) {
+        console.error('Firebase初期化エラー:', error);
+        return null;
     }
-    db = firebase.firestore();
-    console.log('Firebase初期化成功');
-} catch (error) {
-    console.error('Firebase初期化エラー:', error);
-}
-let db;
-try {
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
-    db = firebase.firestore();
-    console.log('Firebase初期化成功');
-} catch (error) {
-    console.error('Firebase初期化エラー:', error);
-}
+};
 
+const db = initializeFirebase();
 let selectedCards = [];
 let createdCards = [];
 let allCards = new Set();
 
-// ページ読み込み時の処理
 // ページ読み込み時の処理
 document.addEventListener('DOMContentLoaded', async function() {
     try {
         console.log('ページ読み込み開始');
         const playerId = localStorage.getItem('playerId');
         const playerName = localStorage.getItem('playerName');
-    try {
-        console.log('ページ読み込み開始');
-        const playerId = localStorage.getItem('playerId');
-        const playerName = localStorage.getItem('playerName');
-    try {
-        const playerId = localStorage.getItem('playerId');
-        const playerName = localStorage.getItem('playerName');
 
         if (!playerId) {
             console.log('プレイヤーIDが見つかりません');
@@ -56,21 +39,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             window.location.href = '../login.html';
             return;
         }
-        if (!playerId) {
-            console.log('プレイヤーIDが見つかりません');
-            alert('ログインしてください');
-            window.location.href = '../login.html';
-            return;
-        }
-        if (!playerId) {
-            alert('ログインしてください');
-            window.location.href = '../login.html';
-            return;
-        }
 
-        console.log('プレイヤー情報:', { playerId, playerName });
-        document.getElementById('player-name').textContent = `プレイヤー名: ${playerName}`;
-        document.getElementById('player-id').textContent = `ID: ${playerId}`;
         console.log('プレイヤー情報:', { playerId, playerName });
         document.getElementById('player-name').textContent = `プレイヤー名: ${playerName}`;
         document.getElementById('player-id').textContent = `ID: ${playerId}`;
@@ -94,7 +63,6 @@ document.addEventListener('DOMContentLoaded', async function() {
 // デッキのカードを読み込む
 async function loadDeckCards() {
     try {
-        console.log('既存カードの読み込み開始');
         console.log('既存カードの読み込み開始');
         const playerId = localStorage.getItem('playerId');
         
@@ -204,12 +172,9 @@ function createCardElement(card, isCreated = false) {
         checkbox.className = 'card-checkbox';
         checkbox.dataset.cardType = 'normal';
         
-        // カード全体をクリッカブルにする
         cardElement.addEventListener('click', function(e) {
-            // チェックボックス自体のクリックは2重発火を防ぐ
             if (e.target !== checkbox) {
                 checkbox.checked = !checkbox.checked;
-                // change イベントを手動で発火
                 checkbox.dispatchEvent(new Event('change'));
             }
         });
@@ -247,7 +212,6 @@ function createCardElement(card, isCreated = false) {
         </div>
     `;
 
-    // カードをクリッカブルに見せるスタイルを追加
     cardElement.style.cursor = 'pointer';
     cardElement.appendChild(cardContent);
     return cardElement;
@@ -257,6 +221,7 @@ function getCardImagePath(card) {
     const cardName = encodeURIComponent(card.name);
     return `https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/${cardName}.jpg`;
 }
+
 // デッキを保存
 async function saveDeck() {
     try {
@@ -300,7 +265,6 @@ async function saveDeck() {
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        // 成功通知を表示
         const notification = document.createElement('div');
         notification.className = 'success-notification';
         notification.style.cssText = `
@@ -331,92 +295,8 @@ async function saveDeck() {
         showNotification('デッキの保存に失敗しました', 'error');
     }
 }
-function handleCardSelection(checkbox, card, isSpecial) {
-    const maxCards = isSpecial ? 20 : 10;
-    const cardType = isSpecial ? 'special' : 'normal';
-    const checkedCount = document.querySelectorAll(`input[data-card-type="${cardType}"]:checked`).length;
-    
-    if (checkbox.checked && checkedCount > maxCards) {
-        checkbox.checked = false;
-        showNotification(`${isSpecial ? '特殊' : '通常'}カードは${maxCards}枚までしか選択できません`, 'warning');
-        return;
-    }
-    
-    if (checkbox.checked) {
-        selectedCards.push(card);
-    } else {
-        selectedCards = selectedCards.filter(c => c.name !== card.name);
-    }
-    updateSaveButton();
-}
-// デッキを保存
-async function saveDeck() {
-    try {
-        const playerId = localStorage.getItem('playerId');
-        if (!playerId) {
-            showNotification('ログインしてください', 'error');
-            return;
-        }
 
-        // カードの選択数をチェック
-        const normalCards = selectedCards.filter(card => !card.isSpecial && !card.isGacha);
-        const specialCards = selectedCards.filter(card => card.isSpecial || card.isGacha);
-
-        if (normalCards.length !== 10) {
-            showNotification('通常カードを10枚選択してください', 'warning');
-            return;
-        }
-
-        if (specialCards.length !== 20) {
-            showNotification('特殊カードを20枚選択してください', 'warning');
-            return;
-        }
-
-        const allDeckCards = [...normalCards, ...specialCards];
-
-        // デッキを保存
-        const deckRef = db.collection('Deck').doc(playerId);
-        await deckRef.set({
-            cards: allDeckCards,
-            cards: allDeckCards,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        showSuccessNotification();
-
-    } catch (error) {
-        console.error('デッキの保存に失敗しました:', error);
-        showNotification('デッキの保存に失敗しました', 'error');
-    }
-}
-
-function showSuccessNotification() {
-    const notification = document.createElement('div');
-    notification.className = 'success-notification';
-    notification.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: rgb(78, 205, 196);
-        padding: 20px 40px;
-        border-radius: 10px;
-        color: white;
-        text-align: center;
-        z-index: 1000;
-        font-size: 1.2em;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    `;
-    notification.textContent = 'デッキを保存しました！';
-    document.body.appendChild(notification);
-
-    setTimeout(() => {
-        notification.style.opacity = '0';
-        notification.style.transition = 'opacity 0.5s ease';
-        setTimeout(() => notification.remove(), 500);
-    }, 2000);
-}
-
+// 通知を表示
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
@@ -488,11 +368,11 @@ style.textContent = `
     }
 
     .card-checkbox:checked + .card-content {
-    background-color: rgba(78, 205, 196, 0.1);
-    border: 6px solid rgb(78, 205, 196);  
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(78, 205, 196, 0.5); 
-}
+        background-color: rgba(78, 205, 196, 0.1);
+        border: 6px solid rgb(78, 205, 196);  
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(78, 205, 196, 0.5); 
+    }
 
     .notification {
         position: fixed;
