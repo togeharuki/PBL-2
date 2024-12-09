@@ -1390,11 +1390,11 @@ export class Game {
         
         // 攻撃カード（D）の場合
         if (effect.includes('D')) {
-            return `⚡ ${effect} ⚡`;
+            return `${effect}`;
         }
         // 回復カード（H）の場合
         else if (effect.includes('H')) {
-            return `✨ ${effect} ✨`;
+            return `${effect}`;
         }
         // それ以外の効果カードの場合
         return effect;
