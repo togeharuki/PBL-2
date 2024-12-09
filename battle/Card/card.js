@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const value = Math.floor(Math.random() * 3) + 1; // 1から3のランダムな値
                 const newCard = {
                     name: `回復カード ${cards.length + 1}`,
-                    image: "https://togeharuki.github.io/Deck-Dreamers/kakusi/kami.jpg",
+                    image: "https://togeharuki.github.io/Deck-Dreamers/kakusi/スライム.jpg",
                     effect: `✨ H ${value} ✨`,
                     timestamp: new Date()
                 };
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const value = Math.floor(Math.random() * 8) + 3; // 3から10のランダムな値
                 const newCard = {
                     name: `攻撃カード ${cards.length + 1}`,
-                    image: "https://togeharuki.github.io/Deck-Dreamers/kakusi/kami.jpg",
+                    image: "https://togeharuki.github.io/Deck-Dreamers/kakusi/スライム.jpg",
                     effect: `⚡ D ${value} ⚡`,
                     timestamp: new Date()
                 };

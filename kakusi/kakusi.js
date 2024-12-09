@@ -22,8 +22,8 @@ const cardEffect = document.getElementById('card-effect');
 // 隠しカードのデータ
 const hiddenCard = {
     name: "伝説のカード",
-    image: "kami.jpg", 
-    effect: "⚡ D:15 ⚡",
+    image: "https://togeharuki.github.io/Deck-Dreamers/kakusi/kami.jpg", 
+    effect: "⚡ D:15 ⚡"
 };
 
 // ページ読み込み時の処理
@@ -98,14 +98,14 @@ async function saveDefaultCard(playerId, card) {
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
     };
 
-    // Card/{playerId} のパスでドキュメントを更新
-    const playerCardsRef = db.collection('Card').doc(playerId.toString());
+    // Souko/{playerId} のパスでドキュメントを更新
+    const soukoRef = db.collection('Souko').doc(playerId.toString());
     
     try {
-        await playerSoukoRef.set({
+        await soukoRef.set({
             [cardId]: cardData
         }, { merge: true });
-        console.log('特別なカードが保存されました');
+        console.log('デフォルトカードとして保存されました');
     } catch (error) {
         console.error('カードの保存中にエラーが発生しました:', error);
         throw error;
