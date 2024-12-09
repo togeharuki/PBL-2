@@ -12,7 +12,7 @@ const app = window.initializeApp(firebaseConfig);
 const db = window.getFirestore(app);
 
 // カードの裏面画像URL
-const CARD_BACK_IMAGE = 'usizawa/Deck-Dreamers/battle/gatya/写真/00-カードの裏面.png';
+const CARD_BACK_IMAGE = 'usizawa/Deck-Dreamers/battle/gatya/写真/カードの裏面.png';
 
 // 初期カードデータを拡充
 const initialCards = [
