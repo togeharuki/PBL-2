@@ -35,15 +35,15 @@ h1 {
 .back a {
     display: inline-block; /* インラインブロックにしてサイズを設定 */
     padding: 10px 20px; /* 内側の余白 */
-    background-color: #007BFF; /* 背景色 */
+    background-color: #ff6b6b; /* 背景色 */
     color: #FFFFFF; /* 文字色 */
     text-decoration: none; /* 下線を消す */
-    border-radius: 5px; /* 角を丸くする */
+    border-radius: 50px; /* 角を丸くする */
     transition: background-color 0.3s; /* ホバー時のアニメーション */
 }
 
 .back a:hover {
-    background-color: #0056b3; /* ホバー時の背景色 */
+    background-color: #ff6b6b; /* ホバー時の背景色 */
 }
 
 .gacha-container {
