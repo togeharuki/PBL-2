@@ -28,6 +28,22 @@ h1 {
     align-items: center;
 }
 
+.auto-generate-button {
+    background: linear-gradient(45deg, #70a1ad, #2d4360);
+    margin-top: 10px;
+    width: 100%;
+    max-width: 200px;
+}
+
+.auto-generate-button:hover {
+    background: linear-gradient(45deg, #608da8, #1e2f45);
+}
+
+.auto-generate-button:disabled {
+    background: #cccccc;
+    cursor: not-allowed;
+}
+
 .card-preview {
     width: 100%;
     aspect-ratio: 2.5 / 3.5;
@@ -296,25 +312,6 @@ button:disabled {
     text-align: center;
 }
 
-.taisen-button {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    background-color: #4ecdc4;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    text-decoration: none;
-    font-weight: bold;
-}
-
-.taisen-button:hover {
-    background-color: #45b7a8;
-}
-
 #card-count {
     margin: 20px 0;
     font-size: 1.1em;
@@ -364,13 +361,8 @@ button:disabled {
         height: 45px;
         font-size: 14px;
     }
-    
-    .taisen-button {
-        position: static;
-        margin-bottom: 20px;
-        display: inline-block;
-    }
 }
+
 #speaker-icon {
     color: #ff6b6b;
     position: fixed;

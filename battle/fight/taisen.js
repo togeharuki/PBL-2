@@ -11,6 +11,9 @@ const firebaseConfig = {
 const app = window.initializeApp(firebaseConfig);
 const db = window.getFirestore(app);
 
+// カードの裏面画像URL
+const CARD_BACK_IMAGE = 'usizawa/Deck-Dreamers/battle/gatya/写真/00-カードの裏面.png';
+
 // 初期カードデータを拡充
 const initialCards = [
     // 攻撃カード
@@ -97,6 +100,106 @@ const initialCards = [
     }
 ];
 
+// カードのスタイル
+const cardStyle = {
+    width: '100px',
+    height: '140px',
+    backgroundColor: '#fff',
+    borderRadius: '5px',
+    border: '2px solid #000',
+    margin: '5px',
+    display: 'flex',
+    flexDirection: 'column',
+    cursor: 'pointer',
+    overflow: 'hidden'
+};
+
+// カードを表示する関数
+function renderCard(card, isFaceDown = false) {
+    const cardElement = document.createElement('div');
+    cardElement.className = 'card-item';
+    Object.assign(cardElement.style, cardStyle);
+
+    if (isFaceDown) {
+        // 裏面表示の場合
+        cardElement.innerHTML = `
+            <div style="width: 100%; height: 100%;">
+                <img src="https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/card-back.jpg" 
+                     alt="カード裏面" 
+                     style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+        `;
+    } else {
+        // 表面表示の場合
+        cardElement.innerHTML = `
+            <div style="height: 100%; display: flex; flex-direction: column;">
+                <div style="height: 70px; overflow: hidden;">
+                    <img src="${card.image}" alt="${card.name}" 
+                         style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div style="text-align: center; padding: 5px; background-color: #1a237e; color: white;">
+                    ${card.name}
+                </div>
+                <div style="text-align: center; padding: 5px; flex-grow: 1; display: flex; align-items: center; justify-content: center;">
+                    ${card.effect}
+                </div>
+            </div>
+        `;
+    }
+
+    return cardElement;
+}
+
+// カードの効果をフォーマットする関数
+function formatCardEffect(effect) {
+    if (!effect) return '';
+    
+    // 攻撃カード（D）の場合
+    if (effect.includes('D')) {
+        return `${effect}`;
+    }
+    // 回復カード（H）の場合
+    else if (effect.includes('H')) {
+        return `${effect}`;
+    }
+    // それ以外の効果カードの場合
+    return effect;
+}
+
+// カードの種類を判定する関数
+function getCardType(effect) {
+    if (!effect) return 'normal';
+    if (effect.includes('D')) return 'attack';
+    if (effect.includes('H')) return 'heal';
+    return 'effect';
+}
+
+// カードグリッドを作成する関数
+function createCardGrid(cards, containerId, isFaceDown = false) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    container.style.cssText = `
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+        padding: 10px;
+    `;
+
+    cards.forEach(card => {
+        const cardElement = renderCard(card, isFaceDown);
+        container.appendChild(cardElement);
+    });
+}
+
+// カード画像のパスを取得する関数
+function getCardImagePath(card) {
+    if (card.image) return card.image;
+    const cardName = encodeURIComponent(card.name);
+    return `https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/${cardName}.jpg`;
+}
+
 export class Game {
     constructor() {
         console.log('Game クラスのコンストラクタを開始');
@@ -105,7 +208,12 @@ export class Game {
             playerCard: null,
             opponentCard: null,
             isEffectCardUsed: false,
-            battleResult: null
+            battleResult: null,
+            isAttacker: false,
+            battlePhase: 'waiting',
+            canPlayCard: false,
+            attackerCard: null,
+            defenderCard: null
         };
 
         this.gameState = {
@@ -131,7 +239,7 @@ export class Game {
 
         if (!this.roomId || !this.tableNumber || !this.playerId) {
             const error = new Error('ゲーム情報が不正です');
-            console.error('初期化エラー:', error);
+            console.error('初期エラー:', error);
             throw error;
         }
 
@@ -623,12 +731,12 @@ export class Game {
         
         return new Promise((resolve, reject) => {
             let timeoutId;
-            const unsubscribe = window.onSnapshot(gameDocRef, (doc) => {
+            const unsubscribe = window.onSnapshot(gameDocRef, async (doc) => {
                 const gameData = doc.data();
                 if (gameData && gameData.status === 'playing' && Object.keys(gameData.players).length === 2) {
-                    console.log('対戦相手が見つかりまし');
-                    clearTimeout(timeoutId); // タイムアウトをクリア
-                    unsubscribe(); // リスナーを解除
+                    console.log('対戦相手が見つかりました');
+                    clearTimeout(timeoutId);
+                    unsubscribe();
                     
                     // マッチング中のオーバーレイを非表示
                     const matchingOverlay = document.getElementById('matching-overlay');
@@ -636,10 +744,17 @@ export class Game {
                         matchingOverlay.style.display = 'none';
                     }
 
-                    this.updateGameState(gameData).then(() => {
-                        this.updateUI();
-                        resolve(gameData);
-                    });
+                    await this.updateGameState(gameData);
+                    
+                    // 自分のターンの場��、ドロー処理を実行
+                    if (gameData.currentTurn === this.playerId) {
+                        console.log('初期ドロー処理を実行');
+                        await this.drawCard();
+                        this.startBattlePhase();
+                    }
+                    
+                    this.updateUI();
+                    resolve(gameData);
                 }
             }, (error) => {
                 console.error('対戦相手待機中にエラーが発生:', error);
@@ -648,7 +763,7 @@ export class Game {
 
             // タイムアウト処理
             timeoutId = setTimeout(() => {
-                unsubscribe(); // リスナーを解除
+                unsubscribe();
                 console.log('対戦相手待機タイムアウト');
                 
                 // ゲームドキュメントを削除
@@ -656,8 +771,8 @@ export class Game {
                     console.error('ゲームドキュメントの削除に失敗:', error);
                 });
                 
-                reject(new Error('対戦相手が見つかりまんでた'));
-            }, 120000); // タイムアウトを2分延長
+                reject(new Error('対戦相手が見つかりませんでした'));
+            }, 120000);
         });
     }
 
@@ -676,14 +791,22 @@ export class Game {
                     const previousTurn = this.gameState?.isPlayerTurn;
                     await this.updateGameState(gameData);
                     
-                    // 自分のターンが始まった時にカードを引く
+                    // 自分のターンが始まった時にカードを��く
                     if (!previousTurn && this.gameState.isPlayerTurn) {
+                        console.log('ターン開始時のドロー処理を実行');
                         await this.drawCard();
+                        
+                        // バトルェーズを開始
+                        if (this.battleState.battlePhase === 'waiting') {
+                            this.startBattlePhase();
+                        }
                     }
                     
                     this.updateUI();
                 }
             }
+        }, (error) => {
+            console.error('リアルタイムアップデートエラー:', error);
         });
     }
 
@@ -696,6 +819,7 @@ export class Game {
                 return;
             }
 
+            // gameDataを保存
             this.gameData = gameData;
 
             const playerState = gameData.players[this.playerId];
@@ -710,22 +834,40 @@ export class Game {
             const opponentId = Object.keys(gameData.players).find(id => id !== this.playerId);
             const opponentState = opponentId ? gameData.players[opponentId] : null;
 
+            console.log('プレイヤー状態:', {
+                playerId: this.playerId,
+                playerDeck: playerState.deck?.length,
+                opponentId,
+                opponentDeck: opponentState?.deck?.length
+            });
+
+            // バトル状態の更新
+            if (gameData.battleState) {
+                this.battleState = {
+                    ...gameData.battleState,
+                    canPlayCard: gameData.battleState.canPlayCard ?? (gameData.currentTurn === this.playerId)
+                };
+            }
+
+            // ゲーム状態の更新
             this.gameState = {
                 playerHp: playerState.hp || 10,
                 opponentHp: opponentState?.hp || 10,
-                playerDeck: playerState.deck || [],
-                playerHand: playerState.hand || [],
-                opponentHandCount: opponentState?.handCount || 5,
-                opponentDeckCount: opponentState?.deck?.length || 25,
+                playerDeck: Array.isArray(playerState.deck) ? playerState.deck : [],
+                playerHand: Array.isArray(playerState.hand) ? playerState.hand : [],
+                opponentHandCount: opponentState?.handCount || 0,
+                opponentDeckCount: opponentState?.deck?.length || 0,
                 isPlayerTurn: gameData.currentTurn === this.playerId,
                 turnTime: gameData.turnTime || 60
             };
 
-            if (gameData.battleState) {
-                this.battleState = gameData.battleState;
-            }
-
-            console.log('ゲーム状態を更新しました:', this.gameState);
+            console.log('更新後のゲーム状態:', {
+                isPlayerTurn: this.gameState.isPlayerTurn,
+                playerDeckCount: this.gameState.playerDeck.length,
+                opponentDeckCount: this.gameState.opponentDeckCount,
+                handLength: this.gameState.playerHand.length,
+                battlePhase: this.battleState.battlePhase
+            });
         } catch (error) {
             console.error('ゲーム状態の更新に失敗:', error);
             throw error;
@@ -734,21 +876,35 @@ export class Game {
 
     updateUI() {
         try {
-            console.log('UI更新開始');
+            console.log('UI更新開始:', {
+                playerDeckCount: this.gameState.playerDeck.length,
+                opponentDeckCount: this.gameState.opponentDeckCount,
+                isPlayerTurn: this.gameState.isPlayerTurn
+            });
             
             // HP表示の更新
             document.getElementById('player-hp').textContent = `${this.gameState.playerHp}/10`;
             document.getElementById('opponent-hp').textContent = `${this.gameState.opponentHp}/10`;
 
-            // デッキ枚数の更新
-            document.getElementById('player-deck-count').textContent = this.gameState.playerDeck.length;
-            document.getElementById('opponent-deck-count').textContent = this.gameState.opponentDeckCount;
+            // デッキ数の更新
+            const playerDeckCount = document.getElementById('player-deck-count');
+            const opponentDeckCount = document.getElementById('opponent-deck-count');
+            
+            if (playerDeckCount) {
+                playerDeckCount.textContent = this.gameState.playerDeck.length.toString();
+            }
+            if (opponentDeckCount) {
+                opponentDeckCount.textContent = this.gameState.opponentDeckCount.toString();
+            }
 
-            // 手札の更新
+            // 札の更新
             this.updateHandDisplay();
 
             // 相手の手札の更新
             this.updateOpponentHandDisplay();
+
+            // バトルゾーンの更新
+            this.updateBattleZone();
 
             // ターン表示の更新
             const turnIndicator = document.getElementById('turn-indicator');
@@ -765,48 +921,8 @@ export class Game {
             console.log('UI更新完了');
         } catch (error) {
             console.error('UI更新エラー:', error);
+            console.error('エラーの詳細:', error.stack);
         }
-    }
-
-    updateHandDisplay() {
-        const playerHand = document.getElementById('player-hand');
-        if (!playerHand) return;
-
-        playerHand.innerHTML = '';
-        
-        const handContainer = document.createElement('div');
-        handContainer.className = 'hand-container';
-        
-        this.gameState.playerHand.forEach((card, index) => {
-            const cardElement = document.createElement('div');
-            cardElement.className = `card ${card.type}`;
-            cardElement.draggable = true;
-            cardElement.dataset.cardId = card.id;
-            
-            // カードの内容を表示
-            cardElement.innerHTML = `
-                <div class="card-content">
-                    <div class="card-front">
-                        <div class="card-name">${card.name}</div>
-                        <div class="card-effect">${card.effect}</div>
-                    </div>
-                </div>
-            `;
-
-            // カードの位置を調整
-            cardElement.style.position = 'absolute';
-            cardElement.style.left = `${index * 120}px`;
-            cardElement.style.zIndex = index;
-
-            // ドラッグ可能な場合のスタイル
-            if (this.gameState.isPlayerTurn) {
-                cardElement.classList.add('draggable');
-            }
-
-            handContainer.appendChild(cardElement);
-        });
-
-        playerHand.appendChild(handContainer);
     }
 
     updateOpponentHandDisplay() {
@@ -815,16 +931,16 @@ export class Game {
 
         opponentHand.innerHTML = '';
         
-        // 手札の位置を調整するためのコンテナ
+        // 札の位置を調整するためのコンテ
         const handContainer = document.createElement('div');
         handContainer.className = 'hand-container';
         
-        // 相手の手札の枚数分だけ裏向きのカードを表示
+        // 相手の手札枚数分だけ裏向きのカードを表示
         const opponentHandCount = this.gameState.opponentHandCount || 5;
         for (let i = 0; i < opponentHandCount; i++) {
             const cardBack = document.createElement('div');
             cardBack.className = 'card card-back';
-            // カーの位置を少しずつずらす
+            // カードの位置を少しずつずらす
             cardBack.style.position = 'absolute';
             cardBack.style.left = `${i * 120}px`; // カード同士の間隔を調整
             cardBack.style.zIndex = i;
@@ -1186,11 +1302,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (db) {
         console.log('ゲーム初期化開始');
         const game = new Game();
-        console.log('Gameインスタンス作成完了');
+        console.log('Gameインスンス作成完了');
     } catch (error) {
         console.error('ゲーム初期化エラー:', error);
         console.error('エラーのスタックトレース:', error.stack);
-        alert('ゲームの初期化に失敗しました。ページを再読み込みしてください。');
+        alert('ゲームの初期化に失敗しました。ページを再読み込みみしてください。');
     }
 });
 
