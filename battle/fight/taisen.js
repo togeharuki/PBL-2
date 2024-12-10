@@ -12,7 +12,7 @@ const app = window.initializeApp(firebaseConfig);
 const db = window.getFirestore(app);
 
 // カードの裏面画像URL
-const CARD_BACK_IMAGE = 'togeharuki.github.io/Deck-Dreamers/battle/gatya/写真/カードの裏面.png';
+const CARD_BACK_IMAGE = 'https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/card-back.jpg';
 
 // 初期カードデータを拡充
 const initialCards = [
