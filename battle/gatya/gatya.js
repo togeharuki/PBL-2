@@ -54,7 +54,7 @@ const GACHA_ITEMS = [
     },
     {
         name: '河合家のりょうちゃん',
-        image: '写真/SR-河合家のりょうちゃん.png',
+        image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SR-%E6%B2%B3%E5%90%88%E5%AE%B6%E3%81%AE%E3%82%8A%E3%82%87%E3%81%86%E3%81%A1%E3%82%83%E3%82%93.png',
         effect: '攻撃力+3',  // アイテムの効果
         count: 5,  // 残り個数
         rarity: 'SR',  // レアリティ
@@ -62,7 +62,7 @@ const GACHA_ITEMS = [
     },
     {
         name: '喜友名家のともちゃん',
-        image: '写真/SR-喜友名家のともちゃん.png',
+        image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SR-%E5%96%9C%E5%8F%8B%E5%90%8D%E5%AE%B6%E3%81%AE%E3%81%A8%E3%82%82%E3%81%A1%E3%82%83%E3%82%93.png',
         effect: '攻撃力+3',  // アイテムの効果
         count: 5,  // 残り個数
         rarity: 'SR',  // レアリティ
@@ -70,7 +70,7 @@ const GACHA_ITEMS = [
     },
     {
         name: '金田家のしょうちゃん',
-        image: '写真/SR-金田家のしょうちゃん.png',
+        image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SR-%E9%87%91%E7%94%B0%E5%AE%B6%E3%81%AE%E3%81%97%E3%82%87%E3%81%86%E3%81%A1%E3%82%83%E3%82%93.png',
         effect: '攻撃力+3',  // アイテムの効果
         count: 5,  // 残り個数
         rarity: 'SR',  // レアリティ
@@ -78,7 +78,7 @@ const GACHA_ITEMS = [
     },
     {
         name: '佐藤家のやまちゃん',
-        image: '写真/SR-佐藤家のやまちゃん.png',
+        image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SR-%E4%BD%90%E8%97%A4%E5%AE%B6%E3%81%AE%E3%82%84%E3%81%BE%E3%81%A1%E3%82%83%E3%82%93.png',
         effect: '攻撃力+3',  // アイテムの効果
         count: 5,  // 残り個数
         rarity: 'SR',  // レアリティ
@@ -86,7 +86,7 @@ const GACHA_ITEMS = [
     },
     {
         name: '中野家のてんちゃん',
-        image: '写真/SR-中野家のてんちゃん.png',
+        image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SR-%E4%B8%AD%E9%87%8E%E5%AE%B6%E3%81%AE%E3%81%A6%E3%82%93%E3%81%A1%E3%82%83%E3%82%93.png',
         effect: '攻撃力+3',  // アイテムの効果
         count: 5,  // 残り個数
         rarity: 'SR',  // レアリティ
@@ -94,7 +94,7 @@ const GACHA_ITEMS = [
     },
     {
         name: 'マーモット系男子',
-        image: '写真/SSR-マーモット系男子.png',
+        image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SSR-%E3%83%9E%E3%83%BC%E3%83%A2%E3%83%83%E3%83%88%E7%B3%BB%E7%94%B7%E5%AD%90.png',
         effect: '攻撃力+10',  // アイテムの効果
         count: 2,  // 残り個数
         rarity: 'SSR',  // レアリティ
@@ -102,7 +102,7 @@ const GACHA_ITEMS = [
     },
     {
         name: '佐藤家のてんちゃん',
-        image: '写真/SSR-佐藤家のてんちゃん.png',
+        image: 'https://github.com/togeharuki/Deck-Dreamers/blob/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SSR-%E4%BD%90%E8%97%A4%E5%AE%B6%E3%81%AE%E3%81%A6%E3%82%93%E3%81%A1%E3%82%83%E3%82%93.png',
         effect: '回復力+10',  // アイテムの効果
         count: 2,  // 残り個数
         rarity: 'SSR',  // レアリティ
