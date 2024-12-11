@@ -164,7 +164,7 @@ async function initializeGacha() {
 }
 document.addEventListener('DOMContentLoaded', initializeGacha);
 
-// ガチャアイテムをSoukoに追加する関数
+// ガチャアイテムをSoukoに追加する関数です
 async function addCardToSouko(card) {
     try {
         const soukoRef = db.collection('Souko').doc(playerId);
