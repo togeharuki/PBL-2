@@ -6,12 +6,13 @@ const firebaseConfig = {
 };
 
 // DOM要素の取得
-const gachaButton = document.getElementById('gachaButton');  // ガチャボタン
-const resetButton = document.getElementById('resetButton');  // 戻るボタン
-const gachaResult = document.getElementById('gachaResult');  // ガチャ結果表示用テキストエリア
-const gachaCapsule = document.getElementById('gachaCapsule');  // ガチャカプセルの要素
-const gachaCapsuleImage = document.getElementById('gachaCapsuleImage');  // ガチャカプセルの画像
-const endMessage = document.getElementById('endMessage');  // ガチャ終了メッセージ
+const mainSystem = document.getElementById('mainSystem'); // メインシステムコンテナ
+const mainButton = document.getElementById('mainButton'); // スタートボタン
+const cardSelect = document.getElementById('cardSelect'); // カード選択画面
+const cardSelectContainer = document.getElementById('cardSelectContainer'); // カード表示用コンテナ
+const result = document.getElementById('result'); // 結果表示画面
+const resultCard = document.getElementById('resultCard'); // 結果カード表示領域
+const tryAgainButton = document.getElementById('tryagainButton'); // 再挑戦ボタン
 
 // ガチャアイテムのデータ
 const GACHA_ITEMS = [
@@ -97,7 +98,7 @@ async function initializeGacha() {
 }
 document.addEventListener('DOMContentLoaded', initializeGacha);
 
-// ガチャアイテムをSoukoに追加する関数です
+// ガチャアイテムをSoukoに追加する関数
 async function addCardToSouko(card) {
     const db = initializeFirebase();
     if (!db) return;  // Firebaseが初期化できなかった場合は終了
@@ -143,8 +144,13 @@ async function handleGachaResult() {
         await updateGachaData();
 
         setTimeout(() => {
-            gachaResult.value = `★${selectedItem.rarity}★\n${selectedItem.name}\n効果: ${selectedItem.effect}`;
-            gachaCapsuleImage.src = selectedItem.image;
+            resultCard.innerHTML = `★${selectedItem.rarity}★<br>${selectedItem.name}<br>効果: ${selectedItem.effect}`;
+            // 適切な画像を表示する場合は、必要に応じて画像要素を追加
+            const img = document.createElement('img');
+            img.src = selectedItem.image;
+            img.alt = selectedItem.name;
+            resultCard.appendChild(img);
+
             displayItemsRemaining();
             updateButtonState();
         }, 2000);
@@ -172,23 +178,6 @@ async function updateGachaData() {
     }
 }
 
-// ガチャのアニメーションを開始する関数
-function triggerGachaAnimation() {
-    gachaButton.style.display = 'none';
-    resetButton.style.display = 'inline-block';
-    gachaCapsule.style.animation = 'rotateCapsule 2s ease forwards';
-}
-
-// ガチャをリセットする関数
-function resetGacha() {
-    resetButton.style.display = 'none';
-    gachaButton.disabled = false;
-    gachaButton.style.display = 'inline-block';
-    gachaResult.value = '';
-    gachaCapsuleImage.src = '写真/カードの裏面.png';
-    gachaCapsule.style.animation = 'none';
-}
-
 // 残りのアイテム数をコンソールに表示
 function displayItemsRemaining() {
     console.clear();
@@ -199,31 +188,33 @@ function displayItemsRemaining() {
 
 function updateButtonState() {
     const hasAvailableItems = items.some(item => item.count > 0);
-    gachaButton.disabled = !hasAvailableItems;
+    mainButton.disabled = !hasAvailableItems; // スタートボタンの状態を更新
     if (!hasAvailableItems) showEndMessage();
 }
 
 function showEndMessage() {
-    endMessage.style.display = 'block';
-    gachaButton.style.display = 'none';
-    gachaResult.style.display = 'none';
+    result.style.display = 'block'; // 結果画面を表示
+    resultCard.innerHTML = '全てのアイテムがなくなりました。'; // メッセージを表示
 }
 
-// ガチャボタンがクリックされた時の処理
-gachaButton.addEventListener('click', async () => {
+// スタートボタンがクリックされた時の処理
+mainButton.addEventListener('click', async () => {
     try {
-        gachaButton.disabled = true;
-        triggerGachaAnimation();
-        await handleGachaResult();
+        mainSystem.style.display = 'none'; // メインシステムを非表示
+        cardSelect.classList.remove('hidden'); // カード選択画面を表示
+        await initializeGacha(); // ガチャの初期化
     } catch (error) {
         console.error('ガチャ実行エラー:', error);
-        alert('ガチャの実行に失敗しました');
-        gachaButton.disabled = false;
+        alert('ガチャの初期化に失敗しました');
     }
 });
 
-// リセットボタンがクリックされた時の処理
-resetButton.addEventListener('click', resetGacha);
+// 再挑戦ボタンがクリックされた時の処理
+tryAgainButton.addEventListener('click', () => {
+    result.style.display = 'none'; // 結果画面を非表示
+    cardSelect.classList.remove('hidden'); // カード選択画面を再表示
+    // ここに再挑戦のロジックを追加することができます
+});
 
 // エラーハンドリング（グローバルエラーハンドラー）
 window.addEventListener('error', function(event) {
