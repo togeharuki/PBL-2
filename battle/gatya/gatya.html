@@ -3,20 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ガチャシステム</title>
-    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-firestore.js"></script>
+    <title>ガチャガチャ - Deck Dreamers</title>
+    <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap" rel="stylesheet">
+    <!-- Firebaseライブラリ -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <link rel="stylesheet" href="Style.css">
 </head>
 <body>
-
-    <div id="gachaCapsule">
-        <img id="gachaCapsuleImage" src="写真/カードの裏面.png" alt="ガチャカプセル">
+    <div id="mainSystem">
+        <h1>カードゲーム</h1>
+        <button id="mainButton">スタート</button>
     </div>
-    <textarea id="gachaResult" rows="4" cols="30" readonly></textarea>
-    <button id="gachaButton">ガチャを引く</button>
-    <button id="resetButton" class="hidden">リセット</button>
-    <div id="endMessage" class="hidden">全てのアイテムがなくなりました。</div>
-
+    <div id="cardSelect" class="hidden">
+        <div id="cardSelectContainer"></div>
+    </div>
+    <div id="result" class="hidden">
+        <div id="resultCard"></div>
+        <button id="tryagainButton">再挑戦</button>
+    </div>
+    <script src="Script99.js"></script>
 </body>
 </html>
-

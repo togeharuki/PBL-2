@@ -1,55 +1,104 @@
+/* 全体のスタイル */
 body {
     font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
     display: flex;
+    justify-content: center;
+    align-items: center;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
     height: 100vh;
-    background-color: #f2f2f2;
+    margin: 0;
 }
-#gachaCapsule {
-    width: 200px;
-    height: 200px;
-    background-color: #ffcc00;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 20px;
-    animation: none;
+
+h1 {
+    text-align: center;
 }
-#gachaCapsuleImage {
-    width: 80%;
-    height: auto;
-}
-button {
-    margin: 10px;
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-}
+
 .hidden {
     display: none;
 }
-@keyframes rotateCapsule {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
-}
-.success-notification {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgb(78, 205, 196);
-    padding: 20px 40px;
-    border-radius: 10px;
+
+button {
+    padding: 15px 30px;
+    font-size: 20px;
+    background-color: #ff6f61;
     color: white;
-    text-align: center;
-    z-index: 1000;
-    font-size: 1.2em;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    background-color: #ff9e91;
+}
+
+.card-row {
+    display: flex; /* フレックスボックスを使用 */
+    justify-content: center; /* 中央揃え */
+    margin-bottom: 20px; /* 行の間隔を設定 */
+}
+
+
+/* カードのスタイル */
+.card .card-inner {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s; /* 回転のスピードを調整 */
+    transform-style: preserve-3d; /* 3D効果を保持 */
+}
+
+.card {
+    width: 150px; /* 裏面の幅に合わせる */
+    height: 200px; /* 裏面の高さに合わせる */
+    margin: 10px;
+    margin: 0 10px; /* カード間のスペース */
+    position: relative;
+    cursor: pointer;
+    perspective: 1000px; /* 3D効果を追加 */
+}
+
+.card .card-front,
+.card .card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden; /* 裏面を隠す */
+}
+
+/* 表面のスタイル */
+.card .card-front {
+    background-color: #ddd; /* 表面の背景色 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; /* オーバーフローを隠す */
+}
+
+.card .card-front img { 
+    width: 100%; /* 画像の幅を100%に */ 
+    height: 100%; /* 画像の高さを100%に */ 
+    object-fit: cover; /* 画像をカバー */
+}
+
+/* 裏面のスタイル */
+.card .card-back {
+    background-color: #ddd; /* 裏面の背景色 */
+    background-size: cover; /* 画像をカバー */
+    transform: rotateY(180deg); /* 裏面を回転させて表示 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; /* オーバーフローを隠す */
+}
+
+.card .card-back img {
+    width: 100%; /* 裏面の画像の幅を100%に設定 */
+    height: 100%; /* 高さを100%に設定 */
+    object-fit: cover; /* 画像をカバー */
+}
+
+.card.flip .card-inner {
+    transform: rotateY(180deg); /* 裏面を見せる */
 }
