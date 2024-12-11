@@ -171,7 +171,7 @@ async function addCardToSouko(card) {
         const cardId = `default_card_${cardCounter}`;  // インクリメンタルなカードIDを生成
         cardCounter++;  // カウンタをインクリメント
         await soukoRef.set({
-            [`cards.${cardId}`]: {
+            [`${cardId}`]: {
                 name: card.name,
                 image: card.image,
                 effect: card.effect,
