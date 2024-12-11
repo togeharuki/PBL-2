@@ -168,8 +168,8 @@ document.addEventListener('DOMContentLoaded', initializeGacha);
 async function addCardToSouko(card) {
     try {
         const soukoRef = db.collection('Souko').doc(playerId);
-        const cardId = `default_card_${cardCounter}_gacha`;  // インクリメンタルなカードIDを生成
         cardCounter++;  // カウンタをインクリメント
+        const cardId = `default_card_${cardCounter}_gacha`;  // インクリメンタルなカードIDを生成
 
         // Firestoreにカードを追加し、保存数をインクリメント
         await soukoRef.set({
