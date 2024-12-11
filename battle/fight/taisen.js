@@ -12,7 +12,7 @@ const app = window.initializeApp(firebaseConfig);
 const db = window.getFirestore(app);
 
 // カードの裏面画像URL
-const CARD_BACK_IMAGE = 'https://togeharuki.github.io/Deck-Dreamers/battle/gatya/写真/カードの裏面.png';
+const CARD_BACK_IMAGE = './カードの裏面.png';
 
 // 初期カードデータを拡充
 const initialCards = [
@@ -249,7 +249,7 @@ export class Game {
         // 初期化を非同期で実行
         this.initializeGame().catch(error => {
             console.error('ゲーム初期化中にエラーが発生:', error);
-            alert('ゲームの初期化に失敗しました。ページを再読み込みしてください。');
+            alert('ゲー���の初期化に失敗しました。ページを再読み込みしてください。');
         });
 
         // イベントリスナー設定
@@ -319,7 +319,7 @@ export class Game {
 
             try {
                 if (!gameDocSnap.exists()) {
-                    // 新規ゲーム作成の処理
+                    // 新規ゲーム作成の処���
                     await this.createNewGame(gameDocRef);
                 } else {
                     // 既存ゲームへの参加処理
@@ -364,7 +364,7 @@ export class Game {
 
                     await this.updateGameState(gameData);
                     
-                    // 自分のターンの場��、ドロー処理を実行
+                    // 自分のターンの場合、ドロー処理を実行
                     if (gameData.currentTurn === this.playerId) {
                         console.log('初期ドロー処理を実行');
                         await this.drawCard();
@@ -409,7 +409,7 @@ export class Game {
                     const previousTurn = this.gameState?.isPlayerTurn;
                     await this.updateGameState(gameData);
                     
-                    // 自分のターンが始まった時にカードを��く
+                    // 自分のターンが始まった時にカードをく
                     if (!previousTurn && this.gameState.isPlayerTurn) {
                         console.log('ターン開始時のドロー処理を実行');
                         await this.drawCard();
@@ -565,7 +565,7 @@ export class Game {
             
             const cardContent = document.createElement('div');
             cardContent.className = 'card-content';
-            cardContent.innerHTML = `<img src="/battle/gatya/写真/カードの裏面.png" alt="カードの裏面">`;
+            cardContent.innerHTML = `<img src="./カードの裏面.png" alt="カードの裏面">`;
             
             cardBack.appendChild(cardContent);
             handContainer.appendChild(cardBack);
@@ -631,7 +631,7 @@ export class Game {
 
             return allCards;
         } catch (error) {
-            console.error('カード効果の取得に失敗:', error);
+            console.error('カード効果の取得に失���:', error);
             console.error('エラーの詳細:', {
                 gameId: this.gameId,
                 playerId: this.playerId,
@@ -803,7 +803,7 @@ export class Game {
                 timeLeft--;
                 timerElement.textContent = timeLeft;
                 
-                // り5秒になったら警告表示
+                // り5��になったら警告表示
                 if (timeLeft <= 5) {
                     timerElement.style.color = 'red';
                 }
@@ -876,7 +876,7 @@ export class Game {
                     turnTime: 60
                 };
 
-                // バトルフェーズが'waiting'でない場��は、フェーズも更新
+                // バトルフェーズが'waiting'でない場合は、フェーズも更新
                 if (this.battleState.battlePhase !== 'waiting') {
                     updateData.battleState = {
                         ...this.battleState,
@@ -942,7 +942,7 @@ export class Game {
             })
             .catch(error => {
                 console.error('バトルフェーズの更新に失敗:', error);
-                console.error('エラーの���細:', {
+                console.error('エラーの詳細:', {
                     error: error.message,
                     stack: error.stack,
                     gameState: this.gameState,
@@ -977,7 +977,7 @@ export class Game {
             }
 
             if (!cardToPlay) {
-                console.error('プレイしようとしたカードが見つかりません:', cardId);
+                console.error('プレイしようとした���ードが見つかりません:', cardId);
                 return;
             }
 
@@ -1077,7 +1077,7 @@ export class Game {
         const defenderCard = this.battleState.defenderCard;
 
         if (!attackerCard || !defenderCard) {
-            console.error('バトル結果の計算に必要なカードが不足しています');
+            console.error('バトル結果の計算に��要なカードが不足しています');
             return;
         }
 
@@ -1233,7 +1233,7 @@ export class Game {
                 cardElement.className = 'card card-back';
                 cardElement.innerHTML = `
                     <div class="card-content">
-                        <img src="/battle/gatya/写真/カードの裏面.png" alt="カードの裏面">
+                        <img src="./カードの裏面.png" alt="カードの裏面">
                     </div>
                 `;
                 playerBattleSlot.appendChild(cardElement);
@@ -1249,7 +1249,7 @@ export class Game {
                 cardElement.className = 'card card-back';
                 cardElement.innerHTML = `
                     <div class="card-content">
-                        <img src="/battle/gatya/写真/カードの裏面.png" alt="カードの裏面">
+                        <img src="./カードの裏面.png" alt="カードの裏面">
                     </div>
                 `;
                 opponentBattleSlot.appendChild(cardElement);
