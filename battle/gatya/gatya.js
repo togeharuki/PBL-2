@@ -22,7 +22,7 @@ const endMessage = document.getElementById('endMessage');  // ガチャ終了メ
 const GACHA_ITEMS = [
     {
         name: '徳田家ののりちゃん',
-        image: '写真/N-徳田家ののりちゃん.png',
+        image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/N-%E5%BE%B3%E7%94%B0%E5%AE%B6%E3%81%AE%E3%81%AE%E3%82%8A%E3%81%A1%E3%82%83%E3%82%93.png',
         effect: '攻撃力+1',  // アイテムの効果
         count: 20,  // 残り個数
         rarity: 'N',  // レアリティ
@@ -30,7 +30,7 @@ const GACHA_ITEMS = [
     },
     {
         name: '学祭のピザ',
-        image: '写真/R-学祭のピザ.png',
+        image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/R-%E5%AD%A6%E7%A5%AD%E3%81%AE%E3%83%94%E3%82%B6.png',
         effect: '回復+1',  // アイテムの効果
         count: 10,  // 残り個数
         rarity: 'R',  // レアリティ
@@ -38,7 +38,7 @@ const GACHA_ITEMS = [
     },
     {
         name: '先生集合',
-        image: '写真/R-先生集合.png',
+        image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/R-%E5%85%88%E7%94%9F%E9%9B%86%E5%90%88.png',
         effect: '攻撃力+1',  // アイテムの効果
         count: 10,  // 残り個数
         rarity: 'R',  // レアリティ
@@ -46,7 +46,7 @@ const GACHA_ITEMS = [
     },
     {
         name: '二郎系',
-        image: '写真/R-二郎系.png',
+        image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/R-%E4%BA%8C%E9%83%8E%E7%B3%BB.png',
         effect: '攻撃力+1',  // アイテムの効果
         count: 10,  // 残り個数
         rarity: 'R',  // レアリティ
