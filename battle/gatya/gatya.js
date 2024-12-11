@@ -170,6 +170,8 @@ async function addCardToSouko(card) {
         const soukoRef = db.collection('Souko').doc(playerId);
         const cardId = `default_card_${cardCounter}_gacha`;  // インクリメンタルなカードIDを生成
         cardCounter++;  // カウンタをインクリメント
+
+        // Firestoreにカードを追加し、保存数をインクリメント
         await soukoRef.set({
             [`${cardId}`]: {
                 name: card.name,
@@ -178,7 +180,8 @@ async function addCardToSouko(card) {
                 rarity: card.rarity,
                 type: 'gacha',
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            }
+            },
+            savedCount: firebase.firestore.FieldValue.increment(1)  // 保存数をインクリメント
         }, { merge: true });
     } catch (error) {
         console.error('カード追加エラー:', error);
