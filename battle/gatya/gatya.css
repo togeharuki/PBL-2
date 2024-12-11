@@ -48,6 +48,7 @@ h1 {
     max-width: 1000px;
     padding: 20px;
     text-align: center;
+    align-items: center;
 }
 
 .gacha-wrapper {
