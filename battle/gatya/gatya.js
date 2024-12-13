@@ -18,87 +18,86 @@ const gachaCapsuleImage = document.getElementById('gachaCapsuleImage');  // ガ�
 const endMessage = document.getElementById('endMessage');  // ガチャ終了メッセージ
 
 // ガチャアイテムのデータ
-// ガチャアイテムのデータ
 const GACHA_ITEMS = [
     {
         name: '徳田家ののりちゃん',
         image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/N-%E5%BE%B3%E7%94%B0%E5%AE%B6%E3%81%AE%E3%81%AE%E3%82%8A%E3%81%A1%E3%82%83%E3%82%93.png',
-        effect: '攻撃力+1',  // アイテムの効果
-        count: 20,  // 残り個数
-        rarity: 'N',  // レアリティ
-        weight: 35  // 抽選時の重み（確率）
+        effect: '攻撃力+1',
+        count: 20,
+        rarity: 'N',
+        weight: 35
     },
     {
         name: '学祭のピザ',
         image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/R-%E5%AD%A6%E7%A5%AD%E3%81%AE%E3%83%94%E3%82%B6.png',
-        effect: '回復+1',  // アイテムの効果
-        count: 10,  // 残り個数
-        rarity: 'R',  // レアリティ
-        weight: 30  // 抽選時の重み（確率）
+        effect: '回復+1',
+        count: 10,
+        rarity: 'R',
+        weight: 30
     },
     {
         name: '二郎系',
         image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/R-%E4%BA%8C%E9%83%8E%E7%B3%BB.png',
-        effect: '攻撃力+1',  // アイテムの効果
-        count: 10,  // 残り個数
-        rarity: 'R',  // レアリティ
-        weight: 30  // 抽選時の重み（確率）
+        effect: '攻撃力+1',
+        count: 10,
+        rarity: 'R',
+        weight: 30
     },
     {
         name: '河合家のりょうちゃん',
         image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SR-%E6%B2%B3%E5%90%88%E5%AE%B6%E3%81%AE%E3%82%8A%E3%82%87%E3%81%86%E3%81%A1%E3%82%83%E3%82%93.png',
-        effect: '攻撃力+2',  // アイテムの効果
-        count: 5,  // 残り個数
-        rarity: 'SR',  // レアリティ
-        weight: 15  // 抽選時の重み（確率）
+        effect: '攻撃力+2',
+        count: 5,
+        rarity: 'SR',
+        weight: 15
     },
     {
         name: '喜友名家のともちゃん',
         image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SR-%E5%96%9C%E5%8F%8B%E5%90%8D%E5%AE%B6%E3%81%AE%E3%81%A8%E3%82%82%E3%81%A1%E3%82%83%E3%82%93.png',
-        effect: '攻撃力+2',  // アイテムの効果
-        count: 5,  // 残り個数
-        rarity: 'SR',  // レアリティ
-        weight: 15  // 抽選時の重み（確率）
+        effect: '攻撃力+2',
+        count: 5,
+        rarity: 'SR',
+        weight: 15
     },
     {
         name: '金田家のしょうちゃん',
         image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SR-%E9%87%91%E7%94%B0%E5%AE%B6%E3%81%AE%E3%81%97%E3%82%87%E3%81%86%E3%81%A1%E3%82%83%E3%82%93.png',
-        effect: '攻撃力+2',  // アイテムの効果
-        count: 5,  // 残り個数
-        rarity: 'SR',  // レアリティ
-        weight: 15  // 抽選時の重み（確率）
+        effect: '攻撃力+2',
+        count: 5,
+        rarity: 'SR',
+        weight: 15
     },
     {
         name: '佐藤家のやまちゃん',
         image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SR-%E4%BD%90%E8%97%A4%E5%AE%B6%E3%81%AE%E3%82%84%E3%81%BE%E3%81%A1%E3%82%83%E3%82%93.png',
-        effect: '攻撃力+2',  // アイテムの効果
-        count: 5,  // 残り個数
-        rarity: 'SR',  // レアリティ
-        weight: 15  // 抽選時の重み（確率）
+        effect: '攻撃力+2',
+        count: 5,
+        rarity: 'SR',
+        weight: 15
     },
     {
         name: '中野家のてんちゃん',
         image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SR-%E4%B8%AD%E9%87%8E%E5%AE%B6%E3%81%AE%E3%81%A6%E3%82%93%E3%81%A1%E3%82%83%E3%82%93.png',
-        effect: '攻撃力+2',  // アイテムの効果
-        count: 5,  // 残り個数
-        rarity: 'SR',  // レアリティ
-        weight: 15  // 抽選時の重み（確率）
+        effect: '攻撃力+2',
+        count: 5,
+        rarity: 'SR',
+        weight: 15
     },
     {
         name: '先生集合',
         image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/R-%E5%85%88%E7%94%9F%E9%9B%86%E5%90%88.png',
-        effect: '攻撃力+5',  // アイテムの効果
-        count: 2,  // 残り個数
-        rarity: 'SSR',  // レアリティ
-        weight: 5  // 抽選時の重み（確率）
+        effect: '攻撃力+5',
+        count: 2,
+        rarity: 'SSR',
+        weight: 5
     },
     {
         name: '佐藤家のてんちゃん',
         image: 'https://github.com/togeharuki/Deck-Dreamers/blob/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SSR-%E4%BD%90%E8%97%A4%E5%AE%B6%E3%81%AE%E3%81%A6%E3%82%93%E3%81%A1%E3%82%83%E3%82%93.png',
-        effect: '回復力+5',  // アイテムの効果
-        count: 2,  // 残り個数
-        rarity: 'SSR',  // レアリティ
-        weight: 5  // 抽選時の重み（確率）
+        effect: '回復力+5',
+        count: 2,
+        rarity: 'SSR',
+        weight: 5
     },
 ];
 
@@ -151,12 +150,12 @@ async function initializeGacha() {
         updateButtonState();
     } catch (error) {
         console.error('初期化エラー:', error);
-        alert('データの読み込みに失敗しました');
+        alert(`データの読み込みに失敗しました: ${error.message}`);
     }
 }
 document.addEventListener('DOMContentLoaded', initializeGacha);
 
-// ガチャアイテムをSoukoに追加する関数です
+// ガチャアイテムをSoukoに追加する関数
 async function addCardToSouko(card) {
     try {
         const soukoRef = db.collection('Souko').doc(playerId);
@@ -177,7 +176,7 @@ async function addCardToSouko(card) {
         }, { merge: true });
     } catch (error) {
         console.error('カード追加エラー:', error);
-        alert('カードを追加できませんでした');
+        alert(`カードを追加できませんでした: ${error.message}`);
         throw error;
     }
 }
@@ -207,7 +206,7 @@ async function handleGachaResult() {
         }, 2000);
     } catch (error) {
         console.error('結果処理エラー:', error);
-        alert('処理に失敗しました');
+        alert(`処理に失敗しました: ${error.message}`);
     }
 }
 
@@ -222,7 +221,7 @@ async function updateGachaData() {
         });
     } catch (error) {
         console.error('データ更新エラー:', error);
-        alert('データを更新できませんでした');
+        alert(`データを更新できませんでした: ${error.message}`);
         throw error;
     }
 }
@@ -252,42 +251,18 @@ function displayItemsRemaining() {
     });
 }
 
+// ボタンの状態を更新
 function updateButtonState() {
     const hasAvailableItems = items.some(item => item.count > 0);
     gachaButton.disabled = !hasAvailableItems;
     if (!hasAvailableItems) showEndMessage();
 }
 
+// 終了メッセージを表示
 function showEndMessage() {
     endMessage.style.display = 'block';
     gachaButton.style.display = 'none';
     gachaResult.style.display = 'none';
-}
-
-function showSuccessNotification(message) {
-    const notification = document.createElement('div');
-    notification.className = 'success-notification';
-    notification.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: rgb(78, 205, 196);
-        padding: 20px 40px;
-        border-radius: 10px;
-        color: white;
-        text-align: center;
-        z-index: 1000;
-        font-size: 1.2em;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    `;
-    notification.textContent = message;
-    document.body.appendChild(notification);
-    setTimeout(() => {
-        notification.style.opacity = '0';
-        notification.style.transition = 'opacity 0.5s ease';
-        setTimeout(() => notification.remove(), 500);
-    }, 2000);
 }
 
 // ガチャボタンがクリックされた時の処理
@@ -298,7 +273,7 @@ gachaButton.addEventListener('click', async () => {
         await handleGachaResult();
     } catch (error) {
         console.error('ガチャ実行エラー:', error);
-        showSuccessNotification('ガチャの実行に失敗しました');
+        alert('ガチャの実行に失敗しました');
         gachaButton.disabled = false;
     }
 });
@@ -309,12 +284,11 @@ resetButton.addEventListener('click', resetGacha);
 // エラーハンドリング（グローバルエラーハンドラー）
 window.addEventListener('error', function(event) {
     console.error('エラーが発生しました:', event.error);
-    showSuccessNotification('エラーが発生しました');
+    alert('エラーが発生しました');
 });
 
 // 未処理のPromiseエラーをキャッチするハンドラー
 window.addEventListener('unhandledrejection', function(event) {
     console.error('未処理のPromiseエラー:', event.reason);
-    showSuccessNotification('エラーが発生しました');
+    alert('未処理のエラーが発生しました');
 });
-
