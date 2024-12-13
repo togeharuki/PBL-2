@@ -249,7 +249,7 @@ export class Game {
         // 初期化を非同期で実行
         this.initializeGame().catch(error => {
             console.error('ゲーム初期化中にエラーが発生:', error);
-            alert('ゲー���の初期化に失敗しました。ページを再読み込みしてください。');
+            alert('ゲームの初期化に失敗しました。ページを再読み込みしてください。');
         });
 
         // イベントリスナー設定
@@ -319,7 +319,7 @@ export class Game {
 
             try {
                 if (!gameDocSnap.exists()) {
-                    // 新規ゲーム作成の処���
+                    // 新規ゲーム作成の処理
                     await this.createNewGame(gameDocRef);
                 } else {
                     // 既存ゲームへの参加処理
@@ -631,7 +631,7 @@ export class Game {
 
             return allCards;
         } catch (error) {
-            console.error('カード効果の取得に失���:', error);
+            console.error('カード効果の取得に失敗:', error);
             console.error('エラーの詳細:', {
                 gameId: this.gameId,
                 playerId: this.playerId,
@@ -803,7 +803,7 @@ export class Game {
                 timeLeft--;
                 timerElement.textContent = timeLeft;
                 
-                // り5��になったら警告表示
+                // り5になったら警告表示
                 if (timeLeft <= 5) {
                     timerElement.style.color = 'red';
                 }
@@ -861,7 +861,7 @@ export class Game {
 
                 const randomIndex = Math.floor(Math.random() * validCards.length);
                 const randomCard = validCards[randomIndex];
-                console.log('選択されたカード:', randomCard);
+                console.log('選択��れたカード:', randomCard);
 
                 // カードプレイ
                 await this.playCard(randomCard);
@@ -977,7 +977,7 @@ export class Game {
             }
 
             if (!cardToPlay) {
-                console.error('プレイしようとした���ードが見つかりません:', cardId);
+                console.error('プレイしようとしたカードが見つかりません:', cardId);
                 return;
             }
 
@@ -1077,7 +1077,7 @@ export class Game {
         const defenderCard = this.battleState.defenderCard;
 
         if (!attackerCard || !defenderCard) {
-            console.error('バトル結果の計算に��要なカードが不足しています');
+            console.error('バトル結果の計算に必要なカードが不足しています');
             return;
         }
 
@@ -1331,20 +1331,17 @@ export class Game {
         cardElement.style.position = 'relative';
         cardElement.style.overflow = 'hidden';
 
-        // カードの内容を表示
+        // カードの内容を表示（写真と名前のみ）
         cardElement.innerHTML = `
             <div style="flex: 1; display: flex; flex-direction: column;">
-                <div style="height: 70px; overflow: hidden;">
+                <div style="height: 100px; overflow: hidden;">
                     <img src="${card.image}" 
                          alt="${card.name}" 
                          style="width: 100%; height: 100%; object-fit: cover;"
                          onerror="this.src='https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/default.jpg'">
                 </div>
-                <div style="text-align: center; padding: 5px; font-size: 14px;">
+                <div style="text-align: center; padding: 5px; font-size: 14px; background-color: #1a237e; color: white;">
                     ${card.name}
-                </div>
-                <div style="text-align: center; padding: 5px; font-size: 16px; background-color: #1a237e; color: white;">
-                    ${this.formatCardEffect(card.effect)}
                 </div>
             </div>
         `;
