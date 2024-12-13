@@ -24,13 +24,33 @@ const GACHA_ITEMS = [
         effect: '攻撃力+1',
         count: 20,
         rarity: 'N',
-        explanation: "",
+        explanation: '徳田家ののりちゃんの説明',
         weight: 35,
     },
-    // 他のアイテムに対しても説明を追加
+    // 他のアイテムを追加
 ];
 
-// 省略...
+// ガチャアイテムの状態（残り個数など）
+let items = [...GACHA_ITEMS];
+let playerId = null;  // プレイヤーのID
+let cardCounter = 1;  // カードIDのインクリメンタルカウンタ
+
+// アイテムを重み付けでランダムに選ぶ関数
+function weightedRandomSelect() {
+    const availableItems = items.filter(item => item.count > 0);
+    if (availableItems.length === 0) return null;
+
+    const totalWeight = availableItems.reduce((sum, item) => sum + item.weight, 0);
+    let random = Math.random() * totalWeight;
+
+    for (const item of availableItems) {
+        random -= item.weight;
+        if (random <= 0) {
+            return item;
+        }
+    }
+    return availableItems[0];
+}
 
 // ガチャアイテムをSoukoに追加する関数
 async function addCardToSouko(card) {
@@ -58,9 +78,6 @@ async function addCardToSouko(card) {
         throw error;
     }
 }
-
-// 省略...
-
 
 // ガチャ結果を処理する関数
 async function handleGachaResult() {
@@ -165,3 +182,38 @@ window.addEventListener('unhandledrejection', function(event) {
     console.error('未処理のPromiseエラー:', event.reason);
     alert('未処理のエラーが発生しました');
 });
+
+// ガチャの初期化
+async function initializeGacha() {
+    playerId = localStorage.getItem('playerId');
+    if (!playerId) {
+        alert('ログインが必要です');
+        window.location.href = '../login.html';
+        return;
+    }
+
+    try {
+        const soukoRef = db.collection('Souko').doc(playerId);
+        const soukoDoc = await soukoRef.get();
+
+        if (!soukoDoc.exists || !soukoDoc.data().gachaItems) {
+            const initialGachaData = {
+                gachaItems: GACHA_ITEMS,
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            await soukoRef.set(initialGachaData, { merge: true });
+            items = [...GACHA_ITEMS];
+        } else {
+            items = soukoDoc.data().gachaItems;
+        }
+
+        displayItemsRemaining();
+        updateButtonState();
+    } catch (error) {
+        console.error('初期化エラー:', error);
+        alert(`データの読み込みに失敗しました: ${error.message}`);
+    }
+}
+
+// DOMが読み込まれた後に初期化を実行
+document.addEventListener('DOMContentLoaded', initializeGacha);
