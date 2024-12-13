@@ -222,7 +222,7 @@ function renderCards() {
                     await addCardToSouko(card);
 
                     document.getElementById('reloadButton').addEventListener('click', function() {
-                        window.location.href = 'index99.html';
+                        window.location.href = '../../main/Menu/Menu.html';
                     });
                 } catch (error) {
                     console.error('エラー:', error);
