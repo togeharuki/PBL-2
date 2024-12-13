@@ -31,7 +31,10 @@ h1 {
     max-width: 1000px;
     padding: 20px;
     text-align: center;
-    flex: 0; /* 固定サイズに変更 */
+    flex: 1; /* 残りのスペースを占める */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* 中央に配置 */
 }
 
 .gacha-wrapper {
@@ -97,6 +100,8 @@ button {
     color: white;
     margin: 20px; /* 上下の余白を追加 */
     align-self: center; /* 中央揃え */
+    position: absolute; /* 画面の下に配置 */
+    bottom: 20px; /* 下からの距離 */
 }
 
 button:hover {
