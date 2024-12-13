@@ -159,7 +159,7 @@ async function addCardToSouko(card) {
     try {
         const soukoRef = db.collection('Souko').doc(playerId);
         cardCounter++;
-        const cardId = `card_${cardCounter}`;
+        const cardId = `default_card_0${cardCounter}_gacha`;
 
         await soukoRef.set({
             [`${cardId}`]: {
