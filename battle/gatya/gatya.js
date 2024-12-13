@@ -18,89 +18,11 @@ const gachaCapsuleImage = document.getElementById('gachaCapsuleImage');  // ガ�
 
 // ガチャアイテムのデータ
 const GACHA_ITEMS = [
-    {
-        name: '徳田家ののりちゃん',
-        image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/N-%E5%BE%B3%E7%94%B0%E5%AE%B6%E3%81%AE%E3%81%AE%E3%82%8A%E3%81%A1%E3%82%83%E3%82%93.png',
-        effect: '攻撃力+1',
-        count: 20,
-        rarity: 'N',
-        weight: 35
-    },
-    {
-        name: '学祭のピザ',
-        image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/R-%E5%AD%A6%E7%A5%AD%E3%81%AE%E3%83%94%E3%82%B6.png',
-        effect: '回復+1',
-        count: 10,
-        rarity: 'R',
-        weight: 30
-    },
-    {
-        name: '二郎系',
-        image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/R-%E4%BA%8C%E9%83%8E%E7%B3%BB.png',
-        effect: '攻撃力+1',
-        count: 10,
-        rarity: 'R',
-        weight: 30
-    },
-    {
-        name: '河合家のりょうちゃん',
-        image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SR-%E6%B2%B3%E5%90%88%E5%AE%B6%E3%81%AE%E3%82%8A%E3%82%87%E3%81%86%E3%81%A1%E3%82%83%E3%82%93.png',
-        effect: '攻撃力+2',
-        count: 5,
-        rarity: 'SR',
-        weight: 15
-    },
-    {
-        name: '喜友名家のともちゃん',
-        image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SR-%E5%96%9C%E5%8F%8B%E5%90%8D%E5%AE%B6%E3%81%AE%E3%81%A8%E3%82%82%E3%81%A1%E3%82%83%E3%82%93.png',
-        effect: '攻撃力+2',
-        count: 5,
-        rarity: 'SR',
-        weight: 15
-    },
-    {
-        name: '金田家のしょうちゃん',
-        image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SR-%E9%87%91%E7%94%B0%E5%AE%B6%E3%81%AE%E3%81%97%E3%82%87%E3%81%86%E3%81%A1%E3%82%83%E3%82%93.png',
-        effect: '攻撃力+2',
-        count: 5,
-        rarity: 'SR',
-        weight: 15
-    },
-    {
-        name: '佐藤家のやまちゃん',
-        image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SR-%E4%BD%90%E8%97%A4%E5%AE%B6%E3%81%AE%E3%82%84%E3%81%BE%E3%81%A1%E3%82%83%E3%82%93.png',
-        effect: '攻撃力+2',
-        count: 5,
-        rarity: 'SR',
-        weight: 15
-    },
-    {
-        name: '中野家のてんちゃん',
-        image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SR-%E4%B8%AD%E9%87%8E%E5%AE%B6%E3%81%AE%E3%81%A6%E3%82%93%E3%81%A1%E3%82%83%E3%82%93.png',
-        effect: '攻撃力+2',
-        count: 5,
-        rarity: 'SR',
-        weight: 15
-    },
-    {
-        name: '先生集合',
-        image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/R-%E5%85%88%E7%94%9F%E9%9B%86%E5%90%88.png',
-        effect: '攻撃力+5',
-        count: 2,
-        rarity: 'SSR',
-        weight: 5
-    },
-    {
-        name: '佐藤家のてんちゃん',
-        image: 'https://github.com/togeharuki/Deck-Dreamers/blob/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SSR-%E4%BD%90%E8%97%A4%E5%AE%B6%E3%81%AE%E3%81%A6%E3%82%93%E3%81%A1%E3%82%83%E3%82%93.png',
-        effect: '回復力+5',
-        count: 2,
-        rarity: 'SSR',
-        weight: 5
-    },
+    // アイテムデータ
 ];
 
-let items = [];  // ガチャアイテムの状態（残り個数など）
+// ガチャアイテムの状態（残り個数など）
+let items = [...GACHA_ITEMS];
 let playerId = null;  // プレイヤーのID
 let cardCounter = 1;  // カードIDのインクリメンタルカウンタ
 
@@ -135,11 +57,10 @@ async function initializeGacha() {
         const soukoDoc = await soukoRef.get();
 
         if (!soukoDoc.exists || !soukoDoc.data().gachaItems) {
-            const initialGachaData = {
+            await soukoRef.set({
                 gachaItems: GACHA_ITEMS,
                 lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            await soukoRef.set(initialGachaData, { merge: true });
+            }, { merge: true });
             items = [...GACHA_ITEMS];
         } else {
             items = soukoDoc.data().gachaItems;
@@ -159,7 +80,7 @@ async function addCardToSouko(card) {
     try {
         const soukoRef = db.collection('Souko').doc(playerId);
         cardCounter++;  // カウンタをインクリメント
-        const cardId = `default_card_0${cardCounter}_gacha`;  // インクリメンタルなカードIDを生成
+        const cardId = `default_card_0${cardCounter}`;  // インクリメンタルなカードIDを生成
 
         // Firestoreにカードを追加し、保存数をインクリメント
         await soukoRef.set({
@@ -202,6 +123,9 @@ async function handleGachaResult() {
             gachaCapsuleImage.src = selectedItem.image;
             displayItemsRemaining();
             updateButtonState();
+
+            // ガチャ結果の表示後にリダイレクト
+            window.location.href = "../../Menu/menu.html"; // リダイレクト先のURL
         }, 2000);
     } catch (error) {
         console.error('結果処理エラー:', error);
