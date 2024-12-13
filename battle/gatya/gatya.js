@@ -18,7 +18,32 @@ const gachaCapsuleImage = document.getElementById('gachaCapsuleImage');  // ガ�
 
 // ガチャアイテムのデータ
 const GACHA_ITEMS = [
-    // アイテムデータ
+    {
+        name: '徳田家ののりちゃん',
+        image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/N-%E5%BE%B3%E7%94%B0%E5%AE%B6%E3%81%AE%E3%81%AE%E3%82%8A%E3%81%A1%E3%82%83%E3%82%93.png',
+        effect: '攻撃力+1',
+        count: 20,
+        rarity: 'N',
+        weight: 35
+    },
+    // 他のアイテムデータを追加...
+    {
+        name: '学祭のピザ',
+        image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/R-%E5%AD%A6%E7%A5%AD%E3%81%AE%E3%83%94%E3%82%B6.png',
+        effect: '回復+1',
+        count: 10,
+        rarity: 'R',
+        weight: 30
+    },
+    {
+        name: '二郎系',
+        image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/R-%E4%BA%8C%E9%83%8E%E7%B3%BB.png',
+        effect: '攻撃力+1',
+        count: 10,
+        rarity: 'R',
+        weight: 30
+    },
+    // さらにアイテムを追加...
 ];
 
 // ガチャアイテムの状態（残り個数など）
@@ -82,7 +107,6 @@ async function addCardToSouko(card) {
         cardCounter++;  // カウンタをインクリメント
         const cardId = `default_card_0${cardCounter}`;  // インクリメンタルなカードIDを生成
 
-        // Firestoreにカードを追加し、保存数をインクリメント
         await soukoRef.set({
             [`${cardId}`]: {
                 name: card.name,
@@ -118,22 +142,21 @@ async function handleGachaResult() {
         await addCardToSouko(selectedItem);
         await updateGachaData();
 
-        setTimeout(() => {
-            gachaResult.value = `★${selectedItem.rarity}★\n${selectedItem.name}\n効果: ${selectedItem.effect}`;
-            gachaCapsuleImage.src = selectedItem.image;
-            displayItemsRemaining();
-            updateButtonState();
+        // ガチャ結果を表示
+        gachaResult.value = `★${selectedItem.rarity}★\n${selectedItem.name}\n効果: ${selectedItem.effect}`;
+        gachaCapsuleImage.src = selectedItem.image;
+        displayItemsRemaining();
+        updateButtonState();
 
-            // ガチャ結果の表示後にリダイレクト
+        // ガチャ結果の表示後にリダイレクト
+        setTimeout(() => {
             window.location.href = "../../main/Menu/Menu.html"; // リダイレクト先のURL
         }, 2000);
     } catch (error) {
         console.error('結果処理エラー:', error);
         alert(`処理に失敗しました: ${error.message}`);
     }
-}
-
-// Firestoreのガチャデータを更新する関数
+} // Firestoreのガチャデータを更新する関数
 async function updateGachaData() {
     if (!playerId) return;
     try {
