@@ -1,5 +1,3 @@
-//firebaseの保存方法完成
-
 // Firebaseの設定
 const firebaseConfig = {
     projectId: "deck-dreamers",
@@ -212,7 +210,7 @@ function renderCards() {
 
             cardElement.innerHTML = `
                 <img src="https://raw.githubusercontent.com/haruki1298/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/%E3%82%AB%E3%83%BC%E3%83%89%E3%81%AE%E8%A3%8F%E9%9D%A2.png" alt="カードの裏面" class="card-image">
-                <div class="info">
+                <div class="info" style="display: none;">
                     ${card.name}<br>${card.effect}<br>残り枚数: ${card.count}<br>レアリティ: ${card.rarity}
                 </div>
             `;

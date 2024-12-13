@@ -1,7 +1,7 @@
 body {
     font-family: Arial, sans-serif;
     text-align: center;
-    background-color: #f4f4f4;
+    background-color: #1a1a2e; /* 背景色を更新 */
     margin: 0;
     padding: 0;
 }
@@ -27,7 +27,7 @@ body {
     width: 120px;
     height: 120px;
     margin: 0 10px;
-    background-color: #ffffff;
+    background-color: #2a2a4e; /* 背景色を更新 */
     border: 1px solid #ddd;
     display: flex;
     justify-content: center;
@@ -54,7 +54,7 @@ body {
 
 button {
     padding: 10px 20px;
-    background-color: #007BFF;
+    background-color: #4ecdc4; /* ボタン色を更新 */
     color: #fff;
     border: none;
     border-radius: 5px;
@@ -63,7 +63,7 @@ button {
 }
 
 button:hover {
-    background-color: #0056b3;
+    background-color: #45b7a8; /* ボタンホバー色を更新 */
 }
 
 .gacha-result {
@@ -81,7 +81,6 @@ button:hover {
     width: 100%; /* 全幅 */
     height: 100%; /* 全高 */
     overflow: auto; /* スクロール可能 */
-    background-color: rgb(0,0,0); /* 背景色 */
     background-color: rgba(0,0,0,0.4); /* 背景色（透明度） */
 }
 
@@ -109,7 +108,14 @@ button:hover {
 
 /* 選択したカードの画像サイズを縦150px、横100pxに設定 */
 .gacha-result img {
-    width: 80px;
+    width: 100px;
     height: 150px;
     object-fit: cover;
+}
+
+/* ボタンを中央に配置するためのスタイル */
+.button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
 }
