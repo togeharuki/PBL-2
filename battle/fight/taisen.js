@@ -610,7 +610,7 @@ export class Game {
 
             const deckData = deckDoc.data();
             if (!deckData.cards || !Array.isArray(deckData.cards)) {
-                throw new Error('デッキのカードータが正です');
+                throw new Error('デッキのカードの形式が正です');
             }
 
             console.log('カード情報取得完了');
@@ -780,7 +780,7 @@ export class Game {
             }
         } else if (Object.keys(gameData.players).length >= 2) {
             console.error('テーブルが席です');
-            throw new Error('こテーブルは既に対戦が始まっています。');
+            throw new Error('このテーブルは既に対戦が始まっています。');
         } else {
             console.error('不正な状態でのゲーム参加:', gameData);
             throw new Error('ゲームに参加できません。');
@@ -839,7 +839,7 @@ export class Game {
                 clearInterval(this.timerInterval);
             }
 
-            // 手札がある場合、適切なカード選択してす
+            // 手札がある場合、切なカード選択してす
             if (this.gameState.playerHand.length > 0) {
                 // バトルフェーズに応じて適切なカードを選択
                 let validCards;
@@ -1192,7 +1192,7 @@ export class Game {
                 return;
             }
 
-            // 山札の一番上のカードを取得
+            // 山札の一番上カードを取得
             const drawnCard = this.gameState.playerDeck[0];
             const newDeck = this.gameState.playerDeck.slice(1);
             const newHand = [...this.gameState.playerHand, drawnCard];
@@ -1394,7 +1394,7 @@ export class Game {
         if (effect.includes('D')) {
             return `${effect}`;
         }
-        // 回復カード（H）の場合
+        // 回復カード��H）の場合
         else if (effect.includes('H')) {
             return `${effect}`;
         }
@@ -1523,19 +1523,18 @@ export class Game {
 
         try {
             // Deckコレクションからカード情報を取得
-            const deckRef = window.collection(db, 'Deck');
-            const querySnapshot = await window.getDocs(
-                window.query(
-                    deckRef,
-                    window.where('name', '==', card.name)
-                )
-            );
+            const snapshot = await window.getDocs(window.collection(db, 'Deck'));
+            let explanation = null;
 
-            if (!querySnapshot.empty) {
-                const cardData = querySnapshot.docs[0].data();
-                if (cardData.explanation) {
-                    return cardData.explanation;
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                if (data.name === card.name && data.explanation) {
+                    explanation = data.explanation;
                 }
+            });
+
+            if (explanation) {
+                return explanation;
             }
 
             // Deckコレクションに説明がない場合は、デフォルトの説明を生成
