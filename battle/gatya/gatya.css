@@ -35,6 +35,7 @@ h1 {
     display: flex;
     flex-direction: column;
     justify-content: center; /* 中央に配置 */
+    padding-bottom: 100px; /* ボタン用の余白を追加 */
 }
 
 .gacha-wrapper {
@@ -98,10 +99,12 @@ button {
 #resetButton {
     background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
     color: white;
-    margin: 20px; /* 上下の余白を追加 */
+    margin-top: 0px; /* 上下の余白を追加 */
     align-self: center; /* 中央揃え */
     position: absolute; /* 画面の下に配置 */
-    bottom: 20px; /* 下からの距離 */
+    bottom: 20px; /* 下からの距離を指定 */
+    left: 50%; /* 中央に配置 */
+    transform: translateX(-50%); /* 中央に配置するための調整 */
 }
 
 button:hover {
