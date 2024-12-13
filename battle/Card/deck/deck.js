@@ -86,6 +86,7 @@ async function loadDeckCards() {
                 type: 'effect',
                 effect: card.effect,
                 image: card.image,
+                explanation:card.explanation,
                 timestamp: card.timestamp
             }));
 
