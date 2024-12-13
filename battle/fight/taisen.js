@@ -424,7 +424,7 @@ export class Game {
                 }
             }
         }, (error) => {
-            console.error('リアルタイムアッ���デートエラー:', error);
+            console.error('リアルタイムアップデートエラー:', error);
         });
     }
 
@@ -645,7 +645,7 @@ export class Game {
     async createNewGame(gameDocRef) {
         console.log('新規ゲーム作成開始');
         const cards = await this.getCardEffect();
-        console.log('取得し���カード:', cards);
+        console.log('取得したカード:', cards);
         
         if (!Array.isArray(cards) || cards.length === 0) {
             throw new Error('有効なカードが取得できませんでした');
@@ -745,7 +745,7 @@ export class Game {
                     }
                 };
 
-                console.log('ゲームデータを更新��す:', updateData);
+                console.log('ゲームデータを更新します:', updateData);
                 await window.updateDoc(gameDocRef, updateData);
 
                 // ローカルのゲーム状態を更新
@@ -803,7 +803,7 @@ export class Game {
                 timeLeft--;
                 timerElement.textContent = timeLeft;
                 
-                // り5にな��たら警告表示
+                // り5になったら警告表示
                 if (timeLeft <= 5) {
                     timerElement.style.color = 'red';
                 }
@@ -839,7 +839,7 @@ export class Game {
                 clearInterval(this.timerInterval);
             }
 
-            // 手札がある場合、適切なカード選択して出す
+            // 手札がある場合、適切なカード選択してす
             if (this.gameState.playerHand.length > 0) {
                 // バトルフェーズに応じて適切なカードを選択
                 let validCards;
@@ -1285,7 +1285,7 @@ export class Game {
             animation: battleStart 1.5s ease-out forwards;
         `;
 
-        // アニメーションのス��イルを追加
+        // アニメーションのスイルを追加
         const style = document.createElement('style');
         style.textContent = `
             @keyframes battleStart {
@@ -1403,12 +1403,15 @@ export class Game {
     }
 
     // カード詳細を表示する関数
-    showCardDetail(card) {
+    async showCardDetail(card) {
         // 既存のモーダルがあれば削除
         const existingModal = document.querySelector('.card-detail-modal');
         if (existingModal) {
             existingModal.remove();
         }
+
+        // カードの説明を取得
+        const description = await this.getCardDescription(card);
 
         // モーダルの作成
         const modal = document.createElement('div');
@@ -1448,7 +1451,7 @@ export class Game {
                             <strong style="color: #000;">効果:</strong> <span style="color: #000;">${card.effect || '効果なし'}</span>
                         </p>
                         <p style="margin: 5px 0; font-size: 14px; color: #000;">
-                            <strong style="color: #000;">説明:</strong> <span style="color: #000;">${this.getCardDescription(card)}</span>
+                            <strong style="color: #000;">説明:</strong> <span style="color: #000;">${description}</span>
                         </p>
                     </div>
                 </div>
@@ -1515,28 +1518,45 @@ export class Game {
     }
 
     // カードの説明を取得する関数
-    getCardDescription(card) {
+    async getCardDescription(card) {
         if (!card.effect) return '効果なし';
 
-        // 通常の効果カードの場合、explanationを優先的に使用
-        if (card.explanation) {
-            return card.explanation;
-        }
+        try {
+            // Deckコレクションからカード情報を取得
+            const deckRef = window.collection(db, 'Deck');
+            const querySnapshot = await window.getDocs(
+                window.query(
+                    deckRef,
+                    window.where('name', '==', card.name)
+                )
+            );
 
-        // 攻撃カードの場合（例：⚡ D3 ⚡）
-        const damageMatch = card.effect.match(/D(\d+)/);
-        if (damageMatch) {
-            return `相手に${damageMatch[1]}ダメージを与える`;
-        }
+            if (!querySnapshot.empty) {
+                const cardData = querySnapshot.docs[0].data();
+                if (cardData.explanation) {
+                    return cardData.explanation;
+                }
+            }
 
-        // 回復カードの場合（例：✨ H2 ✨）
-        const healMatch = card.effect.match(/H(\d+)/);
-        if (healMatch) {
-            return `HPを${healMatch[1]}回復する`;
-        }
+            // Deckコレクションに説明がない場合は、デフォルトの説明を生成
+            // 攻撃カードの場合（例：⚡ D3 ⚡）
+            const damageMatch = card.effect.match(/D(\d+)/);
+            if (damageMatch) {
+                return `相手に${damageMatch[1]}ダメージを与える`;
+            }
 
-        // 上記以外の場合は効果をそのまま返す
-        return card.effect;
+            // 回復カードの場合（例：✨ H2 ✨）
+            const healMatch = card.effect.match(/H(\d+)/);
+            if (healMatch) {
+                return `HPを${healMatch[1]}回復する`;
+            }
+
+            // 上記以外の場合は効果をそのまま返す
+            return card.effect;
+        } catch (error) {
+            console.error('カードの説明の取得に失敗:', error);
+            return card.effect;
+        }
     }
 
     // 効果カードを発動する関数
