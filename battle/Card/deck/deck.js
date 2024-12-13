@@ -237,7 +237,8 @@ async function saveDeck() {
             effect: card.effect,
             type: 'normal',
             image: card.image,
-            isCreated: false
+            isCreated: false,
+            explanation:card.explanation
         }));
 
         if (normalCards.length !== 10) {
