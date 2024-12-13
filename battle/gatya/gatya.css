@@ -2,10 +2,9 @@ body {
     margin: 0;
     padding: 0;
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center; /* 縦方向の中央配置 */
-    align-items: center; /* 横方向の中央配置 */
+    displagity: flex;
+    justify-content: center;
+    align-items: center;
     font-family: Arial, sans-serif;
     background-color: #1a1a2e;
     background-image:
@@ -26,16 +25,29 @@ h1 {
     text-align: center;
 }
 
+.back {
+    margin: 20px; /* 上下の余白 */
+    text-align: center; /* 中央揃え */
+}
+
+.back a {
+    display: inline-block; /* インラインブロックにしてサイズを設定 */
+    padding: 10px 20px; /* 内側の余白 */
+    background-color: #007BFF; /* 背景色 */
+    color: #FFFFFF; /* 文字色 */
+    text-decoration: none; /* 下線を消す */
+    border-radius: 5px; /* 角を丸くする */
+    transition: background-color 0.3s; /* ホバー時のアニメーション */
+}
+
+.back a:hover {
+    background-color: #0056b3; /* ホバー時の背景色 */
+}
 .gacha-container {
     width: 90%;
     max-width: 1000px;
     padding: 20px;
     text-align: center;
-    flex: 1; /* 残りのスペースを占める */
-    display: flex;
-    flex-direction: column;
-    justify-content: center; /* 中央に配置 */
-    padding-bottom: 100px; /* ボタン用の余白を追加 */
 }
 
 .gacha-wrapper {
@@ -99,12 +111,6 @@ button {
 #resetButton {
     background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
     color: white;
-    margin-top: 0px; /* 上下の余白を追加 */
-    align-self: center; /* 中央揃え */
-    position: absolute; /* 画面の下に配置 */
-    bottom: 20px; /* 下からの距離を指定 */
-    left: 50%; /* 中央に配置 */
-    transform: translateX(-50%); /* 中央に配置するための調整 */
 }
 
 button:hover {
@@ -115,6 +121,11 @@ button:hover {
 @keyframes rotateCapsule {
     0% { transform: rotateY(0deg); }
     100% { transform: rotateY(1080deg); }
+}
+
+#endMessage {
+    color: #ff6b6b;
+    margin-top: 30px;
 }
 
 /* レスポンシブデザイン */
