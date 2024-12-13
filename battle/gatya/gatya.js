@@ -9,19 +9,20 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// DOM要素の取得
-const gachaButton = document.getElementById('gachaButton');
-const resetButton = document.getElementById('resetButton');
-const gachaResult = document.getElementById('gachaResult');
-const gachaCapsule = document.getElementById('gachaCapsule');
-const gachaCapsuleImage = document.getElementById('gachaCapsuleImage');
-const endMessage = document.getElementById('endMessage');
+// DOM要素の取得をDOMContentLoaded内で行う
+document.addEventListener('DOMContentLoaded', () => {
+    const gachaButton = document.getElementById('gachaButton');
+    const resetButton = document.getElementById('resetButton');
+    const gachaResult = document.getElementById('gachaResult');
+    const gachaCapsule = document.getElementById('gachaCapsule');
+    const gachaCapsuleImage = document.getElementById('gachaCapsuleImage');
+    const endMessage = document.getElementById('endMessage');
 
-let items = [];  // ガチャアイテムの状態（残り個数など）
-let playerId = null;  // プレイヤーのID
-let cardCounter = 1;  // カードIDのインクリメンタルカウンタ
+    let items = [];  // ガチャアイテムの状態（残り個数など）
+    let playerId = null;  // プレイヤーのID
+    let cardCounter = 1;  // カードIDのインクリメンタルカウンタ
 
-// ガチャアイテムのデータ
+    // ガチャアイテムのデータ
 const GACHA_ITEMS = [
     {
         name: '徳田家ののりちゃん',
@@ -113,55 +114,56 @@ const GACHA_ITEMS = [
     },
 ];
 
-// アイテムを重み付けでランダムに選ぶ関数
-function weightedRandomSelect() {
-    const availableItems = items.filter(item => item.count > 0);
-    if (availableItems.length === 0) return null;
+    // アイテムを重み付けでランダムに選ぶ関数
+    function weightedRandomSelect() {
+        const availableItems = items.filter(item => item.count > 0);
+        if (availableItems.length === 0) return null;
 
-    const totalWeight = availableItems.reduce((sum, item) => sum + item.weight, 0);
-    let random = Math.random() * totalWeight;
+        const totalWeight = availableItems.reduce((sum, item) => sum + item.weight, 0);
+        let random = Math.random() * totalWeight;
 
-    for (const item of availableItems) {
-        random -= item.weight;
-        if (random <= 0) {
-            return item;
+        for (const item of availableItems) {
+            random -= item.weight;
+            if (random <= 0) {
+                return item;
+            }
         }
-    }
-    return availableItems[0];
-}
-
-// ガチャの初期化
-async function initializeGacha() {
-    playerId = localStorage.getItem('playerId');
-    if (!playerId) {
-        alert('ログインが必要です');
-        window.location.href = '../login.html';
-        return;
+        return availableItems[0];
     }
 
-    try {
-        const soukoRef = db.collection('Souko').doc(playerId);
-        const soukoDoc = await soukoRef.get();
-
-        if (!soukoDoc.exists || !soukoDoc.data().gachaItems) {
-            const initialGachaData = {
-                gachaItems: GACHA_ITEMS,
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            await soukoRef.set(initialGachaData, { merge: true });
-            items = [...GACHA_ITEMS];
-        } else {
-            items = soukoDoc.data().gachaItems;
+    // ガチャの初期化
+    async function initializeGacha() {
+        playerId = localStorage.getItem('playerId');
+        if (!playerId) {
+            alert('ログインが必要です');
+            window.location.href = '../login.html';
+            return;
         }
 
-        displayItemsRemaining();
-        updateButtonState();
-    } catch (error) {
-        console.error('初期化エラー:', error);
-        alert('データの読み込みに失敗しました');
+        try {
+            const soukoRef = db.collection('Souko').doc(playerId);
+            const soukoDoc = await soukoRef.get();
+
+            if (!soukoDoc.exists || !soukoDoc.data().gachaItems) {
+                const initialGachaData = {
+                    gachaItems: GACHA_ITEMS,
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                await soukoRef.set(initialGachaData, { merge: true });
+                items = [...GACHA_ITEMS];
+            } else {
+                items = soukoDoc.data().gachaItems;
+            }
+
+            displayItemsRemaining();
+            updateButtonState();
+        } catch (error) {
+            console.error('初期化エラー:', error);
+            alert('データの読み込みに失敗しました');
+        }
     }
-}
-document.addEventListener('DOMContentLoaded', initializeGacha);
+    initializeGacha();
+});
 
 // ガチャアイテムをSoukoに追加する関数
 async function addCardToSouko(card) {
