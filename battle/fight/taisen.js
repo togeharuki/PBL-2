@@ -479,7 +479,7 @@ export class Game {
                 turnTime: gameData.turnTime || 60
             };
 
-            console.log('更新後のゲーム状態:', {
+            console.log('更新後のゲーム��態:', {
                 isPlayerTurn: this.gameState.isPlayerTurn,
                 playerDeckCount: this.gameState.playerDeck.length,
                 opponentDeckCount: this.gameState.opponentDeckCount,
@@ -610,7 +610,7 @@ export class Game {
 
             const deckData = deckDoc.data();
             if (!deckData.cards || !Array.isArray(deckData.cards)) {
-                throw new Error('デッキのカードータが不正です');
+                throw new Error('デッキのカードータが���正です');
             }
 
             console.log('カード情報取得完了');
@@ -712,7 +712,7 @@ export class Game {
                     throw new Error('有効なカードが取得できませんでした');
                 }
 
-                // カ���ドをシャッフル
+                // カードをシャッフル
                 const shuffledDeck = this.shuffleArray([...cards]);
                 const initialHand = shuffledDeck.slice(0, 5);
                 const remainingDeck = shuffledDeck.slice(5);
@@ -768,7 +768,7 @@ export class Game {
 
                 // 自分のターンの場合は初期ドローを実行
                 if (updatedGameData.currentTurn === this.playerId) {
-                    console.log('参加プレイヤーの初期ドロー処理���実行');
+                    console.log('���加プレイヤーの初期ドロー処理を実行');
                     await this.drawCard();
                     this.startBattlePhase();
                 }
@@ -861,7 +861,7 @@ export class Game {
 
                 const randomIndex = Math.floor(Math.random() * validCards.length);
                 const randomCard = validCards[randomIndex];
-                console.log('選択されたカ���ド:', randomCard);
+                console.log('選択されたカード:', randomCard);
 
                 // カードプレイ
                 await this.playCard(randomCard);
@@ -968,7 +968,7 @@ export class Game {
                 return;
             }
 
-            // プレイ���るカードを手札から探す
+            // プレイるカードを手札から探す
             let cardToPlay;
             if (typeof cardId === 'object' && cardId !== null) {
                 cardToPlay = cardId;
@@ -999,7 +999,7 @@ export class Game {
                 // 攻撃カードを出す場合
                 newBattleState = {
                     battlePhase: 'defense',
-                    canPlayCard: true, // 防御カードが出せるよ��にする
+                    canPlayCard: true, // 防御カードが出せるよにする
                     isAttacker: true,
                     attackerCard: {
                         id: cardToPlay.id || cardToPlay.name,
@@ -1147,7 +1147,7 @@ export class Game {
             currentTurn: opponentId
         });
 
-        // ローカルの状態を更���
+        // ローカルの状態を更新
         this.battleState = newBattleState;
         this.gameState.isPlayerTurn = false;
 
@@ -1222,7 +1222,7 @@ export class Game {
         }
     }
 
-    // バトルゾーンの表示を更新するメソッドを追加
+    // バトルゾーンの表示を更���するメソッドを追加
     updateBattleZone() {
         // プレイヤーのバトルゾーン更新
         const playerBattleSlot = document.getElementById('player-battle-slot');
@@ -1359,7 +1359,7 @@ export class Game {
         return cardElement;
     }
 
-    // 手札の表示を更新する関数
+    // ���札の表示を更新する関数
     updateHandDisplay() {
         const playerHand = document.getElementById('player-hand');
         if (!playerHand) return;
@@ -1398,7 +1398,7 @@ export class Game {
         else if (effect.includes('H')) {
             return `${effect}`;
         }
-        // それ以外の効果カードの場合
+        // それ以外の���果カードの場合
         return effect;
     }
 
@@ -1444,11 +1444,11 @@ export class Game {
                 <div style="background-color: #f5f5f5; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                     <h3 style="margin: 0 0 10px 0; color: #1a237e; font-size: 18px;">${card.name}</h3>
                     <div style="border-top: 1px solid #ddd; padding-top: 10px;">
-                        <p style="margin: 5px 0; font-size: 14px;">
-                            <strong>効果:</strong> ${card.effect || '効果なし'}
+                        <p style="margin: 5px 0; font-size: 14px; color: #000;">
+                            <strong style="color: #000;">効果:</strong> <span style="color: #000;">${card.effect || '効果なし'}</span>
                         </p>
-                        <p style="margin: 5px 0; font-size: 14px;">
-                            <strong>説明:</strong> ${card.explanation || this.getCardDescription(card)}
+                        <p style="margin: 5px 0; font-size: 14px; color: #000;">
+                            <strong style="color: #000;">説明:</strong> <span style="color: #000;">${card.explanation || this.getCardDescription(card)}</span>
                         </p>
                     </div>
                 </div>
