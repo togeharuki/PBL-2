@@ -1,3 +1,5 @@
+//firebaseの保存方法完成
+
 // Firebaseの設定
 const firebaseConfig = {
     projectId: "deck-dreamers",
