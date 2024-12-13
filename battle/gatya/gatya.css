@@ -27,7 +27,7 @@ h1 {
 
 .back {
     position: absolute; /* 絶対配置 */
-    top: 20px; /* 上からの距離 */
+    : 20px; /* 上からの距離 */
     left: 50%; /* 左から50% */
     transform: translateX(-50%); /* 中央揃え */
     text-align: center; /* 中央揃え */
