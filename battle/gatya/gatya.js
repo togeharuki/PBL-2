@@ -160,7 +160,7 @@ async function addCardToSouko(card) {
     try {
         const soukoRef = db.collection('Souko').doc(playerId);
         cardCounter++;  // カウンタをインクリメント
-        const cardId = `default_card_0${cardCounter}`;  // インクリメンタルなカードIDを生成
+        const cardId = `default_card_${cardCounter}`;  // インクリメンタルなカードIDを生成
 
         // Firestoreにカードを追加し、保存数をインクリメント
         await soukoRef.set({
