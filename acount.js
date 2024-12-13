@@ -3,52 +3,62 @@ const DEFAULT_CARDS = [
     {
         name: "逆転の1手",
         image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/逆転の1手.jpg",
-        effect: "山札から１ドロー"
+        effect: "山札から１ドロー",
+        explanation:"山札からカードを１枚引く"
     },
     {
         name: "手札足りない",
         image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/手札足りない.jpeg",
-        effect: "山札から１ドロー"
+        effect: "山札から１ドロー",
+        explanation:"山札からカードを１枚引く"
     },
     {
         name: "のぞき見",
         image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/のぞき見.jpeg",
-        effect: "相手の手札を2枚見る"
+        effect: "相手の手札を2枚見る",
+        explanation:"相手の手札をランダムに２枚表示する"
     },
     {
         name: "パパラッチ",
         image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/パパラッチ.jpg",
-        effect: "相手の手札を2枚見る"
+        effect: "相手の手札を2枚見る",
+        explanation:"相手の手札をランダムに２枚表示する"
     },
     {
         name: "レゴブロック",
         image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/レゴブロック.jpg",
-        effect: "数値＋２"
+        effect: "数値＋２",
+        explanation:"ⅮまたはＨの値を２増やす"
     },
     {
         name: "ルブタンの財布",
         image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/ルブタンの財布.jpg",
-        effect: "数値＋２"
+        effect: "数値＋２",
+        explanation:"ⅮまたはＨの値を２増やす"
     },
     {
         name: "ちくちく",
         image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/ちくちく.jpg",
-        effect: "強制1ダメージ"
+        effect: "強制1ダメージ",
+        explanation:"相手に１ダメージを与える"
     },
     {
         name: "とげとげ",
         image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/とげとげ.jpg",
-        effect: "強制1ダメージ"
+        effect: "強制1ダメージ",
+        explanation:"相手に１ダメージを与える"
     },
     {
         name: "リストキャット",
         image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/リストキャット.jpg",
-        effect: "両方に2ダメージ"
+        effect: "両方に2ダメージ",
+        explanation:"自分と相手にそれぞれ２ダメージを与える"
     },
     {
         name: "共倒れの1手",
         image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/共倒れの1手.jpg",
-        effect: "両方に2ダメージ"
+        effect: "両方に2ダメージ",
+        explanation:"自分と相手にそれぞれ２ダメージを与える"
     }
 ];
 
