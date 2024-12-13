@@ -164,7 +164,7 @@ async function addCardToSouko(card) {
         const cards = Object.values(existingData).filter(item => item.type === 'gacha');
         
         // 新しいカードIDを生成
-        const newCardId = `default_card_0${Date.now()}_${Math.random().toString(36).substr(2, 9)}_gacha`;
+        const newCardId = `default_card_0${Date.now()}_${Math.random().toString(5)}`;
         
         // 新しいカードデータを作成
         const newData = {
