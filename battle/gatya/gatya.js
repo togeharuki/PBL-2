@@ -17,6 +17,10 @@ const gachaCapsule = document.getElementById('gachaCapsule');
 const gachaCapsuleImage = document.getElementById('gachaCapsuleImage');
 const endMessage = document.getElementById('endMessage');
 
+let items = [];  // ガチャアイテムの状態（残り個数など）
+let playerId = null;  // プレイヤーのID
+let cardCounter = 1;  // カードIDのインクリメンタルカウンタ
+
 // ガチャアイテムのデータ
 const GACHA_ITEMS = [
     // (ここにアイテムデータが続きます)
@@ -108,6 +112,9 @@ async function handleGachaResult() {
     const itemIndex = items.findIndex(item => item.name === selectedItem.name);
     if (itemIndex !== -1) {
         items[itemIndex].count--;
+        if (items[itemIndex].count < 0) {
+            items[itemIndex].count = 0; // カウントが負にならないようにする
+        }
     }
 
     try {
@@ -165,7 +172,11 @@ function displayItemsRemaining() {
 function updateButtonState() {
     const hasAvailableItems = items.some(item => item.count > 0);
     gachaButton.disabled = !hasAvailableItems;
-    if (!hasAvailableItems) showEndMessage();
+    if (!hasAvailableItems) {
+        showEndMessage(); // 在庫がない場合はメッセージを表示
+    } else {
+        endMessage.style.display = 'none'; // 在庫がある場合はメッセージを非表示
+    }
 }
 
 function showEndMessage() {
