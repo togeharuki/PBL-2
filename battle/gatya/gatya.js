@@ -166,10 +166,11 @@ async function addCardToSouko(card) {
         await soukoRef.set({
             [`${cardId}`]: {
                 name: card.name,
-                image: card.image,
-                effect: card.effect,
-                rarity: card.rarity,
                 type: 'gacha',
+                effect: card.effect,
+                image: card.image,
+                explanation: card.explanation,
+                rarity: card.rarity,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             },
             savedCount: firebase.firestore.FieldValue.increment(100)  // 保存数をインクリメント
