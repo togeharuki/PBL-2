@@ -131,6 +131,52 @@ const GACHA_ITEMS = [
         return availableItems[0];
     }
 
+// Firebaseの設定
+const firebaseConfig = {
+    projectId: "deck-dreamers",
+    organizationId: "oic-ok.ac.jp",
+    projectNumber: "165933225805"
+};
+
+// Firebaseを初期化
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// DOM要素の取得をDOMContentLoaded内で行う
+document.addEventListener('DOMContentLoaded', () => {
+    const gachaButton = document.getElementById('gachaButton');
+    const resetButton = document.getElementById('resetButton');
+    const gachaResult = document.getElementById('gachaResult');
+    const gachaCapsule = document.getElementById('gachaCapsule');
+    const gachaCapsuleImage = document.getElementById('gachaCapsuleImage');
+    const endMessage = document.getElementById('endMessage');
+
+    let items = [];  // ガチャアイテムの状態（残り個数など）
+    let playerId = null;  // プレイヤーのID
+    let cardCounter = 1;  // カードIDのインクリメンタルカウンタ
+
+    // ガチャアイテムのデータ
+    const GACHA_ITEMS = [
+        // ここにアイテムデータを追加
+    ];
+
+    // アイテムを重み付けでランダムに選ぶ関数
+    function weightedRandomSelect() {
+        const availableItems = items.filter(item => item.count > 0);
+        if (availableItems.length === 0) return null;
+
+        const totalWeight = availableItems.reduce((sum, item) => sum + item.weight, 0);
+        let random = Math.random() * totalWeight;
+
+        for (const item of availableItems) {
+            random -= item.weight;
+            if (random <= 0) {
+                return item;
+            }
+        }
+        return availableItems[0];
+    }
+
     // ガチャの初期化
     async function initializeGacha() {
         playerId = localStorage.getItem('playerId');
@@ -164,6 +210,7 @@ const GACHA_ITEMS = [
     }
     initializeGacha();
 });
+
 
 // ガチャアイテムをSoukoに追加する関数
 async function addCardToSouko(card) {
