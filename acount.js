@@ -3,14 +3,14 @@ const DEFAULT_CARDS = [
     {
         name: "逆転の1手",
         image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/逆転の1手.jpg",
-        effect: "山札から１ドロー",
-        explanation:"山札からカードを１枚引く"
+        effect: "山札から２ドロー",
+        explanation:"山札からカードを２枚引く"
     },
     {
         name: "手札足りない",
         image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/手札足りない.jpeg",
-        effect: "山札から１ドロー",
-        explanation:"山札からカードを１枚引く"
+        effect: "山札から２ドロー",
+        explanation:"山札からカードを２枚引く"
     },
     {
         name: "のぞき見",
