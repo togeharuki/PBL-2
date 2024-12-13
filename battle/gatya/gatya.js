@@ -122,6 +122,7 @@ const GACHA_ITEMS = [
 // ガチャアイテムの状態（残り個数など）
 let items = [...GACHA_ITEMS];
 let playerId = null;  // プレイヤーのID
+let cardCounter = 1;  // カードIDのインクリメンタルカウンタ
 
 // アイテムを重み付けでランダムに選ぶ関数
 function weightedRandomSelect() {
@@ -144,19 +145,22 @@ function weightedRandomSelect() {
 async function addCardToSouko(card) {
     try {
         const soukoRef = db.collection('Souko').doc(playerId);
+        cardCounter++;  // カウンタをインクリメント
+        const cardId = `default_card_0${cardCounter}`;  // インクリメンタルなカードIDを生成
 
-        // Firestoreにカードを追加
-        await soukoRef.update({
-            gachaItems: firebase.firestore.FieldValue.arrayUnion({
+        // Firestoreにカードを追加し、保存数をインクリメント
+        await soukoRef.set({
+            [`${cardId}`]: {
                 name: card.name,
                 image: card.image,
                 effect: card.effect,
                 rarity: card.rarity,
                 explanation: card.explanation || '説明がありません',  // デフォルト値を設定
+                type: 'gacha',
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            }),
+            },
             savedCount: firebase.firestore.FieldValue.increment(1)  // 保存数をインクリメント
-        });
+        }, { merge: true });
     } catch (error) {
         console.error('カード追加エラー:', error);
         alert(`カードを追加できませんでした: ${error.message}`);
