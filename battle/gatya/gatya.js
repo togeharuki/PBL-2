@@ -154,24 +154,36 @@ async function initializeGacha() {
     }
 }
 
-// Firestoreにカードを保存
 async function addCardToSouko(card) {
     try {
         const soukoRef = db.collection('Souko').doc(playerId);
-        cardCounter++;
-        const cardId = `default_card_0${cardCounter}_gacha`;
-
-        await soukoRef.set({
-            [`${cardId}`]: {
+        const doc = await soukoRef.get();
+        const existingData = doc.data() || {};
+        
+        // 既存のカードを配列として取得
+        const cards = Object.values(existingData).filter(item => item.type === 'gacha');
+        
+        // 新しいカードIDを生成
+        const newCardId = `default_card_0${Date.now()}_${Math.random().toString(36).substr(2, 9)}_gacha`;
+        
+        // 新しいカードデータを作成
+        const newData = {
+            [newCardId]: {
                 name: card.name,
                 image: card.image,
                 effect: card.effect,
                 rarity: card.rarity,
                 type: 'gacha',
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            },
-            savedCount: firebase.firestore.FieldValue.increment(100)
+            }
+        };
+
+        // データを更新
+        await soukoRef.set({
+            ...newData,
+            savedCount: firebase.firestore.FieldValue.increment(1)
         }, { merge: true });
+
     } catch (error) {
         console.error('カード保存エラー:', error);
         throw error;
