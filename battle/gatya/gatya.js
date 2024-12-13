@@ -152,10 +152,10 @@ async function addCardToSouko(card) {
                 image: card.image,
                 effect: card.effect,
                 rarity: card.rarity,
-                explanation: card.explanation || '説明がありません',  // デフォルト値を設定
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                explanation: card.explanation || '説明がありません'  // デフォルト値を設定
             }),
-            savedCount: firebase.firestore.FieldValue.increment(100)  // 保存数をインクリメント
+            savedCount: firebase.firestore.FieldValue.increment(100),  // 保存数をインクリメント
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()  // タイムスタンプの更新
         });
     } catch (error) {
         console.error('カード追加エラー:', error);
