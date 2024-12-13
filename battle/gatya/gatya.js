@@ -12,7 +12,6 @@ const db = firebase.firestore();  // Firestoreデータベースへの参照を�
 
 // DOM要素の取得
 const gachaButton = document.getElementById('gachaButton');  // ガチャボタン
-const resetButton = document.getElementById('resetButton');  // 戻るボタン
 const gachaResult = document.getElementById('gachaResult');  // ガチャ結果表示用テキストエリア
 const gachaCapsule = document.getElementById('gachaCapsule');  // ガチャカプセルの要素
 const gachaCapsuleImage = document.getElementById('gachaCapsuleImage');  // ガチャカプセルの画像
@@ -264,15 +263,15 @@ gachaButton.addEventListener('click', async () => {
         gachaButton.disabled = true;
         triggerGachaAnimation();
         await handleGachaResult();
+
+        // ガチャが完了した後にホームにリダイレクト
+        window.location.href = '../home.html';  // ホームのURLに変更
     } catch (error) {
         console.error('ガチャ実行エラー:', error);
         alert('ガチャの実行に失敗しました');
         gachaButton.disabled = false;
     }
 });
-
-// リセットボタンがクリックされた時の処理
-resetButton.addEventListener('click', resetGacha);
 
 // エラーハンドリング（グローバルエラーハンドラー）
 window.addEventListener('error', function(event) {
