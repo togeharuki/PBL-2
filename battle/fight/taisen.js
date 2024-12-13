@@ -433,7 +433,7 @@ export class Game {
             console.log('updateGameState開始:', gameData);
             
             if (!gameData || !gameData.players) {
-                console.error('無効なゲ��ムデータ:', gameData);
+                console.error('無効なゲームデータ:', gameData);
                 return;
             }
 
@@ -712,7 +712,7 @@ export class Game {
                     throw new Error('有効なカードが取得できませんでした');
                 }
 
-                // カードをシャッフル
+                // カ���ドをシャッフル
                 const shuffledDeck = this.shuffleArray([...cards]);
                 const initialHand = shuffledDeck.slice(0, 5);
                 const remainingDeck = shuffledDeck.slice(5);
@@ -768,7 +768,7 @@ export class Game {
 
                 // 自分のターンの場合は初期ドローを実行
                 if (updatedGameData.currentTurn === this.playerId) {
-                    console.log('参加プレイヤーの初期ドロー処理を実行');
+                    console.log('参加プレイヤーの初期ドロー処理���実行');
                     await this.drawCard();
                     this.startBattlePhase();
                 }
@@ -861,7 +861,7 @@ export class Game {
 
                 const randomIndex = Math.floor(Math.random() * validCards.length);
                 const randomCard = validCards[randomIndex];
-                console.log('選択されたカード:', randomCard);
+                console.log('選択されたカ���ド:', randomCard);
 
                 // カードプレイ
                 await this.playCard(randomCard);
@@ -968,7 +968,7 @@ export class Game {
                 return;
             }
 
-            // プレイするカードを手札から探す
+            // プレイ���るカードを手札から探す
             let cardToPlay;
             if (typeof cardId === 'object' && cardId !== null) {
                 cardToPlay = cardId;
@@ -999,7 +999,7 @@ export class Game {
                 // 攻撃カードを出す場合
                 newBattleState = {
                     battlePhase: 'defense',
-                    canPlayCard: true, // 防御カードが出せるようにする
+                    canPlayCard: true, // 防御カードが出せるよ��にする
                     isAttacker: true,
                     attackerCard: {
                         id: cardToPlay.id || cardToPlay.name,
@@ -1038,7 +1038,7 @@ export class Game {
                 turnTime: 60 // タイマーをリセット
             };
 
-            console.log('Firestore��新データ:', updateData);
+            console.log('Firestore新データ:', updateData);
 
             await window.updateDoc(gameRef, updateData);
 
@@ -1147,7 +1147,7 @@ export class Game {
             currentTurn: opponentId
         });
 
-        // ローカルの状態を更新
+        // ローカルの状態を更���
         this.battleState = newBattleState;
         this.gameState.isPlayerTurn = false;
 
@@ -1424,6 +1424,8 @@ export class Game {
             box-shadow: 0 0 10px rgba(0,0,0,0.5);
             z-index: 1000;
             width: 300px;
+            max-height: 80vh;
+            overflow-y: auto;
         `;
 
         // カードの種類に基づいてボタンのテキストを設定
@@ -1433,32 +1435,45 @@ export class Game {
         // モーダルの内容
         modal.innerHTML = `
             <div style="text-align: center;">
-                <img src="${card.image}" 
-                     alt="${card.name}" 
-                     style="width: 200px; height: 200px; object-fit: cover; margin-bottom: 10px;"
-                     onerror="this.src='https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/default.jpg'">
-                <h3 style="margin: 10px 0;">${card.name}</h3>
-                <p style="margin: 10px 0;">効果: ${card.effect || '効果なし'}</p>
-                <p style="margin: 10px 0;">説明: ${card.explanation || this.getCardDescription(card)}</p>
-                <button class="action-button" style="
-                    background-color: #1a237e;
-                    color: white;
-                    border: none;
-                    padding: 10px 20px;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    margin-top: 10px;
-                ">${buttonText}</button>
-                <button class="close-button" style="
-                    background-color: #666;
-                    color: white;
-                    border: none;
-                    padding: 10px 20px;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    margin-top: 10px;
-                    margin-left: 10px;
-                ">閉じる</button>
+                <div style="margin-bottom: 20px;">
+                    <img src="${card.image}" 
+                         alt="${card.name}" 
+                         style="width: 200px; height: 200px; object-fit: cover;"
+                         onerror="this.src='https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/default.jpg'">
+                </div>
+                <div style="background-color: #f5f5f5; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <h3 style="margin: 0 0 10px 0; color: #1a237e; font-size: 18px;">${card.name}</h3>
+                    <div style="border-top: 1px solid #ddd; padding-top: 10px;">
+                        <p style="margin: 5px 0; font-size: 14px;">
+                            <strong>効果:</strong> ${card.effect || '効果なし'}
+                        </p>
+                        <p style="margin: 5px 0; font-size: 14px;">
+                            <strong>説明:</strong> ${card.explanation || this.getCardDescription(card)}
+                        </p>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: center; gap: 10px;">
+                    <button class="action-button" style="
+                        background-color: #1a237e;
+                        color: white;
+                        border: none;
+                        padding: 10px 20px;
+                        border-radius: 5px;
+                        cursor: pointer;
+                        font-size: 16px;
+                        min-width: 100px;
+                    ">${buttonText}</button>
+                    <button class="close-button" style="
+                        background-color: #666;
+                        color: white;
+                        border: none;
+                        padding: 10px 20px;
+                        border-radius: 5px;
+                        cursor: pointer;
+                        font-size: 16px;
+                        min-width: 100px;
+                    ">閉じる</button>
+                </div>
             </div>
         `;
 
@@ -1504,15 +1519,20 @@ export class Game {
         if (!card.effect) return '効果なし';
         if (card.explanation) return card.explanation;
 
-        if (card.effect.includes('D')) {
-            const damage = card.effect.match(/D(\d+)/)[1];
-            return `相手に${damage}ダメージを与える`;
-        } else if (card.effect.includes('H')) {
-            const heal = card.effect.match(/H(\d+)/)[1];
-            return `HPを${heal}回復する`;
-        } else {
-            return card.effect;
+        // 攻撃カードの場合（例：⚡ D3 ⚡）
+        const damageMatch = card.effect.match(/D(\d+)/);
+        if (damageMatch) {
+            return `相手に${damageMatch[1]}ダメージを与える`;
         }
+
+        // 回復カードの場合（例：✨ H2 ✨）
+        const healMatch = card.effect.match(/H(\d+)/);
+        if (healMatch) {
+            return `HPを${healMatch[1]}回復する`;
+        }
+
+        // その他の効果カードの場合
+        return card.effect;
     }
 
     // 効果カードを発動する関数
@@ -1524,11 +1544,19 @@ export class Game {
             if (card.effect.includes('ドロー')) {
                 await this.drawCard();
             } else if (card.effect.includes('強制')) {
-                // ダメージ効果の処理
-                const damage = parseInt(card.effect.match(/\d+/)[0]) || 0;
+                // 強制ダメージ効果の処理
+                const damageMatch = card.effect.match(/\d+/);
+                const damage = damageMatch ? parseInt(damageMatch[0]) : 0;
                 await this.applyDamage(damage);
             } else {
-                console.log('未実装の効果:', card.effect);
+                // 攻撃カードの場合（例：⚡ D3 ⚡）
+                const damageMatch = card.effect.match(/D(\d+)/);
+                if (damageMatch) {
+                    const damage = parseInt(damageMatch[1]);
+                    await this.applyDamage(damage);
+                } else {
+                    console.log('未実装の効果:', card.effect);
+                }
             }
 
             // カードを手札から除去
