@@ -1,3 +1,4 @@
+//修正元
 // Firebaseの設定
 const firebaseConfig = {
     projectId: "deck-dreamers",  // FirebaseプロジェクトID
