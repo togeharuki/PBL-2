@@ -1,136 +1,115 @@
 body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f4f4f4;
     margin: 0;
     padding: 0;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center; /* 縦方向の中央配置 */
-    align-items: center; /* 横方向の中央配置 */
-    font-family: Arial, sans-serif;
-    background-color: #1a1a2e;
-    background-image:
-        radial-gradient(circle at 10% 20%, rgba(90, 90, 90, 0.1) 0%, rgba(90, 90, 90, 0.1) 5%, transparent 5%),
-        radial-gradient(circle at 90% 80%, rgba(90, 90, 90, 0.1) 0%, rgba(90, 90, 90, 0.1) 5%, transparent 5%);
-}
-
-h1 {
-    font-family: 'Abril Fatface', cursive;
-    font-size: 3em;
-    color: transparent;
-    background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-    background-clip: text;
-    -webkit-background-clip: text;
-    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
-    margin-bottom: 40px;
-    letter-spacing: 2px;
-    text-align: center;
 }
 
 .gacha-container {
-    width: 90%;
-    max-width: 1000px;
-    padding: 20px;
-    text-align: center;
-    flex: 1; /* 残りのスペースを占める */
-    display: flex;
-    flex-direction: column;
-    justify-content: center; /* 中央に配置 */
-    padding-bottom: 100px; /* ボタン用の余白を追加 */
-}
-
-.gacha-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
-    margin-bottom: 30px;
+    justify-content: center;
+    margin-top: 20px;
+    min-height: 60vh;
 }
 
-.gacha-capsule {
-    width: 300px;
-    height: 420px;
-    perspective: 1000px;
-}
-
-.gacha-capsule-image {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    border-radius: 15px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-#gachaResult {
-    width: 80%;
-    max-width: 300px;
-    height: 100px;
-    padding: 15px;
-    border-radius: 10px;
-    border: none;
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    font-size: 16px;
-    resize: none;
-    margin-bottom: 20px; /* ボタンとの間隔を確保 */
-}
-
-.button-container {
+.gacha-row {
     display: flex;
     justify-content: center;
-    gap: 20px;
-    margin-top: 20px;
+    align-items: center;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.gacha-item {
+    width: 120px;
+    height: 120px;
+    margin: 0 10px;
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.gacha-item img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: cover;
+}
+
+.gacha-item .info {
+    position: absolute;
+    bottom: 5px;
+    left: 5px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    font-size: 12px;
+    padding: 2px 5px;
 }
 
 button {
-    font-size: 1.2em;
-    padding: 15px 40px;
+    padding: 10px 20px;
+    background-color: #007BFF;
+    color: #fff;
     border: none;
-    border-radius: 50px;
+    border-radius: 5px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-#gachaButton {
-    background: linear-gradient(45deg, #4ecdc4, #45b7a8);
-    color: white;
-}
-
-#resetButton {
-    background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
-    color: white;
-    margin-top: 20px; /* gachaResultからの距離を確保 */
-    align-self: center; /* 中央揃え */
-    position: absolute; /* 画面の下に配置 */
-    bottom: 20px; /* 下からの距離を指定 */
-    left: 50%; /* 中央に配置 */
-    transform: translateX(-50%); /* 中央に配置するための調整 */
+    margin-top: 30px;
 }
 
 button:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+    background-color: #0056b3;
 }
 
-@keyframes rotateCapsule {
-    0% { transform: rotateY(0deg); }
-    100% { transform: rotateY(1080deg); }
+.gacha-result {
+    margin-top: 20px;
+    font-size: 18px;
 }
 
-/* レスポンシブデザイン */
-@media (max-width: 768px) {
-    .gacha-capsule {
-        width: 250px;
-        height: 350px;
-    }
-    
-    h1 {
-        font-size: 2em;
-    }
-    
-    button {
-        font-size: 1em;
-        padding: 12px 30px;
-    }
+/* モーダルウィンドウのスタイル */
+.modal {
+    display: none; /* デフォルトでは非表示 */
+    position: fixed; /* 固定位置 */
+    z-index: 1; /* 最前面に表示 */
+    left: 0;
+    top: 0;
+    width: 100%; /* 全幅 */
+    height: 100%; /* 全高 */
+    overflow: auto; /* スクロール可能 */
+    background-color: rgb(0,0,0); /* 背景色 */
+    background-color: rgba(0,0,0,0.4); /* 背景色（透明度） */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; /* 中央に配置 */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* 幅 */
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* 選択したカードの画像サイズを縦150px、横100pxに設定 */
+.gacha-result img {
+    width: 100px;
+    height: 150px;
+    object-fit: cover;
 }
