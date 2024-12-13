@@ -424,7 +424,7 @@ export class Game {
                 }
             }
         }, (error) => {
-            console.error('リアルタイムアップデートエラー:', error);
+            console.error('リアルタイムアッ���デートエラー:', error);
         });
     }
 
@@ -479,7 +479,7 @@ export class Game {
                 turnTime: gameData.turnTime || 60
             };
 
-            console.log('更新後のゲーム��態:', {
+            console.log('更新後のゲーム態:', {
                 isPlayerTurn: this.gameState.isPlayerTurn,
                 playerDeckCount: this.gameState.playerDeck.length,
                 opponentDeckCount: this.gameState.opponentDeckCount,
@@ -610,7 +610,7 @@ export class Game {
 
             const deckData = deckDoc.data();
             if (!deckData.cards || !Array.isArray(deckData.cards)) {
-                throw new Error('デッキのカードータが���正です');
+                throw new Error('デッキのカードータが正です');
             }
 
             console.log('カード情報取得完了');
@@ -645,7 +645,7 @@ export class Game {
     async createNewGame(gameDocRef) {
         console.log('新規ゲーム作成開始');
         const cards = await this.getCardEffect();
-        console.log('取得したカード:', cards);
+        console.log('取得し���カード:', cards);
         
         if (!Array.isArray(cards) || cards.length === 0) {
             throw new Error('有効なカードが取得できませんでした');
@@ -745,7 +745,7 @@ export class Game {
                     }
                 };
 
-                console.log('ゲームデータを更新ます:', updateData);
+                console.log('ゲームデータを更新��す:', updateData);
                 await window.updateDoc(gameDocRef, updateData);
 
                 // ローカルのゲーム状態を更新
@@ -768,7 +768,7 @@ export class Game {
 
                 // 自分のターンの場合は初期ドローを実行
                 if (updatedGameData.currentTurn === this.playerId) {
-                    console.log('���加プレイヤーの初期ドロー処理を実行');
+                    console.log('加プレイヤーの初期ドロー処理を実行');
                     await this.drawCard();
                     this.startBattlePhase();
                 }
@@ -803,7 +803,7 @@ export class Game {
                 timeLeft--;
                 timerElement.textContent = timeLeft;
                 
-                // り5になったら警告表示
+                // り5にな��たら警告表示
                 if (timeLeft <= 5) {
                     timerElement.style.color = 'red';
                 }
@@ -1222,7 +1222,7 @@ export class Game {
         }
     }
 
-    // バトルゾーンの表示を更���するメソッドを追加
+    // バトルゾーンの表示を更新するメソッドを追加
     updateBattleZone() {
         // プレイヤーのバトルゾーン更新
         const playerBattleSlot = document.getElementById('player-battle-slot');
@@ -1285,7 +1285,7 @@ export class Game {
             animation: battleStart 1.5s ease-out forwards;
         `;
 
-        // アニメーションのスタイルを追加
+        // アニメーションのス��イルを追加
         const style = document.createElement('style');
         style.textContent = `
             @keyframes battleStart {
@@ -1359,7 +1359,7 @@ export class Game {
         return cardElement;
     }
 
-    // ���札の表示を更新する関数
+    // 札の表示を更新する関数
     updateHandDisplay() {
         const playerHand = document.getElementById('player-hand');
         if (!playerHand) return;
@@ -1398,7 +1398,7 @@ export class Game {
         else if (effect.includes('H')) {
             return `${effect}`;
         }
-        // それ以外の���果カードの場合
+        // それ以外の効果カードの場合
         return effect;
     }
 
@@ -1448,7 +1448,7 @@ export class Game {
                             <strong style="color: #000;">効果:</strong> <span style="color: #000;">${card.effect || '効果なし'}</span>
                         </p>
                         <p style="margin: 5px 0; font-size: 14px; color: #000;">
-                            <strong style="color: #000;">説明:</strong> <span style="color: #000;">${card.explanation || this.getCardDescription(card)}</span>
+                            <strong style="color: #000;">説明:</strong> <span style="color: #000;">${this.getCardDescription(card)}</span>
                         </p>
                     </div>
                 </div>
@@ -1517,7 +1517,11 @@ export class Game {
     // カードの説明を取得する関数
     getCardDescription(card) {
         if (!card.effect) return '効果なし';
-        if (card.explanation) return card.explanation;
+
+        // 通常の効果カードの場合、explanationを優先的に使用
+        if (card.explanation) {
+            return card.explanation;
+        }
 
         // 攻撃カードの場合（例：⚡ D3 ⚡）
         const damageMatch = card.effect.match(/D(\d+)/);
@@ -1531,7 +1535,7 @@ export class Game {
             return `HPを${healMatch[1]}回復する`;
         }
 
-        // その他の効果カードの場合
+        // 上記以外の場合は効果をそのまま返す
         return card.effect;
     }
 
