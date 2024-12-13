@@ -105,7 +105,7 @@ async function addCardToSouko(card) {
 async function handleGachaResult() {
     const selectedItem = weightedRandomSelect();
     if (!selectedItem) {
-        showEndMessage();
+        // 在庫がない場合の処理は削除しました
         return;
     }
 
@@ -172,11 +172,7 @@ function displayItemsRemaining() {
 function updateButtonState() {
     const hasAvailableItems = items.some(item => item.count > 0);
     gachaButton.disabled = !hasAvailableItems;
-    if (!hasAvailableItems) {
-        showEndMessage(); // 在庫がない場合はメッセージを表示
-    } else {
-        endMessage.style.display = 'none'; // 在庫がある場合はメッセージを非表示
-    }
+    endMessage.style.display = 'none'; // 在庫がある場合はメッセージを非表示
 }
 
 function showEndMessage() {
