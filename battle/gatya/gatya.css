@@ -2,9 +2,9 @@ body {
     margin: 0;
     padding: 0;
     min-height: 100vh;
-    display: flex;  /* 修正: displagity → display */
-    justify-content: center;
-    align-items: center;
+    display: flex;  /* 修正: display */
+    flex-direction: column; /* 縦に配置 */
+    justify-content: space-between; /* 上下に分ける */
     font-family: Arial, sans-serif;
     background-color: #1a1a2e;
     background-image:
@@ -25,30 +25,12 @@ h1 {
     text-align: center;
 }
 
-.back {
-    margin: 20px; /* 上下の余白 */
-    text-align: center; /* 中央揃え */
-}
-
-.back a {
-    display: inline-block; /* インラインブロックにしてサイズを設定 */
-    padding: 10px 20px; /* 内側の余白 */
-    background-color: #007BFF; /* 背景色 */
-    color: #FFFFFF; /* 文字色 */
-    text-decoration: none; /* 下線を消す */
-    border-radius: 5px; /* 角を丸くする */
-    transition: background-color 0.3s; /* ホバー時のアニメーション */
-}
-
-.back a:hover {
-    background-color: #0056b3; /* ホバー時の背景色 */
-}
-
 .gacha-container {
     width: 90%;
     max-width: 1000px;
     padding: 20px;
     text-align: center;
+    flex: 1; /* 残りのスペースを占める */
 }
 
 .gacha-wrapper {
@@ -112,6 +94,8 @@ button {
 #resetButton {
     background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
     color: white;
+    margin: 20px; /* 上下の余白を追加 */
+    align-self: center; /* 中央揃え */
 }
 
 button:hover {
