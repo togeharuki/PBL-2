@@ -433,7 +433,7 @@ export class Game {
             console.log('updateGameState開始:', gameData);
             
             if (!gameData || !gameData.players) {
-                console.error('無効なゲームデータ:', gameData);
+                console.error('無効なゲ��ムデータ:', gameData);
                 return;
             }
 
@@ -610,7 +610,7 @@ export class Game {
 
             const deckData = deckDoc.data();
             if (!deckData.cards || !Array.isArray(deckData.cards)) {
-                throw new Error('デッキのカードデータが不正です');
+                throw new Error('デッキのカードータが不正です');
             }
 
             console.log('カード情報取得完了');
@@ -861,7 +861,7 @@ export class Game {
 
                 const randomIndex = Math.floor(Math.random() * validCards.length);
                 const randomCard = validCards[randomIndex];
-                console.log('選択��れたカード:', randomCard);
+                console.log('選択されたカード:', randomCard);
 
                 // カードプレイ
                 await this.playCard(randomCard);
@@ -1038,7 +1038,7 @@ export class Game {
                 turnTime: 60 // タイマーをリセット
             };
 
-            console.log('Firestore更新データ:', updateData);
+            console.log('Firestore��新データ:', updateData);
 
             await window.updateDoc(gameRef, updateData);
 
@@ -1346,6 +1346,11 @@ export class Game {
             </div>
         `;
 
+        // カードクリックイベントの追加
+        cardElement.addEventListener('click', () => {
+            this.showCardDetail(card);
+        });
+
         // カードがドラッグ可能な場合のスタイル
         if (this.gameState.isPlayerTurn) {
             cardElement.style.cursor = 'pointer';
@@ -1395,6 +1400,154 @@ export class Game {
         }
         // それ以外の効果カードの場合
         return effect;
+    }
+
+    // カード詳細を表示する関数
+    showCardDetail(card) {
+        // 既存のモーダルがあれば削除
+        const existingModal = document.querySelector('.card-detail-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        // モーダルの作成
+        const modal = document.createElement('div');
+        modal.className = 'card-detail-modal';
+        modal.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            z-index: 1000;
+            width: 300px;
+        `;
+
+        // カードの種類に基づいてボタンのテキストを設定
+        const isBattleCard = card.effect && (card.effect.includes('D') || card.effect.includes('H'));
+        const buttonText = isBattleCard ? '召喚' : '発動';
+
+        // モーダルの内容
+        modal.innerHTML = `
+            <div style="text-align: center;">
+                <img src="${card.image}" 
+                     alt="${card.name}" 
+                     style="width: 200px; height: 200px; object-fit: cover; margin-bottom: 10px;"
+                     onerror="this.src='https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/default.jpg'">
+                <h3 style="margin: 10px 0;">${card.name}</h3>
+                <p style="margin: 10px 0;">効果: ${card.effect || '効果なし'}</p>
+                <p style="margin: 10px 0;">説明: ${card.explanation || this.getCardDescription(card)}</p>
+                <button class="action-button" style="
+                    background-color: #1a237e;
+                    color: white;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    margin-top: 10px;
+                ">${buttonText}</button>
+                <button class="close-button" style="
+                    background-color: #666;
+                    color: white;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    margin-top: 10px;
+                    margin-left: 10px;
+                ">閉じる</button>
+            </div>
+        `;
+
+        // 背景オーバーレイの作成
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 999;
+        `;
+
+        // ボタンのイベントリスナー
+        const actionButton = modal.querySelector('.action-button');
+        actionButton.addEventListener('click', () => {
+            if (isBattleCard) {
+                // バトルカードの場合
+                this.playCard(card);
+            } else {
+                // 効果カードの場合
+                this.activateEffectCard(card);
+            }
+            modal.remove();
+            overlay.remove();
+        });
+
+        const closeButton = modal.querySelector('.close-button');
+        closeButton.addEventListener('click', () => {
+            modal.remove();
+            overlay.remove();
+        });
+
+        // モーダルと背景を表示
+        document.body.appendChild(overlay);
+        document.body.appendChild(modal);
+    }
+
+    // カードの説明を取得する関数
+    getCardDescription(card) {
+        if (!card.effect) return '効果なし';
+        if (card.explanation) return card.explanation;
+
+        if (card.effect.includes('D')) {
+            const damage = card.effect.match(/D(\d+)/)[1];
+            return `相手に${damage}ダメージを与える`;
+        } else if (card.effect.includes('H')) {
+            const heal = card.effect.match(/H(\d+)/)[1];
+            return `HPを${heal}回復する`;
+        } else {
+            return card.effect;
+        }
+    }
+
+    // 効果カードを発動する関数
+    async activateEffectCard(card) {
+        try {
+            console.log('効果カードを発動:', card);
+
+            // 効果の種類を判断
+            if (card.effect.includes('ドロー')) {
+                await this.drawCard();
+            } else if (card.effect.includes('強制')) {
+                // ダメージ効果の処理
+                const damage = parseInt(card.effect.match(/\d+/)[0]) || 0;
+                await this.applyDamage(damage);
+            } else {
+                console.log('未実装の効果:', card.effect);
+            }
+
+            // カードを手札から除去
+            const newHand = this.gameState.playerHand.filter(c => c.id !== card.id);
+            
+            // Firestoreの状態を更新
+            const gameRef = window.doc(db, 'games', this.gameId);
+            await window.updateDoc(gameRef, {
+                [`players.${this.playerId}.hand`]: newHand,
+                [`players.${this.playerId}.handCount`]: newHand.length
+            });
+
+            // ローカルの状態を更新
+            this.gameState.playerHand = newHand;
+            this.updateUI();
+
+        } catch (error) {
+            console.error('効果カードの発動に失敗:', error);
+        }
     }
 }
 
