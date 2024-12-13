@@ -25,6 +25,7 @@ const GACHA_ITEMS = [
         effect: '攻撃力+1',
         count: 20,
         rarity: 'N',
+        explanation: '',
         weight: 35
     },
     {
@@ -33,6 +34,7 @@ const GACHA_ITEMS = [
         effect: '回復+1',
         count: 10,
         rarity: 'R',
+        explanation: '',
         weight: 30
     },
     {
@@ -41,6 +43,7 @@ const GACHA_ITEMS = [
         effect: '攻撃力+1',
         count: 10,
         rarity: 'R',
+        explanation: '',
         weight: 30
     },
     {
@@ -49,6 +52,7 @@ const GACHA_ITEMS = [
         effect: '攻撃力+2',
         count: 5,
         rarity: 'SR',
+        explanation: '',
         weight: 15
     },
     {
@@ -57,6 +61,7 @@ const GACHA_ITEMS = [
         effect: '攻撃力+2',
         count: 5,
         rarity: 'SR',
+        explanation: '',
         weight: 15
     },
     {
@@ -65,6 +70,7 @@ const GACHA_ITEMS = [
         effect: '攻撃力+2',
         count: 5,
         rarity: 'SR',
+        explanation: '',
         weight: 15
     },
     {
@@ -73,6 +79,7 @@ const GACHA_ITEMS = [
         effect: '攻撃力+2',
         count: 5,
         rarity: 'SR',
+        explanation: '',
         weight: 15
     },
     {
@@ -81,6 +88,7 @@ const GACHA_ITEMS = [
         effect: '攻撃力+2',
         count: 5,
         rarity: 'SR',
+        explanation: '',
         weight: 15
     },
     {
@@ -89,6 +97,7 @@ const GACHA_ITEMS = [
         effect: '攻撃力+5',
         count: 2,
         rarity: 'SSR',
+        explanation: '',
         weight: 5
     },
     {
@@ -97,6 +106,7 @@ const GACHA_ITEMS = [
         effect: '回復力+5',
         count: 2,
         rarity: 'SSR',
+        explanation: '',
         weight: 5
     },
 ];
