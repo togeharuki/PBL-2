@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let items = [];  // ガチャアイテムの状態（残り個数など）
     let playerId = null;  // プレイヤーのID
-    let cardCounter = 1;  // カードIDのインクリメンタルカウンタ
+    let cardCounter = 0;  // カードIDのインクリメンタルカウンタ
 
     // ガチャアイテムのデータ
 const GACHA_ITEMS = [
