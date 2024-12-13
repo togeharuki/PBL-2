@@ -1234,68 +1234,50 @@ export class Game {
             battleZoneContainer.style.cssText = `
                 display: flex;
                 justify-content: space-between;
+                align-items: center;
                 width: 100%;
                 padding: 10px;
                 position: relative;
             `;
 
-            // 攻撃ゾーン（左側）
-            const attackZone = document.createElement('div');
-            attackZone.style.cssText = `
+            // 左側のバトルゾーン（攻撃ゾーン）
+            const leftZone = document.createElement('div');
+            leftZone.className = 'attacker-zone';
+            leftZone.style.cssText = `
                 width: 45%;
                 min-height: 140px;
-                border: 2px dashed #ff4444;
+                border: 2px solid #ff4444;
                 border-radius: 8px;
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 position: relative;
+                background-color: rgba(255, 68, 68, 0.1);
             `;
 
-            // 攻撃マーク
-            const attackMark = document.createElement('div');
-            attackMark.style.cssText = `
-                position: absolute;
-                top: -25px;
-                left: 50%;
-                transform: translateX(-50%);
-                background-color: #ff4444;
-                color: white;
-                padding: 5px 10px;
-                border-radius: 4px;
-                font-size: 14px;
+            // 中央の区切り線
+            const divider = document.createElement('div');
+            divider.style.cssText = `
+                width: 2px;
+                height: 140px;
+                background: linear-gradient(to bottom, transparent, #666, transparent);
+                margin: 0 10px;
             `;
-            attackMark.textContent = '⚔️ 攻撃';
-            attackZone.appendChild(attackMark);
 
-            // 守備ゾーン（右側）
-            const defenseZone = document.createElement('div');
-            defenseZone.style.cssText = `
+            // 右側のバトルゾーン（守備ゾーン）
+            const rightZone = document.createElement('div');
+            rightZone.className = 'defender-zone';
+            rightZone.style.cssText = `
                 width: 45%;
                 min-height: 140px;
-                border: 2px dashed #4444ff;
+                border: 2px solid #4444ff;
                 border-radius: 8px;
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 position: relative;
+                background-color: rgba(68, 68, 255, 0.1);
             `;
-
-            // 守備マーク
-            const defenseMark = document.createElement('div');
-            defenseMark.style.cssText = `
-                position: absolute;
-                top: -25px;
-                left: 50%;
-                transform: translateX(-50%);
-                background-color: #4444ff;
-                color: white;
-                padding: 5px 10px;
-                border-radius: 4px;
-                font-size: 14px;
-            `;
-            defenseMark.textContent = '🛡️ 守備';
-            defenseZone.appendChild(defenseMark);
 
             // カードの配置
             if (this.battleState.attackerCard || this.battleState.defenderCard) {
@@ -1310,17 +1292,18 @@ export class Game {
                 // プレイヤーが攻撃側の場合
                 if (this.battleState.isAttacker) {
                     if (this.battleState.attackerCard) {
-                        attackZone.appendChild(cardElement.cloneNode(true));
+                        leftZone.appendChild(cardElement.cloneNode(true));
                     }
                 } else {
                     if (this.battleState.defenderCard) {
-                        defenseZone.appendChild(cardElement.cloneNode(true));
+                        rightZone.appendChild(cardElement.cloneNode(true));
                     }
                 }
             }
 
-            battleZoneContainer.appendChild(attackZone);
-            battleZoneContainer.appendChild(defenseZone);
+            battleZoneContainer.appendChild(leftZone);
+            battleZoneContainer.appendChild(divider);
+            battleZoneContainer.appendChild(rightZone);
             playerBattleSlot.appendChild(battleZoneContainer);
         }
 
@@ -1334,68 +1317,50 @@ export class Game {
             battleZoneContainer.style.cssText = `
                 display: flex;
                 justify-content: space-between;
+                align-items: center;
                 width: 100%;
                 padding: 10px;
                 position: relative;
             `;
 
-            // 攻撃ゾーン（左側）
-            const attackZone = document.createElement('div');
-            attackZone.style.cssText = `
+            // 左側のバトルゾーン（攻撃ゾーン）
+            const leftZone = document.createElement('div');
+            leftZone.className = 'attacker-zone';
+            leftZone.style.cssText = `
                 width: 45%;
                 min-height: 140px;
-                border: 2px dashed #ff4444;
+                border: 2px solid #ff4444;
                 border-radius: 8px;
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 position: relative;
+                background-color: rgba(255, 68, 68, 0.1);
             `;
 
-            // 攻撃マーク
-            const attackMark = document.createElement('div');
-            attackMark.style.cssText = `
-                position: absolute;
-                top: -25px;
-                left: 50%;
-                transform: translateX(-50%);
-                background-color: #ff4444;
-                color: white;
-                padding: 5px 10px;
-                border-radius: 4px;
-                font-size: 14px;
+            // 中央の区切り線
+            const divider = document.createElement('div');
+            divider.style.cssText = `
+                width: 2px;
+                height: 140px;
+                background: linear-gradient(to bottom, transparent, #666, transparent);
+                margin: 0 10px;
             `;
-            attackMark.textContent = '⚔️ 攻撃';
-            attackZone.appendChild(attackMark);
 
-            // 守備ゾーン（右側）
-            const defenseZone = document.createElement('div');
-            defenseZone.style.cssText = `
+            // 右側のバトルゾーン（守備ゾーン）
+            const rightZone = document.createElement('div');
+            rightZone.className = 'defender-zone';
+            rightZone.style.cssText = `
                 width: 45%;
                 min-height: 140px;
-                border: 2px dashed #4444ff;
+                border: 2px solid #4444ff;
                 border-radius: 8px;
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 position: relative;
+                background-color: rgba(68, 68, 255, 0.1);
             `;
-
-            // 守備マーク
-            const defenseMark = document.createElement('div');
-            defenseMark.style.cssText = `
-                position: absolute;
-                top: -25px;
-                left: 50%;
-                transform: translateX(-50%);
-                background-color: #4444ff;
-                color: white;
-                padding: 5px 10px;
-                border-radius: 4px;
-                font-size: 14px;
-            `;
-            defenseMark.textContent = '🛡️ 守備';
-            defenseZone.appendChild(defenseMark);
 
             // カードの配置
             if (this.battleState.attackerCard || this.battleState.defenderCard) {
@@ -1410,17 +1375,18 @@ export class Game {
                 // 相手が攻撃側の場合
                 if (!this.battleState.isAttacker) {
                     if (this.battleState.attackerCard) {
-                        attackZone.appendChild(cardElement.cloneNode(true));
+                        leftZone.appendChild(cardElement.cloneNode(true));
                     }
                 } else {
                     if (this.battleState.defenderCard) {
-                        defenseZone.appendChild(cardElement.cloneNode(true));
+                        rightZone.appendChild(cardElement.cloneNode(true));
                     }
                 }
             }
 
-            battleZoneContainer.appendChild(attackZone);
-            battleZoneContainer.appendChild(defenseZone);
+            battleZoneContainer.appendChild(leftZone);
+            battleZoneContainer.appendChild(divider);
+            battleZoneContainer.appendChild(rightZone);
             opponentBattleSlot.appendChild(battleZoneContainer);
         }
     }
