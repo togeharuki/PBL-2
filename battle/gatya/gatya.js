@@ -228,8 +228,10 @@ function resetGacha() {
     gachaResult.value = '';
     gachaCapsuleImage.src = '写真/カードの裏面.png';
     gachaCapsule.style.animation = 'none';
-}
 
+    // 特定の画面に移行する
+    window.location.href = '../../main/Menu/Menu.html';  // ここに遷移先のURLを指定
+}
 // 残りのアイテム数をコンソールに表示
 function displayItemsRemaining() {
     console.clear();
