@@ -25,28 +25,6 @@ h1 {
     text-align: center;
 }
 
-.back {
-    position: absolute; /* 絶対配置 */
-    : 20px; /* 上からの距離 */
-    left: 50%; /* 左から50% */
-    transform: translateX(-50%); /* 中央揃え */
-    text-align: center; /* 中央揃え */
-}
-
-.back a {
-    display: inline-block; /* インラインブロックにしてサイズを設定 */
-    padding: 10px 20px; /* 内側の余白 */
-    background-color: #007BFF; /* 背景色 */
-    color: #FFFFFF; /* 文字色 */
-    text-decoration: none; /* 下線を消す */
-    border-radius: 5px; /* 角を丸くする */
-    transition: background-color 0.3s; /* ホバー時のアニメーション */
-}
-
-.back a:hover {
-    background-color: #0056b3; /* ホバー時の背景色 */
-}
-
 .gacha-container {
     display: flex; /* フレックスボックスを使用 */
     flex-direction: column; /* 縦に並べる */
