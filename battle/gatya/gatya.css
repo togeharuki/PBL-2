@@ -2,7 +2,7 @@ body {
     margin: 0;
     padding: 0;
     min-height: 100vh;
-    display: flex;
+    displagity: flex;
     justify-content: center;
     align-items: center;
     font-family: Arial, sans-serif;
@@ -25,16 +25,31 @@ h1 {
     text-align: center;
 }
 
+.back {
+    margin: 20px; /* 上下の余白 */
+    text-align: center; /* 中央揃え */
+}
+
+.back a {
+    display: inline-block; /* インラインブロックにしてサイズを設定 */
+    padding: 10px 20px; /* 内側の余白 */
+    background-color: #007BFF; /* 背景色 */
+    color: #FFFFFF; /* 文字色 */
+    text-decoration: none; /* 下線を消す */
+    border-radius: 5px; /* 角を丸くする */
+    transition: background-color 0.3s; /* ホバー時のアニメーション */
+}
+
+.back a:hover {
+    background-color: #0056b3; /* ホバー時の背景色 */
+}
 .gacha-container {
-    display: flex; /* フレックスボックスを使用 */
-    flex-direction: column; /* 縦に並べる */
-    align-items: center; /* 中央揃え */
-    justify-content: center; /* 縦方向でも中央揃え */
     width: 90%;
     max-width: 1000px;
     padding: 20px;
-    margin: 0 auto; /* 自動的に左右のマージンを設定 */
+    text-align: center;
 }
+
 .gacha-wrapper {
     display: flex;
     flex-direction: column;

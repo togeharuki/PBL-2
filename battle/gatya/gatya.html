@@ -5,14 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ガチャガチャ - Deck Dreamers</title>
     <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap" rel="stylesheet">
+    <!-- Firebaseライブラリ -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <link rel="stylesheet" href="gatya.css">
 </head>
 <body>
-    <div class="back">
+    <!-- リンクを追加 -->
+     <div class="back">
         <a href="../../main/Menu/Menu.html">ホームへ</a>
-    </div>
+     </div>
     
     <div class="gacha-container">
         <h1>Deck Dreamers Gacha</h1>
@@ -26,7 +28,10 @@
         </div>
         <div class="button-container">
             <button id="gachaButton">ガチャを引く</button>
-            <button id="resetButton" style="display: none;">ホームに戻る</button>
+            <button id="resetButton" style="display: none;">もう一度</button>
+        </div>
+        <div id="endMessage" style="display: none;">
+            <h2>ガチャの在庫がすべてなくなりました。<br>天井あざす！！！笑</h2>
         </div>
     </div>
     <script src="gatya.js"></script>
