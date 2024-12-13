@@ -170,7 +170,7 @@ async function addCardToSouko(card) {
                 type: 'gacha',
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             },
-            savedCount: firebase.firestore.FieldValue.increment(1)
+            savedCount: firebase.firestore.FieldValue.increment(100)
         }, { merge: true });
     } catch (error) {
         console.error('カード保存エラー:', error);
@@ -220,7 +220,7 @@ function renderCards() {
                     document.getElementById('modal').style.display = 'block';
 
                     await addCardToSouko(card);
-                    
+
                 } catch (error) {
                     console.error('エラー:', error);
                     alert('カードの保存に失敗しました');
