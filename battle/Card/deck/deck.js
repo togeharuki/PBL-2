@@ -86,6 +86,7 @@ async function loadDeckCards() {
                 type: 'effect',
                 effect: card.effect,
                 image: card.image,
+                explanation:card.explanation,
                 timestamp: card.timestamp
             }));
 
@@ -236,7 +237,8 @@ async function saveDeck() {
             effect: card.effect,
             type: 'normal',
             image: card.image,
-            isCreated: false
+            isCreated: false,
+            explanation:card.explanation
         }));
 
         if (normalCards.length !== 10) {
