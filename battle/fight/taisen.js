@@ -1579,7 +1579,7 @@ export class Game {
     }
 }
 
-// ゲムの初期化
+// ゲムの初期化です
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         console.log('DOMContentLoaded イベント発火');
