@@ -220,10 +220,7 @@ function renderCards() {
                     document.getElementById('modal').style.display = 'block';
 
                     await addCardToSouko(card);
-
-                    document.getElementById('reloadButton').addEventListener('click', function() {
-                        window.location.href = '../../main/Menu/Menu.html';
-                    });
+                    
                 } catch (error) {
                     console.error('エラー:', error);
                     alert('カードの保存に失敗しました');
@@ -264,7 +261,7 @@ document.getElementById('gachaButton').addEventListener('click', function() {
 
 // その他のイベントリスナー
 document.getElementById('reloadButton').addEventListener('click', function() {
-    window.location.href = 'index.html';
+    window.location.href = '../../main/Menu/Menu.html';
 });
 
 document.getElementById('closeModal').addEventListener('click', function() {

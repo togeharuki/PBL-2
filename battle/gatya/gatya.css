@@ -109,7 +109,7 @@ button:hover {
 
 /* 選択したカードの画像サイズを縦150px、横100pxに設定 */
 .gacha-result img {
-    width: 100px;
+    width: 80px;
     height: 150px;
     object-fit: cover;
 }
