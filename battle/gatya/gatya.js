@@ -169,7 +169,7 @@ async function addCardToSouko(card) {
                 type: 'gacha',
                 effect: card.effect,
                 image: card.image,
-                explanation: card.explanation,
+                explanation:card.explanation,
                 rarity: card.rarity,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             },
