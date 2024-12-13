@@ -125,7 +125,7 @@ async function handleGachaResult() {
             updateButtonState();
 
             // ガチャ結果の表示後にリダイレクト
-            window.location.href = "../../Menu/Menu.html"; // リダイレクト先のURL
+            window.location.href = "../../mian/Menu/Menu.html"; // リダイレクト先のURL
         }, 2000);
     } catch (error) {
         console.error('結果処理エラー:', error);
