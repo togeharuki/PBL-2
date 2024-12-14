@@ -50,6 +50,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         console.log('カードデータ読み込み開始');
         await loadDeckCards();
+        await loadGachaCards();
         await loadCreatedCards();
         updateSaveButton();
         console.log('カードデータ読み込み完了');
@@ -69,8 +70,8 @@ async function loadDeckCards() {
         const soukoRef = db.collection('Souko').doc(playerId);
         const soukoDoc = await soukoRef.get();
 
-        const deckGrid = document.getElementById('deck-grid');
-        deckGrid.innerHTML = '';
+        const existingCardsGrid = document.getElementById('existing-cards-grid');
+        existingCardsGrid.innerHTML = '';
 
         if (!soukoDoc.exists) {
             console.error('倉庫データが見つかりません');
@@ -81,7 +82,7 @@ async function loadDeckCards() {
         const cardData = soukoDoc.data();
         const cardCount = {};
         const cards = Object.entries(cardData)
-            .filter(([key]) => key.startsWith('default_card_'))
+            .filter(([key]) => key.startsWith('default_card_') && !key.startsWith('default_card_ガチャID:'))
             .map(([_, card]) => ({
                 name: card.name,
                 type: 'effect',
@@ -96,7 +97,8 @@ async function loadDeckCards() {
                 }
                 cardCount[card.name]++;
                 return cardCount[card.name] <= 2;
-            });
+            })
+            .sort((a, b) => a.name.localeCompare(b.name));
 
         if (cards.length === 0) {
             console.error('倉庫にカードが存在しません');
@@ -120,12 +122,68 @@ async function loadDeckCards() {
                     selectedCards.push(card);
                 }
             }
-            deckGrid.appendChild(cardElement);
+            existingCardsGrid.appendChild(cardElement);
         });
 
     } catch (error) {
         console.error('デッキの読み込みに失敗しました:', error);
         showNotification('デッキの読み込みに失敗しました', 'error');
+    }
+}
+
+// ガチャカードを読み込む
+async function loadGachaCards() {
+    try {
+        console.log('ガチャカードの読み込み開始');
+        const playerId = localStorage.getItem('playerId');
+        
+        const soukoRef = db.collection('Souko').doc(playerId);
+        const soukoDoc = await soukoRef.get();
+
+        const gachaCardsGrid = document.getElementById('gacha-cards-grid');
+        gachaCardsGrid.innerHTML = '';
+
+        if (!soukoDoc.exists) {
+            console.error('倉庫データが見つかりません');
+            showNotification('カードデータの読み込みに失敗しました', 'error');
+            return;
+        }
+
+        const cardData = soukoDoc.data();
+        const cardCount = {};
+        const cards = Object.entries(cardData)
+            .filter(([key]) => key.startsWith('default_card_ガチャID:'))
+            .map(([_, card]) => ({
+                name: card.name,
+                type: 'effect',
+                effect: card.effect,
+                image: card.image,
+                explanation: card.explanation,
+                timestamp: card.timestamp
+            }))
+            .filter(card => {
+                if (!cardCount[card.name]) {
+                    cardCount[card.name] = 0;
+                }
+                cardCount[card.name]++;
+                return cardCount[card.name] <= 2;
+            })
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        if (cards.length === 0) {
+            console.error('倉庫にカードが存在しません');
+            showNotification('効果カードが見つかりません', 'error');
+            return;
+        }
+
+        cards.forEach(card => {
+            const cardElement = createCardElement(card);
+            gachaCardsGrid.appendChild(cardElement);
+        });
+
+    } catch (error) {
+        console.error('ガチャカードの読み込みに失敗しました:', error);
+        showNotification('ガチャカードの読み込みに失敗しました', 'error');
     }
 }
 
@@ -138,15 +196,8 @@ async function loadCreatedCards() {
 
         if (doc.exists) {
             const cardData = doc.data();
-            const createdCardsSection = document.createElement('div');
-            createdCardsSection.className = 'deck-container';
-            createdCardsSection.innerHTML = `
-                <h2 class="section-title">作成したカード</h2>
-                <div class="deck-grid" id="created-cards-grid"></div>
-            `;
-            
-            document.querySelector('.deck-container').after(createdCardsSection);
             const createdCardsGrid = document.getElementById('created-cards-grid');
+            createdCardsGrid.innerHTML = '';
 
             const cardsArray = Object.entries(cardData)
                 .filter(([key, _]) => key !== 'timestamp')
@@ -155,7 +206,7 @@ async function loadCreatedCards() {
                     id,
                     isCreated: true
                 }))
-                .sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0))
+                .sort((a, b) => a.name.localeCompare(b.name))
                 .slice(0, 20);
 
             createdCards = cardsArray;

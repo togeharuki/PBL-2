@@ -15,8 +15,19 @@
             <span id="player-id"></span>
         </div>
         
-        <div class="deck-grid" id="deck-grid">
-            <!-- カードはJavaScriptで動的に追加されます -->
+        <h2 class="section-title">既存カード</h2>
+        <div class="deck-grid" id="existing-cards-grid">
+            <!-- 既存カードはJavaScriptで動的に追加されます -->
+        </div>
+
+        <h2 class="section-title">ガチャカード</h2>
+        <div class="deck-grid" id="gacha-cards-grid">
+            <!-- ガチャカードはJavaScriptで動的に追加されます -->
+        </div>
+
+        <h2 class="section-title">デッキカード</h2>
+        <div class="deck-grid" id="created-cards-grid">
+            <!-- デッキカードはJavaScriptで動的に追加されます -->
         </div>
         
         <div class="button-container">
@@ -25,7 +36,7 @@
         </div>
     </div>
 
-     <!-- スピーカーアイコン -->
+    <!-- スピーカーアイコン -->
     <div id="speaker-icon">
         <img src="syasin/off.png" alt="音量オフ">
         <img src="syasin/on.png" alt="音量オン">
@@ -39,9 +50,6 @@
     <!-- Firebase SDKの読み込み -->
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-    
-    <!-- アプリケーションのスクリプト -->
-    <script src="deck.js" defer></script>
-    <script src="bgm.js"></script>
+    <script src="deck.js"></script>
 </body>
 </html>
