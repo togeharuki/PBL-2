@@ -281,7 +281,7 @@ function createCardElement(card, isCreated = false) {
             
             if (this.checked && checkedCount > 10) {
                 this.checked = false;
-                showNotification('既存カードは10枚までしか選択できません', 'warning');
+                showNotification('既存カードとデッキカードは10枚までしか選択できません', 'warning');
                 return;
             }
             
