@@ -25,6 +25,7 @@ const db = initializeFirebase();
 let selectedCards = [];
 let createdCards = [];
 let allCards = new Set();
+let sortOption = 'name';
 
 // ページ読み込み時の処理
 document.addEventListener('DOMContentLoaded', async function() {
@@ -61,6 +62,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 });
 
+// 並べ替えオプションの変更
+function sortCards() {
+    sortOption = document.getElementById('sort-select').value;
+    loadDeckCards();
+    loadGachaCards();
+    loadCreatedCards();
+}
+
 // デッキのカードを読み込む
 async function loadDeckCards() {
     try {
@@ -89,7 +98,8 @@ async function loadDeckCards() {
                 effect: card.effect,
                 image: card.image,
                 explanation: card.explanation,
-                timestamp: card.timestamp
+                timestamp: card.timestamp,
+                rarity: card.rarity || 'common' // レアリティがない場合は 'common' とする
             }))
             .filter(card => {
                 if (!cardCount[card.name]) {
@@ -98,7 +108,15 @@ async function loadDeckCards() {
                 cardCount[card.name]++;
                 return cardCount[card.name] <= 2;
             })
-            .sort((a, b) => a.name.localeCompare(b.name));
+            .sort((a, b) => {
+                if (sortOption === 'name') {
+                    return a.name.localeCompare(b.name);
+                } else if (sortOption === 'rarity') {
+                    return a.rarity.localeCompare(b.rarity);
+                } else if (sortOption === 'timestamp') {
+                    return (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0);
+                }
+            });
 
         if (cards.length === 0) {
             console.error('倉庫にカードが存在しません');
@@ -159,7 +177,8 @@ async function loadGachaCards() {
                 effect: card.effect,
                 image: card.image,
                 explanation: card.explanation,
-                timestamp: card.timestamp
+                timestamp: card.timestamp,
+                rarity: card.rarity || 'common' // レアリティがない場合は 'common' とする
             }))
             .filter(card => {
                 if (!cardCount[card.name]) {
@@ -168,7 +187,15 @@ async function loadGachaCards() {
                 cardCount[card.name]++;
                 return cardCount[card.name] <= 2;
             })
-            .sort((a, b) => a.name.localeCompare(b.name));
+            .sort((a, b) => {
+                if (sortOption === 'name') {
+                    return a.name.localeCompare(b.name);
+                } else if (sortOption === 'rarity') {
+                    return a.rarity.localeCompare(b.rarity);
+                } else if (sortOption === 'timestamp') {
+                    return (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0);
+                }
+            });
 
         if (cards.length === 0) {
             console.error('倉庫にカードが存在しません');
@@ -204,9 +231,18 @@ async function loadCreatedCards() {
                 .map(([id, card]) => ({
                     ...card,
                     id,
-                    isCreated: true
+                    isCreated: true,
+                    rarity: card.rarity || 'common' // レアリティがない場合は 'common' とする
                 }))
-                .sort((a, b) => a.name.localeCompare(b.name))
+                .sort((a, b) => {
+                    if (sortOption === 'name') {
+                        return a.name.localeCompare(b.name);
+                    } else if (sortOption === 'rarity') {
+                        return a.rarity.localeCompare(b.rarity);
+                    } else if (sortOption === 'timestamp') {
+                        return (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0);
+                    }
+                })
                 .slice(0, 20);
 
             createdCards = cardsArray;

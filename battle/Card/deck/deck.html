@@ -20,6 +20,15 @@
             <!-- 既存カードはJavaScriptで動的に追加されます -->
         </div>
 
+        <div class="sort-options">
+            <label for="sort-select">並べ替え:</label>
+            <select id="sort-select" onchange="sortCards()">
+                <option value="name">名前順</option>
+                <option value="rarity">レアリティ順</option>
+                <option value="timestamp">入手順</option>
+            </select>
+        </div>
+
         <h2 class="section-title">ガチャカード</h2>
         <div class="deck-grid" id="gacha-cards-grid">
             <!-- ガチャカードはJavaScriptで動的に追加されます -->
