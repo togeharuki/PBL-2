@@ -53,22 +53,113 @@ body {
 }
 
 button {
-    padding: 10px 20px;
+    padding: 15px 30px;
     background-color: #4ecdc4; /* ボタン色を更新 */
     color: #fff;
     border: none;
-    border-radius: 5px;
+    border-radius: 25px;
+    font-size: 1.2em;
     cursor: pointer;
+    transition: all 0.3s ease;
     margin-top: 30px;
+    position: relative;
+    overflow: hidden;
 }
 
 button:hover {
     background-color: #45b7a8; /* ボタンホバー色を更新 */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 300%;
+    height: 300%;
+    background: rgba(255, 255, 255, 0.15);
+    transition: all 0.3s ease;
+    transform: translate(-50%, -50%) rotate(45deg);
+    opacity: 0;
+}
+
+button:hover::before {
+    width: 400%;
+    height: 400%;
+    opacity: 1;
 }
 
 .gacha-result {
     margin-top: 20px;
     font-size: 18px;
+}
+
+.card-item {
+    position: relative;
+    width: 200px;
+    height: 280px;
+    background-color: #3a3a5e;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    margin: 0 auto;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    opacity: 1;
+}
+
+.card-item:hover {
+    transform: translateY(-5px);
+}
+
+.card-image {
+    width: 100%;
+    height: 160px;
+    background-color: #4a4a6e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+    transition: transform 0.6s;
+}
+
+.card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.card-item.flipped .card-image {
+    transform: rotateY(180deg);
+}
+
+.card-item.flipped .info {
+    display: block;
+}
+
+.info {
+    display: none;
+    backface-visibility: hidden;
+    transform: rotateY(180deg);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #3a3a5e;
+    color: white;
+    padding: 10px;
+    box-sizing: border-box;
+    text-align: center;
 }
 
 /* モーダルウィンドウのスタイル */
@@ -84,16 +175,21 @@ button:hover {
     background-color: rgba(0,0,0,0.4); /* 背景色（透明度） */
 }
 
+/* モーダルウィンドウのスタイルを調整 */
 .modal-content {
+    position: relative;
     background-color: #fefefe;
-    margin: 15% auto; /* 中央に配置 */
+    margin: auto;
     padding: 20px;
     border: 1px solid #888;
-    width: 80%; /* 幅 */
+    width: 80%; /* 幅を80%に拡大 */
+    max-width: 800px; /* 最大幅を800pxに設定 */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    border-radius: 10px;
 }
 
 .close {
-    color: #aaa;
+    color: #ff4d4d;
     float: right;
     font-size: 28px;
     font-weight: bold;

@@ -10,18 +10,21 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 </head>
 <body>
+
     <div class="gacha-container" id="gachaContainer">
         <!-- 1行目のガチャアイテム -->
-        <div class="gacha-row" id="row1"></div>
+        <div class="gacha-row card" id="row1"></div>
         <!-- 2行目のガチャアイテム -->
-        <div class="gacha-row" id="row2"></div>
+        <div class="gacha-row card" id="row2"></div>
         <!-- 3行目のガチャアイテム -->
-        <div class="gacha-row" id="row3"></div>
+        <div class="gacha-row card" id="row3"></div>
     </div>
 
-    <button id="gachaButton">ガチャを引く</button>
-    <button id="reloadButton" style="display:none;">ホームに戻る</button>
-
+    <div class="button-container">
+        <button id="gachaButton" onclick="showCards()">ガチャを引く</button>
+        <button id="reloadButton" style="display:none;">ホームに戻る</button>
+    </div>
+    
     <!-- モーダルウィンドウ -->
     <div id="modal" class="modal">
         <div class="modal-content">

@@ -79,6 +79,7 @@ async function loadDeckCards() {
         }
 
         const cardData = soukoDoc.data();
+        const cardCount = {};
         const cards = Object.entries(cardData)
             .filter(([key]) => key.startsWith('default_card_'))
             .map(([_, card]) => ({
@@ -86,9 +87,16 @@ async function loadDeckCards() {
                 type: 'effect',
                 effect: card.effect,
                 image: card.image,
-                explanation:card.explanation,
+                explanation: card.explanation,
                 timestamp: card.timestamp
-            }));
+            }))
+            .filter(card => {
+                if (!cardCount[card.name]) {
+                    cardCount[card.name] = 0;
+                }
+                cardCount[card.name]++;
+                return cardCount[card.name] <= 2;
+            });
 
         if (cards.length === 0) {
             console.error('倉庫にカードが存在しません');
@@ -120,6 +128,7 @@ async function loadDeckCards() {
         showNotification('デッキの読み込みに失敗しました', 'error');
     }
 }
+
 // 作成したカードを読み込む
 async function loadCreatedCards() {
     try {
@@ -238,7 +247,7 @@ async function saveDeck() {
             type: 'normal',
             image: card.image,
             isCreated: false,
-            explanation:card.explanation
+            explanation: card.explanation
         }));
 
         if (normalCards.length !== 10) {

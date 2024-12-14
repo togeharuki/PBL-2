@@ -116,7 +116,7 @@ const GACHA_ITEMS = [
     },
     {
         name: '佐藤家のてんちゃん',
-        image: 'https://github.com/togeharuki/Deck-Dreamers/blob/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SSR-%E4%BD%90%E8%97%A4%E5%AE%B6%E3%81%AE%E3%81%A6%E3%82%93%E3%81%A1%E3%82%83%E3%82%93.png',
+        image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SSR-%E4%BD%90%E8%97%A4%E5%AE%B6%E3%81%AE%E3%81%A6%E3%82%93%E3%81%A1%E3%82%83%E3%82%93.png',
         effect: '回復力+3',  // アイテムの効果
         count: 2,  // 残り個数
         rarity: 'SSR',  // レアリティ
@@ -227,9 +227,9 @@ function renderCards() {
                     this.src = card.image;
                     
                     document.getElementById('gachaResult').innerHTML = `
-                        <h3>カードの詳細:</h3>
+                        <h3>カードの詳細</h3>
                         <img src="${card.image}" alt="${card.name}">
-                        <p>${card.name}<br>効果: ${card.effect}<br>レアリティ: ${card.rarity}</p>
+                        <p>カード名: ${card.name}<br>効果: ${card.effect}<br>レアリティ: ${card.rarity}</p>
                     `;
                     document.getElementById('modal').style.display = 'block';
 
@@ -246,6 +246,29 @@ function renderCards() {
         }
     }
 }
+
+// カードをランダムに並べ替える関数
+function shuffleCards(rowId) {
+    const row = document.getElementById(rowId);
+    const cards = Array.from(row.getElementsByClassName('card-item'));
+    for (let i = cards.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        row.appendChild(cards[j]);
+    }
+}
+
+// カードを表示させる関数
+function showCards() {
+    document.getElementById('gachaContainer').style.display = 'block';
+    shuffleCards('row1');
+    shuffleCards('row2');
+    shuffleCards('row3');
+}
+
+// ページ読み込み時に各行のカードをランダムに並べ替える
+window.onload = function() {
+    document.getElementById('gachaContainer').style.display = 'none'; // 初期状態で非表示
+};
 
 // ガチャを引く機能
 document.getElementById('gachaButton').addEventListener('click', function() {
