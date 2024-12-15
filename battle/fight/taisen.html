@@ -29,8 +29,18 @@
         <!-- バトルゾーン -->
         <div class="battle-zone">
             <!-- 対戦相手のフィールド -->
-            <div class="field-side opponent-field">
-                <div class="card-slot" id="opponent-battle-slot"></div>
+            <div class="battle-area opponent-battle-area">
+                <!-- 攻撃ゾーン -->
+                <div class="battle-slot attack-slot">
+                    <div class="battle-icon">⚔</div>
+                    <div class="card-slot" id="opponent-attack-slot"></div>
+                </div>
+
+                <!-- 守備ゾーン -->
+                <div class="battle-slot defense-slot">
+                    <div class="battle-icon">🛡</div>
+                    <div class="card-slot" id="opponent-defense-slot"></div>
+                </div>
             </div>
 
             <!-- タイマーとターン表示 -->
@@ -39,27 +49,19 @@
                 <div class="timer">60</div>
             </div>
 
-            <!-- プレイヤーのフィールド -->
-            <div class="field-side player-field">
-                <div class="card-slot" id="player-battle-slot"></div>
-            </div>
+            <!-- プレイヤーのバトルエリア -->
+            <div class="battle-area player-battle-area">
+                <!-- 攻撃ゾーン -->
+                <div class="battle-slot attack-slot">
+                    <div class="battle-icon">⚔</div>
+                    <div class="card-slot" id="player-attack-slot"></div>
+                </div>
 
-            <!-- 神の一手ゾーン -->
-            <div class="god-hand-zone">
-                <div class="god-hand-title">神の一手</div>
-                <div class="card god-hand" draggable="true" data-type="god" data-effect="damage_up">
-                    <div class="card-content">
-                        <div class="card-value">神</div>
-                        <div class="card-type">ダメージ+5</div>
-                    </div>
+                <!-- 守備ゾーン -->
+                <div class="battle-slot defense-slot">
+                    <div class="battle-icon">🛡</div>
+                    <div class="card-slot" id="player-defense-slot"></div>
                 </div>
-                <div class="card god-hand" draggable="true" data-type="god" data-effect="discard">
-                    <div class="card-content">
-                        <div class="card-value">神</div>
-                        <div class="card-type">手札破棄</div>
-                    </div>
-                </div>
-                <div class="god-hand-remaining">残り使用回数: 2</div>
             </div>
         </div>
 
