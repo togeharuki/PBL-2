@@ -861,7 +861,7 @@ export class Game {
 
                 const randomIndex = Math.floor(Math.random() * validCards.length);
                 const randomCard = validCards[randomIndex];
-                console.log('選択されたカード:', randomCard);
+                console.log('選択された��ード:', randomCard);
 
                 // カードプレイ
                 await this.playCard(randomCard);
@@ -1538,157 +1538,147 @@ export class Game {
 
     // カード詳細を表示する関数
     async showCardDetail(card) {
-        // 既存���モーダルがあれば削除
-        const existingModal = document.querySelector('.card-detail-modal');
-        if (existingModal) {
-            existingModal.remove();
-        }
-
-        // カードの説明を取得
-        const description = await this.getCardDescription(card);
-
-        // モーダルの作成
-        const modal = document.createElement('div');
-        modal.className = 'card-detail-modal';
-        modal.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-            z-index: 1000;
-            width: 300px;
-            max-height: 80vh;
-            overflow-y: auto;
-        `;
-
-        // カードの種類に基づいてボタンのテキストを設定
-        const isBattleCard = card.effect && (card.effect.includes('D') || card.effect.includes('H'));
-        const buttonText = isBattleCard ? '召喚' : '発動';
-
-        // モーダルの内容
-        modal.innerHTML = `
-            <div style="text-align: center;">
-                <div style="margin-bottom: 20px;">
-                    <img src="${card.image}" 
-                         alt="${card.name}" 
-                         style="width: 200px; height: 200px; object-fit: cover;"
-                         onerror="this.src='https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/default.jpg'">
-                </div>
-                <div style="background-color: #f5f5f5; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                    <h3 style="margin: 0 0 10px 0; color: #1a237e; font-size: 18px;">${card.name}</h3>
-                    <div style="border-top: 1px solid #ddd; padding-top: 10px;">
-                        <p style="margin: 5px 0; font-size: 14px; color: #000;">
-                            <strong style="color: #000;">効果:</strong> <span style="color: #000;">${card.effect || '効果なし'}</span>
-                        </p>
-                        <p style="margin: 5px 0; font-size: 14px; color: #000;">
-                            <strong style="color: #000;">説明:</strong> <span style="color: #000;">${description}</span>
-                        </p>
-                    </div>
-                </div>
-                <div style="display: flex; justify-content: center; gap: 10px;">
-                    <button class="action-button" style="
-                        background-color: #1a237e;
-                        color: white;
-                        border: none;
-                        padding: 10px 20px;
-                        border-radius: 5px;
-                        cursor: pointer;
-                        font-size: 16px;
-                        min-width: 100px;
-                    ">${buttonText}</button>
-                    <button class="close-button" style="
-                        background-color: #666;
-                        color: white;
-                        border: none;
-                        padding: 10px 20px;
-                        border-radius: 5px;
-                        cursor: pointer;
-                        font-size: 16px;
-                        min-width: 100px;
-                    ">閉じる</button>
-                </div>
-            </div>
-        `;
-
-        // 背景オーバーレイの作成
-        const overlay = document.createElement('div');
-        overlay.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 999;
-        `;
-
-        // ボタンのイベントリスナー
-        const actionButton = modal.querySelector('.action-button');
-        actionButton.addEventListener('click', () => {
-            if (isBattleCard) {
-                // バトルカードの場合
-                this.playCard(card);
-            } else {
-                // 効果カードの場合
-                this.activateEffectCard(card);
-            }
-            modal.remove();
-            overlay.remove();
-        });
-
-        const closeButton = modal.querySelector('.close-button');
-        closeButton.addEventListener('click', () => {
-            modal.remove();
-            overlay.remove();
-        });
-
-        // モーダルと背景を表示
-        document.body.appendChild(overlay);
-        document.body.appendChild(modal);
-    }
-
-    // カードの説明を取得する関数
-    async getCardDescription(card) {
-        if (!card.effect) return '効果なし';
-
         try {
-            // Deckコレクションからカード情報を取得
-            const snapshot = await window.getDocs(window.collection(db, 'Deck'));
-            let explanation = null;
+            // 既存のモーダルがあれば削除
+            const existingModal = document.querySelector('.card-detail-modal');
+            if (existingModal) {
+                existingModal.remove();
+            }
 
+            // カードの説明を取得
+            let explanation = '';
+            const playerId = localStorage.getItem('playerId');
+            
+            // Deckコレクションから説明を取得
+            const deckRef = window.collection(db, 'Deck');
+            const snapshot = await window.getDocs(deckRef);
+            
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                if (data.name === card.name && data.explanation) {
-                    explanation = data.explanation;
+                if (data.cards) {
+                    const matchingCard = data.cards.find(c => c.name === card.name);
+                    if (matchingCard && matchingCard.explanation) {
+                        explanation = matchingCard.explanation;
+                    }
                 }
             });
 
-            if (explanation) {
-                return explanation;
+            // 説明が見つからない場合はデフォルトの説明を使用
+            if (!explanation) {
+                if (card.effect.includes('D')) {
+                    const damageMatch = card.effect.match(/D(\d+)/);
+                    explanation = damageMatch ? `相手に${damageMatch[1]}ダメージを与える` : card.effect;
+                } else if (card.effect.includes('H')) {
+                    const healMatch = card.effect.match(/H(\d+)/);
+                    explanation = healMatch ? `HPを${healMatch[1]}回復する` : card.effect;
+                } else {
+                    explanation = card.effect;
+                }
             }
 
-            // Deckコレクションに説明がない場合は、デフォルトの説明を生成
-            // 攻撃カードの場合（例：⚡ D3 ⚡）
-            const damageMatch = card.effect.match(/D(\d+)/);
-            if (damageMatch) {
-                return `相手に${damageMatch[1]}ダメージを与える`;
-            }
+            // カードの種類に基づいてボタンのテキストを設定
+            const isBattleCard = card.effect && (card.effect.includes('D') || card.effect.includes('H'));
+            const buttonText = isBattleCard ? '召喚' : '発動';
 
-            // 回復カードの場合（例：✨ H2 ✨）
-            const healMatch = card.effect.match(/H(\d+)/);
-            if (healMatch) {
-                return `HPを${healMatch[1]}回復する`;
-            }
+            // モーダルの作成
+            const modal = document.createElement('div');
+            modal.className = 'card-detail-modal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background-color: white;
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0 0 10px rgba(0,0,0,0.5);
+                z-index: 1000;
+                width: 300px;
+                max-height: 80vh;
+                overflow-y: auto;
+            `;
 
-            // 上記以外の場合は効果をそのまま返す
-            return card.effect;
+            // モーダルの内容
+            modal.innerHTML = `
+                <div style="text-align: center;">
+                    <div style="margin-bottom: 20px;">
+                        <img src="${card.image}" 
+                             alt="${card.name}" 
+                             style="width: 200px; height: 200px; object-fit: cover;"
+                             onerror="this.src='https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/default.jpg'">
+                    </div>
+                    <div style="background-color: #f5f5f5; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <h3 style="margin: 0 0 10px 0; color: #1a237e; font-size: 18px;">${card.name}</h3>
+                        <div style="border-top: 1px solid #ddd; padding-top: 10px;">
+                            <p style="margin: 5px 0; font-size: 14px; color: #000;">
+                                <strong style="color: #000;">効果:</strong> <span style="color: #000;">${card.effect || '効果なし'}</span>
+                            </p>
+                            <p style="margin: 5px 0; font-size: 14px; color: #000;">
+                                <strong style="color: #000;">説明:</strong> <span style="color: #000;">${explanation}</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: center; gap: 10px;">
+                        <button class="action-button" style="
+                            background-color: #1a237e;
+                            color: white;
+                            border: none;
+                            padding: 10px 20px;
+                            border-radius: 5px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            min-width: 100px;
+                        ">${buttonText}</button>
+                        <button class="close-button" style="
+                            background-color: #666;
+                            color: white;
+                            border: none;
+                            padding: 10px 20px;
+                            border-radius: 5px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            min-width: 100px;
+                        ">閉じる</button>
+                    </div>
+                </div>
+            `;
+
+            // 背景オーバーレイの作成
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0,0,0,0.5);
+                z-index: 999;
+            `;
+
+            // ボタンのイベントリスナー
+            const actionButton = modal.querySelector('.action-button');
+            actionButton.addEventListener('click', () => {
+                if (isBattleCard) {
+                    this.playCard(card);
+                } else {
+                    this.activateEffectCard(card);
+                }
+                modal.remove();
+                overlay.remove();
+            });
+
+            const closeButton = modal.querySelector('.close-button');
+            closeButton.addEventListener('click', () => {
+                modal.remove();
+                overlay.remove();
+            });
+
+            // モーダルと背景を表示
+            document.body.appendChild(overlay);
+            document.body.appendChild(modal);
+
         } catch (error) {
-            console.error('カードの説明の取得に失敗:', error);
-            return card.effect;
+            console.error('カード詳細の表示に失敗:', error);
         }
     }
 
