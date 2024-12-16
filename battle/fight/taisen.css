@@ -14,13 +14,16 @@ body {
     color: var(--text-color);
     font-family: 'Noto Sans JP', sans-serif;
     min-height: 100vh;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .battle-container {
     max-width: 1000px;
     margin: 0 auto;
     position: relative;
+    min-height: 100vh;
+    padding: 10px;
 }
 
 .player-area {
@@ -608,6 +611,7 @@ body {
 
     .battle-container {
         padding: 5px;
+        min-height: auto;
     }
 
     .player-area {
@@ -686,6 +690,7 @@ body {
 
     .battle-container {
         padding: 3px;
+        min-height: auto;
     }
 
     .hp-display {
@@ -725,5 +730,72 @@ body {
 
     .card-effect {
         font-size: 8px;
+    }
+}
+
+/* モーダルとオーバーレイの修正 */
+.result-modal,
+.overlay,
+#matching-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.result-content,
+.matching-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    margin: 20px;
+}
+
+.card-popup {
+    position: fixed;
+    z-index: 1001;
+}
+
+/* スクロールバーのスタイル */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+@media screen and (max-width: 768px) {
+    .result-content,
+    .matching-content {
+        padding: 15px;
+        max-width: 95%;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .result-content,
+    .matching-content {
+        padding: 10px;
+        max-width: 98%;
     }
 }
