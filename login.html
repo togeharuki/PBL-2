@@ -146,7 +146,7 @@
             <button id="logoutButton">ログアウト</button>
         </div>
         <div id="message" class="message"></div>
-        <button class="back-button" onclick="location.href='title.html'">戻る</button>
+        <button class="back-button" onclick="playCancelSound(); setTimeout(() => location.href='title.html', 200)">戻る</button>
     </div>
 
      <!-- スピーカーアイコン -->
@@ -160,9 +160,31 @@
         <source id="music-source" src="">
     </audio>
 
+    <!-- 効果音の追加 -->
+    <audio id="buttonSound" preload="auto">
+        <source src="path/to/決定音.mp3" type="audio/mp3">
+    </audio>
+    <audio id="cancelSound" preload="auto">
+        <source src="path/to/キャンセル.mp3" type="audio/mp3">
+    </audio>
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
+    <script>
+        function playButtonSound() {
+            const sound = document.getElementById('buttonSound');
+            sound.currentTime = 0;
+            sound.play();
+        }
+
+        function playCancelSound() {
+            const sound = document.getElementById('cancelSound');
+            sound.currentTime = 0;
+            sound.play();
+        }
+    </script>
     
     <!-- ログインスクリプト -->
     <script src="login.js"></script>
