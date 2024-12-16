@@ -598,3 +598,132 @@ body {
     background-color: #f44336;
     color: white;
 }
+
+/* レスポンシブデザイン対応 */
+@media screen and (max-width: 768px) {
+    :root {
+        --card-width: 70px;
+        --card-height: 98px;
+    }
+
+    .battle-container {
+        padding: 5px;
+    }
+
+    .player-area {
+        padding: 5px;
+    }
+
+    .hp-display {
+        min-width: 120px;
+        padding: 5px 10px;
+        font-size: 14px;
+    }
+
+    .hp-bar {
+        width: 80px;
+    }
+
+    .deck-count {
+        font-size: 10px;
+        bottom: -15px;
+    }
+
+    .battle-zone {
+        padding: 10px;
+    }
+
+    .battle-area {
+        gap: 20px;
+    }
+
+    .card-slot {
+        width: 70px;
+        height: 98px;
+    }
+
+    .battle-icon {
+        font-size: 18px;
+    }
+
+    .timer {
+        font-size: 24px;
+    }
+
+    .turn-indicator {
+        font-size: 12px;
+        padding: 8px 15px;
+    }
+
+    .hand-container {
+        height: 120px;
+    }
+
+    .card {
+        width: 70px;
+        height: 98px;
+    }
+
+    .card-content {
+        padding: 5px;
+    }
+
+    .card-name {
+        font-size: 12px;
+        margin-bottom: 5px;
+    }
+
+    .card-effect {
+        font-size: 10px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    :root {
+        --card-width: 60px;
+        --card-height: 84px;
+    }
+
+    .battle-container {
+        padding: 3px;
+    }
+
+    .hp-display {
+        min-width: 100px;
+        font-size: 12px;
+    }
+
+    .hp-bar {
+        width: 60px;
+    }
+
+    .battle-area {
+        gap: 10px;
+    }
+
+    .card-slot {
+        width: 60px;
+        height: 84px;
+    }
+
+    .timer {
+        font-size: 20px;
+    }
+
+    .hand-container {
+        height: 100px;
+    }
+
+    .card {
+        width: 60px;
+        height: 84px;
+    }
+
+    .card-name {
+        font-size: 10px;
+    }
+
+    .card-effect {
+        font-size: 8px;
+    }
+}
