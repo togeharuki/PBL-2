@@ -1823,6 +1823,25 @@ export class Game {
 
     // バトル結果を表示
     async showBattleResult(attackValue, defendValue, damage) {
+        // 勝敗が決まった時のみ result-modal を表示
+        if (this.gameState.playerHp <= 0 || this.gameState.opponentHp <= 0) {
+            const resultModal = document.getElementById('result-modal');
+            const resultTitle = document.getElementById('result-title');
+            const resultMessage = document.getElementById('result-message');
+            
+            if (this.gameState.playerHp <= 0) {
+                resultTitle.textContent = '敗北...';
+                resultMessage.textContent = '相手の攻撃に敗れました。';
+            } else {
+                resultTitle.textContent = '勝利！';
+                resultMessage.textContent = 'おめでとうございます！';
+            }
+            
+            resultModal.style.display = 'flex';
+            resultModal.classList.add('show');
+        }
+
+        // 通常のバトル結果表示（既存のコード）
         const resultOverlay = document.createElement('div');
         resultOverlay.style.cssText = `
             position: fixed;
