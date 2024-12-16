@@ -23,7 +23,8 @@ const cardEffect = document.getElementById('card-effect');
 const hiddenCard = {
     name: "伝説のカード",
     image: "https://togeharuki.github.io/Deck-Dreamers/kakusi/kami.jpg", 
-    effect: "⚡ D:15 ⚡"
+    effect: "⚡ D:15 ⚡",
+    explanation:""
 };
 
 // ページ読み込み時の処理
