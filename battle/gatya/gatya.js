@@ -192,9 +192,19 @@ async function addCardToSouko(card) {
     }
 }
 
+// カードをランダムに並べ替える関数
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
 // 行にカードを配置
 function renderCards() {
     const rows = [document.getElementById('row1'), document.getElementById('row2'), document.getElementById('row3')];
+    let shuffledItems = shuffleArray([...GACHA_ITEMS]); // カードをランダムに並べ替える
     let cardIndex = 0;
 
     for (let i = 0; i < 3; i++) {
@@ -202,9 +212,9 @@ function renderCards() {
         const cardCount = i === 1 ? 4 : 3;
 
         for (let j = 0; j < cardCount; j++) {
-            if (cardIndex >= GACHA_ITEMS.length) break;
+            if (cardIndex >= shuffledItems.length) break;
 
-            const card = GACHA_ITEMS[cardIndex];
+            const card = shuffledItems[cardIndex];
             const cardElement = document.createElement('div');
             cardElement.classList.add('gacha-item');
 
@@ -247,15 +257,6 @@ function renderCards() {
     }
 }
 
-// カードをランダムに並べ替える関数
-function shuffleCards(rowId) {
-    const row = document.getElementById(rowId);
-    const cards = Array.from(row.getElementsByClassName('card-item'));
-    for (let i = cards.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        row.appendChild(cards[j]);
-    }
-}
 
 // カードを表示させる関数
 function showCards() {
