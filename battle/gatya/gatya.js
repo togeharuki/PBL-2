@@ -201,6 +201,9 @@ function shuffleArray(array) {
     return array;
 }
 
+// 効果音の追加
+const gachaSound = new Audio('音声/クリック音.mp3');
+
 // 行にカードを配置
 function renderCards() {
     const rows = [document.getElementById('row1'), document.getElementById('row2'), document.getElementById('row3')];
@@ -235,6 +238,9 @@ function renderCards() {
                     
                     this.style.opacity = '1';
                     this.src = card.image;
+                    
+                    // 効果音を再生
+                    gachaSound.play();
                     
                     document.getElementById('gachaResult').innerHTML = `
                         <h3>カードの詳細</h3>
