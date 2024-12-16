@@ -351,7 +351,24 @@ body {
     border-radius: 5px;
     font-weight: bold;
     text-align: center;
-    transition: background-color 0.3s ease;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+.attack-phase {
+    background-color: #ff4444;
+    color: white;
+}
+
+.defense-phase {
+    background-color: #4444ff;
+    color: white;
+}
+
+.result-phase {
+    background-color: #44aa44;
+    color: white;
 }
 
 .your-turn {
@@ -806,4 +823,21 @@ body {
         padding: 10px;
         max-width: 98%;
     }
+}
+
+/* バトルゾーンのスタイルを修正 */
+.attack-zone, .defense-zone {
+    transition: all 0.3s ease;
+}
+
+.attack-zone:hover, .defense-zone:hover {
+    transform: scale(1.02);
+}
+
+.battle-card {
+    transition: transform 0.3s ease;
+}
+
+.battle-card:hover {
+    transform: scale(1.05);
 }
