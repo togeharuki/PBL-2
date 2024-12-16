@@ -95,10 +95,10 @@
     <h1>Deck・Dreamers</h1>
     <div class="button-container">
         <div class="account-buttons">
-            <button id="accountButton" onclick="location.href='acount.html'">アカウント作成</button>
-            <button id="loginButton" onclick="location.href='login.html'">ログイン</button>
+            <button id="accountButton" onclick="playButtonSound(); setTimeout(() => location.href='acount.html', 200)">アカウント作成</button>
+            <button id="loginButton" onclick="playButtonSound(); setTimeout(() => location.href='login.html', 200)">ログイン</button>
         </div>
-        <button id="startButton">スタート</button>
+        <button id="startButton" onclick="playButtonSound(); setTimeout(() => location.href='main/Menu/Menu.html', 200)">スタート</button>
     </div>
     <!-- スピーカーアイコン -->
     <div id="speaker-icon">
@@ -111,12 +111,23 @@
         <source id="music-source" src="">
     </audio>
 
+    <!-- 効果音の追加 -->
+    <audio id="buttonSound" preload="auto">
+        <source src="path/to/決定音.mp3" type="audio/mp3">
+    </audio>
 
     <script>
-                document.getElementById('startButton').addEventListener('click', function() {
+        function playButtonSound() {
+            const sound = document.getElementById('buttonSound');
+            sound.currentTime = 0;
+            sound.play();
+        }
+
+        document.getElementById('startButton').addEventListener('click', function() {
+            playButtonSound();
             setTimeout(function() {
                 window.location.href = 'main/Menu/Menu.html';
-            }, 500); // 遷移の遅延（0.5秒）
+            }, 500);
         });
     </script>
     <script src="battle/Battle/bgm.js"></script>
