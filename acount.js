@@ -176,8 +176,11 @@ createAccountButton.addEventListener('click', async () => {
             // プレイヤー情報を保存
             await createPlayer(playerName, nextPlayerId);
 
-            // デフォルトカードを倉庫に保存
+            // デフォルトカードを倉庫に保��
             await createSoukoCards(nextPlayerId);
+
+            // 効果音を再生
+            playButtonSound();
 
             // 成功メッセージを表示
             const notification = document.createElement('div');
