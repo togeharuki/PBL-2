@@ -136,9 +136,9 @@
             <label for="playerName">プレイヤー名</label>
             <input type="text" id="playerName" maxlength="20" placeholder="20文字以内で入力してください">
         </div>
-        <button id="createAccount">アカウント作成</button>
+        <button id="createAccount" onclick="playButtonSound()">アカウント作成</button>
         <div id="message" class="message"></div>
-        <button class="back-button" onclick="location.href='title.html'">戻る</button>
+        <button class="back-button" onclick="playCancelSound(); setTimeout(() => location.href='title.html', 200)">戻る</button>
 
         <!-- スピーカーアイコン -->
         <div id="speaker-icon">
@@ -151,9 +151,31 @@
             <source id="music-source" src="">
         </audio>
 
+        <!-- 効果音の追加 -->
+        <audio id="buttonSound" preload="auto">
+            <source src="path/to/決定音.mp3" type="audio/mp3">
+        </audio>
+        <audio id="cancelSound" preload="auto">
+            <source src="path/to/キャンセル.mp3" type="audio/mp3">
+        </audio>
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+    <script>
+        function playButtonSound() {
+            const sound = document.getElementById('buttonSound');
+            sound.currentTime = 0;
+            sound.play();
+        }
+
+        function playCancelSound() {
+            const sound = document.getElementById('cancelSound');
+            sound.currentTime = 0;
+            sound.play();
+        }
+    </script>
 
     <!-- アカウント作成スクリプト -->
     <script src="acount.js"></script>
