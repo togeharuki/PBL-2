@@ -10,11 +10,11 @@
 <body>
     <h1>Deck<span id="secret-dot" class="secret-dot">・</span>Dreamers</h1>
     <div class="button-container">
-        <button class="button settings" id="settingsButton" onclick="playButtonSound(); setTimeout(() => location.href='../../Music/Music.html', 200)">設定</button>
-        <button class="button" id="battleButton" onclick="playButtonSound(); setTimeout(() => location.href='../../battle/Battle/battle.html', 200)">対戦</button>
-        <button class="rule" id="RuleBtn" onclick="playButtonSound(); setTimeout(() => location.href='../Rule/Rule.html', 200)">説明</button>
-        <button class="gatya" id="gatyaBth" onclick="playButtonSound(); setTimeout(() => location.href='../../battle/gatya/gatya.html', 200)">ガチャ</button>
-        <button class="button return-menu" id="returnButton" onclick="playCancelSound(); setTimeout(() => location.href='../../title.html', 200)">戻る</button>
+        <button class="button settings" id="settingsButton">設定</button>
+        <button class="button" id="battleButton">対戦</button>
+        <button class="rule" id="RuleBtn">説明</button>
+        <button class="gatya" id="gatyaBth">ガチャ</button>
+        <button class="button return-menu" id="returnButton">戻る</button>
     </div>
 
     <!-- スピーカーアイコン -->
@@ -30,10 +30,10 @@
 
     <!-- 効果音の追加 -->
     <audio id="buttonSound" preload="auto">
-        <source src="../../sound/決定音.mp3" type="audio/mp3">
+        <source src="path/to/決定音.mp3" type="audio/mp3">
     </audio>
     <audio id="cancelSound" preload="auto">
-        <source src="../../sound/キャンセル.mp3" type="audio/mp3">
+        <source src="path/to/キャンセル.mp3" type="audio/mp3">
     </audio>
 
     <script>
