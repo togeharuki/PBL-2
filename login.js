@@ -64,6 +64,7 @@ function resetLoginState() {
 
 // ログイン処理
 loginButton.addEventListener('click', async () => {
+    playButtonSound(); // 効果音を再生
     const playerName = playerNameInput.value.trim();
 
     if (!playerName) {
@@ -118,6 +119,7 @@ loginButton.addEventListener('click', async () => {
 
 // ログアウト処理
 logoutButton.addEventListener('click', async () => {
+    playButtonSound(); // 効果音を再生
     try {
         const playerId = localStorage.getItem('playerId');
         if (!playerId) {
