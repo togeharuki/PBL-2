@@ -29,40 +29,20 @@
 
         <!-- バトルゾーン -->
         <div class="battle-zone">
-            <!-- 対戦相手のフィールド -->
-            <div class="battle-area opponent-battle-area">
-                <!-- 攻撃ゾーン -->
-                <div class="battle-slot attack-slot">
-                    <div class="battle-icon">⚔</div>
-                    <div class="card-slot" id="opponent-attack-slot"></div>
-                </div>
-
-                <!-- 守備ゾーン -->
-                <div class="battle-slot defense-slot">
-                    <div class="battle-icon">🛡</div>
-                    <div class="card-slot" id="opponent-defense-slot"></div>
-                </div>
-            </div>
-
-            <!-- タイマーとターン表示 -->
             <div class="timer-container">
                 <div class="turn-indicator" id="turn-indicator"></div>
-                <div class="timer">60</div>
+                <div class="battle-content">
+                    <div class="battle-area" id="player-battle-slot">
+                        <!-- プレイヤーのカードが表示されます -->
+                    </div>
+                    <div class="timer">60</div>
+                    <div class="battle-area" id="opponent-battle-slot">
+                        <!-- 相手のカードが表示されます -->
+                    </div>
+                </div>
             </div>
-
-            <!-- プレイヤーのバトルエリア -->
-            <div class="battle-area player-battle-area">
-                <!-- 攻撃ゾーン -->
-                <div class="battle-slot attack-slot">
-                    <div class="battle-icon">⚔</div>
-                    <div class="card-slot" id="player-attack-slot"></div>
-                </div>
-
-                <!-- 守備ゾーン -->
-                <div class="battle-slot defense-slot">
-                    <div class="battle-icon">🛡</div>
-                    <div class="card-slot" id="player-defense-slot"></div>
-                </div>
+            <div id="turn-end-container">
+                <!-- ターンエンドボタンがここに動的に追加されます -->
             </div>
         </div>
 
