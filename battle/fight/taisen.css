@@ -113,13 +113,34 @@ body {
 .battle-zone {
     position: relative;
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
+    justify-content: center;
     padding: 20px;
     background: rgba(45, 45, 68, 0.2);
     border-radius: 15px;
     margin: 10px 0;
+}
+
+.timer-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.battle-content {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    justify-content: center;
+}
+
+.battle-area {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    min-width: 120px;
+    height: 150px;
+    justify-content: center;
 }
 
 .opponent-battle-area {
@@ -128,28 +149,6 @@ body {
 
 .opponent-battle-area .battle-icon {
     transform: rotate(180deg);
-}
-
-.battle-area {
-    display: flex;
-    gap: 40px;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    margin: 10px 0;
-}
-
-.battle-slot {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-}
-
-.battle-icon {
-    font-size: 24px;
-    color: #ffffff;
-    text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
 }
 
 .card-slot {
@@ -195,15 +194,14 @@ body {
     box-shadow: 0 0 10px rgba(100, 149, 237, 0.3);
 }
 
-.timer-container {
-    text-align: center;
-}
-
 .timer {
     font-size: 36px;
     font-weight: bold;
     color: #ff9800;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    margin: 0 40px;
+    min-width: 80px;
+    text-align: center;
 }
 
 .turn-indicator {
@@ -351,23 +349,19 @@ body {
     border-radius: 5px;
     font-weight: bold;
     text-align: center;
-    margin: 10px 0;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
 }
 
-.attacker-turn {
+.attack-phase {
     background-color: #ff4444;
     color: white;
 }
 
-.defender-turn {
+.defense-phase {
     background-color: #4444ff;
     color: white;
-}
-
-.turn-end-button:hover {
-    background-color: #283593;
-    transform: scale(1.05);
-    transition: all 0.2s ease;
 }
 
 .result-phase {
@@ -762,7 +756,7 @@ body {
     }
 }
 
-/* モーダルとオーバーレイの修正 */
+/* モーダルオーバーレイの修正 */
 .result-modal,
 .overlay,
 #matching-overlay {
@@ -844,4 +838,68 @@ body {
 
 .battle-card:hover {
     transform: scale(1.05);
+}
+
+/* ターンエンドボタンのスタイル */
+.end-turn-button {
+    background-color: #ff4444;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.end-turn-button:hover {
+    background-color: #ff6666;
+    transform: scale(1.05);
+}
+
+.end-turn-button:active {
+    background-color: #cc0000;
+    transform: scale(0.95);
+}
+
+/* レスポンシブ対応 */
+@media screen and (max-width: 1200px) {
+    #turn-end-container {
+        right: -80px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    #turn-end-container {
+        position: static;
+        margin-top: 10px;
+        transform: none;
+        text-align: center;
+    }
+    
+    .end-turn-button {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+}
+
+/* ターンエンドボタンのコンテナスタイルを追加 */
+#turn-end-container {
+    position: absolute;
+    right: -100px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.battle-card {
+    width: 100px;
+    height: 140px;
+    border-radius: 8px;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: transform 0.3s ease;
 }
