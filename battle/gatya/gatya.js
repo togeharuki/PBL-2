@@ -34,6 +34,33 @@ const GACHA_ITEMS = [
         weight: 35  // 抽選時の重み（確率）
     },
     {
+        name: 'メンズマーモット',
+        image: 'https://raw.githubusercontent.com/haruki1298/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/R-%E3%83%A1%E3%83%B3%E3%82%BA%E3%83%9E%E3%83%BC%E3%83%A2%E3%83%83%E3%83%88.png',
+        effect: '攻撃力+1',  // アイテムの効果
+        count: 20,  // 残り個数
+        rarity: 'N',  // レアリティ
+        explanation: '',
+        weight: 35  // 抽選時の重み（確率）
+    },
+    {
+        name: '夕日マーモット',
+        image: 'https://raw.githubusercontent.com/haruki1298/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/R-%E5%A4%95%E6%97%A5%E3%83%9E%E3%83%BC%E3%83%A2%E3%83%83%E3%83%88.png',
+        effect: '攻撃力+1',  // アイテムの効果
+        count: 20,  // 残り個数
+        rarity: 'N',  // レアリティ
+        explanation: '',
+        weight: 35  // 抽選時の重み（確率）
+    },
+    {
+        name: '遊んでいるマーモット',
+        image: 'https://raw.githubusercontent.com/haruki1298/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/R-%E9%81%8A%E3%82%93%E3%81%A7%E3%81%84%E3%82%8B%E3%83%9E%E3%83%BC%E3%83%A2%E3%83%83%E3%83%88.png',
+        effect: '攻撃力+1',  // アイテムの効果
+        count: 20,  // 残り個数
+        rarity: 'N',  // レアリティ
+        explanation: '',
+        weight: 35  // 抽選時の重み（確率）
+    },
+    {
         name: '学祭のピザ',
         image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/R-%E5%AD%A6%E7%A5%AD%E3%81%AE%E3%83%94%E3%82%B6.png',
         effect: '回復+1',  // アイテムの効果
