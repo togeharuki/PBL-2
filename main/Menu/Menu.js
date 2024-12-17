@@ -10,10 +10,10 @@ function navigateTo(url, isReturn = false) {
     document.body.style.transition = 'opacity 0.5s';
     document.body.style.opacity = '0';
     
-    // 0.5秒後に遷移
+    // 効果音を再生してから遷移
     setTimeout(function() {
         window.location.href = url;
-    }, 500);
+    }, 200);
 }
 
 document.getElementById('settingsButton').addEventListener('click', function() {
