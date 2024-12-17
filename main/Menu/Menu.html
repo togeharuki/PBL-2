@@ -28,6 +28,28 @@
         <source id="music-source" src="">
     </audio>
 
+    <!-- 効果音の追加 -->
+    <audio id="buttonSound" preload="auto">
+        <source src="path/to/決定音.mp3" type="audio/mp3">
+    </audio>
+    <audio id="cancelSound" preload="auto">
+        <source src="path/to/キャンセル.mp3" type="audio/mp3">
+    </audio>
+
+    <script>
+        function playButtonSound() {
+            const sound = document.getElementById('buttonSound');
+            sound.currentTime = 0;
+            sound.play();
+        }
+
+        function playCancelSound() {
+            const sound = document.getElementById('cancelSound');
+            sound.currentTime = 0;
+            sound.play();
+        }
+    </script>
+
     <script src="Menu.js"></script>
     <script src="bgm.js"></script>
 </body>

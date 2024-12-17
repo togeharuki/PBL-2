@@ -1,4 +1,11 @@
-function navigateTo(url) {
+function navigateTo(url, isReturn = false) {
+    // 効果音を再生
+    if (isReturn) {
+        playCancelSound();
+    } else {
+        playButtonSound();
+    }
+    
     // フェードアウト効果
     document.body.style.transition = 'opacity 0.5s';
     document.body.style.opacity = '0';
@@ -22,11 +29,11 @@ document.getElementById('gatyaBth').addEventListener('click', function() {
 });
 
 document.getElementById('RuleBtn').addEventListener('click', function() {
-    navigateTo('../Rule/Rule.html')
+    navigateTo('../Rule/Rule.html');
 });
 
 document.getElementById('returnButton').addEventListener('click', function() {
-    navigateTo('../../title.html')
+    navigateTo('../../title.html', true);
 });
 
 // 隠しドットのイベントリスナーを追加
