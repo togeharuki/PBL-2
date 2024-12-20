@@ -160,61 +160,75 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // 退室ボタンのイベントリスナー
-    document.querySelector('.exit-button').addEventListener('click', async function() {
-        if (confirm('本当に退室しますか？')) {
-            // キャンセル音を再生
-            const sound = document.getElementById('cancelSound');
-            if (sound) {
-                sound.currentTime = 0;
-                sound.play().catch(error => {
-                    console.error('効果音の再生に失敗:', error);
-                });
-            }
+document.querySelector('.exit-button').addEventListener('click', async function() {
+    // まず決定音を再生
+    const buttonSound = document.getElementById('buttonSound');
+    if (buttonSound) {
+        buttonSound.currentTime = 0;
+        buttonSound.play().catch(error => {
+            console.error('効果音の再生に失敗:', error);
+        });
+    }
 
-            const playerId = localStorage.getItem('playerId');
-            if (roomId && playerId) {
-                try {
-                    const roomRef = db.collection('rooms').doc(roomId);
-                    await db.runTransaction(async (transaction) => {
-                        const roomDoc = await transaction.get(roomRef);
-                        if (roomDoc.exists) {
-                            const roomData = roomDoc.data();
-                            const players = roomData.players || {};
-                            
-                            // プレイヤーの位置情報を削除
-                            Object.keys(players).forEach(key => {
-                                if (players[key].playerId === playerId) {
-                                    delete players[key];
-                                }
-                            });
+    // カスタム確認ダイアログを作成
+    const result = await new Promise(resolve => {
+        const confirmed = confirm('本当に退室しますか？');
+        // 確認ダイアログの結果に応じて効果音を再生
+        const sound = document.getElementById(confirmed ? 'buttonSound' : 'cancelSound');
+        if (sound) {
+            sound.currentTime = 0;
+            sound.play().catch(error => {
+                console.error('効果音の再生に失敗:', error);
+            });
+        }
+        resolve(confirmed);
+    });
 
-                            // プレイヤーが0人になったら、ルームを削除
-                            if (Object.keys(players).length === 0) {
-                                transaction.delete(roomRef);
-                                console.log(`ルーム ${roomId} のプレイヤーが0人になったため、ルームを削除しました`);
-                            } else {
-                                transaction.update(roomRef, { players });
+    if (result) {
+        const playerId = localStorage.getItem('playerId');
+        if (roomId && playerId) {
+            try {
+                const roomRef = db.collection('rooms').doc(roomId);
+                await db.runTransaction(async (transaction) => {
+                    const roomDoc = await transaction.get(roomRef);
+                    if (roomDoc.exists) {
+                        const roomData = roomDoc.data();
+                        const players = roomData.players || {};
+                        
+                        // プレイヤーの位置情報を削除
+                        Object.keys(players).forEach(key => {
+                            if (players[key].playerId === playerId) {
+                                delete players[key];
                             }
+                        });
+
+                        // プレイヤーが0人になったら、ルームを削除
+                        if (Object.keys(players).length === 0) {
+                            transaction.delete(roomRef);
+                            console.log(`ルーム ${roomId} のプレイヤーが0人になったため、ルームを削除しました`);
+                        } else {
+                            transaction.update(roomRef, { players });
                         }
-                    });
+                    }
+                });
 
-                    // フェードアウトと遷移
-                    document.body.style.transition = 'opacity 0.5s';
-                    document.body.style.opacity = '0';
+                // フェードアウトと遷移
+                document.body.style.transition = 'opacity 0.5s';
+                document.body.style.opacity = '0';
 
-                    setTimeout(() => {
-                        window.location.href = '../Room/room.html';
-                    }, 200);
-
-                } catch (error) {
-                    console.error('退室エラー:', error);
+                setTimeout(() => {
                     window.location.href = '../Room/room.html';
-                }
-            } else {
+                }, 200);
+
+            } catch (error) {
+                console.error('退室エラー:', error);
                 window.location.href = '../Room/room.html';
             }
+        } else {
+            window.location.href = '../Room/room.html';
         }
-    });
+    }
+});
 
     // 対戦開始ボタンのイベント
     const startButtons = document.querySelectorAll('.start-button');
