@@ -81,15 +81,6 @@ matchTables.forEach(table => {
     const entryBoxes = table.querySelectorAll('.entry-box');
     entryBoxes.forEach(entryBox => {
         entryBox.addEventListener('click', async function() {
-            // 効果音を再生
-            const sound = document.getElementById('buttonSound');
-            if (sound) {
-                sound.currentTime = 0;
-                sound.play().catch(error => {
-                    console.error('効果音の再生に失敗:', error);
-                });
-            }
-
             const tableNumber = table.dataset.table;
             const position = this.dataset.position;
             const playerId = localStorage.getItem('playerId');
@@ -100,12 +91,66 @@ matchTables.forEach(table => {
                 return;
             }
 
+            // 効果音を再生
+            const sound = document.getElementById('buttonSound');
+            if (sound) {
+                sound.currentTime = 0;
+                sound.play().catch(error => {
+                    console.error('効果音の再生に失敗:', error);
+                });
+            }
+
             try {
                 // Firestoreでルーム情報を更新
                 const roomRef = db.collection('rooms').doc(roomId);
                 await db.runTransaction(async (transaction) => {
-                    // ... 残りのコードは変更なし ...
+                    const roomDoc = await transaction.get(roomRef);
+                    if (!roomDoc.exists) {
+                        throw new Error('ルームが存在しません');
+                    }
+
+                    const roomData = roomDoc.data();
+                    const players = roomData.players || {};
+                    
+                    // 既に他のプレイヤーがいる場合はチェック
+                    const positionKey = `${tableNumber}-${position}`;
+                    if (players[positionKey] && players[positionKey].playerId !== playerId) {
+                        throw new Error('この位置は既に選択されています');
+                    }
+
+                    // 自分が他の位置にいる場合は削除
+                    Object.keys(players).forEach(key => {
+                        if (players[key].playerId === playerId) {
+                            delete players[key];
+                            // 古い位置のUIを元に戻す
+                            const [oldTable, oldPosition] = key.split('-');
+                            const oldEntryBox = document.querySelector(
+                                `[data-table="${oldTable}"] [data-position="${oldPosition}"]`
+                            );
+                            if (oldEntryBox) {
+                                const oldEntryText = oldEntryBox.querySelector('.entry-text');
+                                const oldNameDisplay = oldEntryBox.querySelector('.player-name-display');
+                                if (oldEntryText) oldEntryText.classList.remove('hidden');
+                                if (oldNameDisplay) {
+                                    oldNameDisplay.textContent = '';
+                                    oldNameDisplay.classList.remove('visible');
+                                }
+                            }
+                        }
+                    });
+
+                    // 新しい位置に追加
+                    players[positionKey] = {
+                        playerId,
+                        playerName,
+                        tableNumber,
+                        position
+                    };
+
+                    transaction.update(roomRef, { players });
                 });
+
+                console.log(`プレイヤー ${playerName} がテーブル ${tableNumber} の ${position} に配置されました`);
             } catch (error) {
                 console.error('エラー:', error);
                 alert(error.message);
