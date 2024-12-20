@@ -1,3 +1,28 @@
+// サウンド再生関数
+function playButtonSound() {
+    const sound = document.getElementById('buttonSound');
+    if (!sound) {
+        console.error('buttonSound elementが見つかりません');
+        return;
+    }
+    sound.currentTime = 0;
+    sound.play().catch(error => {
+        console.error('決定音の再生に失敗:', error);
+    });
+}
+
+function playCancelSound() {
+    const sound = document.getElementById('cancelSound');
+    if (!sound) {
+        console.error('cancelSound elementが見つかりません');
+        return;
+    }
+    sound.currentTime = 0;
+    sound.play().catch(error => {
+        console.error('キャンセル音の再生に失敗:', error);
+    });
+}
+
 // グローバル変数の宣言
 let selectedPlayerCount = 2;
 let db;
@@ -32,6 +57,7 @@ function generateRoomId() {
 
 // コピー機能の関数
 function copyRoomId() {
+    playButtonSound();  // 決定音を再生
     const roomId = document.querySelector('.room-id').textContent;
     navigator.clipboard.writeText(roomId).then(() => {
         const copyButton = document.querySelector('.copy-button');
@@ -50,6 +76,7 @@ function copyRoomId() {
 
 // 生成されたルームIDをコピーする関数
 function copyGeneratedRoomId() {
+    playButtonSound();  // 決定音を再生
     const roomId = document.getElementById('generatedRoomId').textContent;
     navigator.clipboard.writeText(roomId).then(() => {
         const copyButton = document.querySelector('.room-id-display .copy-button');
@@ -102,6 +129,7 @@ function updateRoomDisplay(room) {
 
 // モーダル表示関数
 function showCreateRoomModal() {
+    playButtonSound();  // 決定音を再生
     const roomId = generateRoomId();
     document.getElementById('generatedRoomId').textContent = roomId;
     document.getElementById('createRoomModal').style.display = 'block';
@@ -110,6 +138,7 @@ function showCreateRoomModal() {
 
 // モーダルを閉じる関数
 function closeModal() {
+    playCancelSound();  // キャンセル音を再生
     document.getElementById('createRoomModal').style.display = 'none';
     resetPlayerCountSelection();
 }
@@ -131,11 +160,13 @@ function updateSelectedPlayerCount() {
 
 // ルーム作成確認関数
 function confirmCreateRoom() {
+    playButtonSound();  // 決定音を再生
     createRoom();
 }
 
 // ルーム検索関数
 async function searchRoom() {
+    playButtonSound();  // 決定音を再生
     const roomId = document.getElementById('roomIdInput').value;
     const regex = /^\d{3}-\d{4}$/;
     
@@ -174,7 +205,15 @@ async function searchRoom() {
 
 // 戻る関数
 function goBack() {
-    window.location.href = '../Battle/battle.html';
+    // 効果音を再生してから遷移
+    playCancelSound();  // キャンセル音を再生
+    document.body.style.transition = 'opacity 0.5s';
+    document.body.style.opacity = '0';
+    
+    // 効果音を再生してから遷移するための待機時間を設定
+    setTimeout(function() {
+        window.location.href = '../Battle/battle.html';
+    }, 200);
 }
 
 // DOMContentLoaded時の初期化
@@ -184,6 +223,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     playerCountButtons.forEach(button => {
         button.addEventListener('click', function() {
+            playButtonSound();  // 決定音を再生
             playerCountButtons.forEach(btn => btn.classList.remove('selected'));
             this.classList.add('selected');
             selectedPlayerCount = parseInt(this.getAttribute('data-count'));
@@ -260,9 +300,4 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('クリーンアップエラー:', error);
         }
     }, 1000 * 60 * 15); // 15分ごと
-});
-
-// エラーハンドリング
-window.addEventListener('error', function(event) {
-    console.error('グローバルエラー:', event.error);
 });
