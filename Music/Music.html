@@ -43,25 +43,24 @@
 
     <script src="../main/Menu/bgm.js"></script>
     <script>
-             // 効果音再生関数
-            function playCancelSound() {
-            const sound = document.getElementById('cancelSound');
-            sound.currentTime = 0;
-            sound.play();
-            }
+        // 効果音の再生機能
+        const cancelSound = document.getElementById('cancelSound');
+        
+        document.getElementById('titleButton').addEventListener('click', function() {
 
-            // 戻るボタンのクリックイベント
-            document.getElementById('titleButton').addEventListener('click', function() {
-            // 効果音を再生
-            playCancelSound();
+        // 効果音再生
+        cancelSound.currentTime = 0; // 再生位置をリセット
+        cancelSound.play();
 
-            document.body.style.transition = 'opacity 0.5s';
-            document.body.style.opacity = '0';
+        // フェードアウト処理
+        document.body.style.transition = 'opacity 0.5s';
+        document.body.style.opacity = '0';
 
-            setTimeout(function() {
-                window.location.href = '../main/Menu/Menu.html';
-            }, 500);
-        });
+        setTimeout(function() {
+            window.location.href = '../main/Menu/Menu.html';
+        }, 500);
+    });
+
     </script>
 </body>
 </html>                      
