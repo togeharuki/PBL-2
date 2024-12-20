@@ -273,6 +273,7 @@ function createCardElement(card, isCreated = false) {
             if (e.target !== checkbox) {
                 checkbox.checked = !checkbox.checked;
                 checkbox.dispatchEvent(new Event('change'));
+                playClickSound(); // クリック音を再生
             }
         });
 
@@ -312,6 +313,14 @@ function createCardElement(card, isCreated = false) {
     cardElement.style.cursor = 'pointer';
     cardElement.appendChild(cardContent);
     return cardElement;
+}
+
+// サウンド再生関数
+function playClickSound() {
+    const sound = new Audio('path/to/決定音.mp3');
+    sound.play().catch(error => {
+        console.error('クリック音の再生に失敗:', error);
+    });
 }
 
 function getCardImagePath(card) {
