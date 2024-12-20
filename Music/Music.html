@@ -44,8 +44,6 @@
     <script src="../main/Menu/bgm.js"></script>
     <script>
         document.getElementById('titleButton').addEventListener('click', function() {
-        // 効果音を再生
-        playCancelSound();
 
         // フェードアウト処理
         document.body.style.transition = 'opacity 0.5s';
@@ -56,13 +54,6 @@
         }, 500);
     });
 
-        // playCancelSound関数の外に出す
-        function playCancelSound() {
-            const sound = document.getElementById('cancelSound');
-            sound.currentTime = 0;
-            sound.play();
-        }
-        
     </script>
 </body>
 </html>                      
