@@ -125,7 +125,7 @@ const GACHA_ITEMS = [
     },
     {
         name: '先生集合',
-        image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/R-%E5%85%88%E7%94%9F%E9%9B%86%E5%90%88.png',
+        image: 'https://raw.githubusercontent.com/haruki1298/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SSR-%E5%85%88%E7%94%9F%E9%9B%86%E5%90%88.png',
         effect: '攻撃力+3',  // アイテムの効果
         count: 2,  // 残り個数
         rarity: 'SSR',  // レアリティ
