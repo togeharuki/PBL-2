@@ -113,13 +113,4 @@ if (titleButton) {
         window.location.href = '../main/Menu/Menu.html';
     });
 }
-// 効果音を再生
-playCancelSound();
-
-// playCancelSound関数の外に出す
-function playCancelSound() {
-    const sound = document.getElementById('cancelSound');
-    sound.currentTime = 0;
-    sound.play();
-}
 
