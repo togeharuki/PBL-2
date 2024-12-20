@@ -213,21 +213,20 @@ startButtons.forEach((button, index) => {
                     return;
                 }
 
-                // 効果音を再生してから遷移
-                playButtonSound();
-                
+                // 効果音を再生
+                const sound = document.getElementById('buttonSound');
+                if (sound) {
+                    sound.currentTime = 0;
+                    await sound.play();
+                }
+
                 // 対戦画面へ遷移
                 const taisenUrl = new URL('../fight/taisen.html', window.location.href);
                 taisenUrl.searchParams.set('roomId', roomId);
                 taisenUrl.searchParams.set('tableNumber', tableNumber);
-                
-                // フェードアウトと遷移
-                document.body.style.transition = 'opacity 0.5s';
-                document.body.style.opacity = '0';
 
-                setTimeout(() => {
-                    window.location.href = taisenUrl.toString();
-                }, 200);
+                // 遷移を実行
+                window.location.href = taisenUrl.toString();
 
             } catch (error) {
                 console.error('対戦開始エラー:', error);
