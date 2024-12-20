@@ -1,13 +1,35 @@
-function navigateTo(url) {
+// サウンド再生関数
+function playButtonSound() {
+    const sound = document.getElementById('buttonSound');
+    sound.currentTime = 0;
+    sound.play();
+}
+
+function playCancelSound() {
+    const sound = document.getElementById('cancelSound');
+    sound.currentTime = 0;
+    sound.play();
+}
+
+function navigateTo(url, isReturn = false) {
+    // 効果音を再生
+    if (isReturn) {
+        playCancelSound();
+    } else {
+        playButtonSound();
+    }
+    
+    // フェードアウト効果
     document.body.style.transition = 'opacity 0.5s';
     document.body.style.opacity = '0';
     
+    // 効果音を再生してから遷移
     setTimeout(function() {
         window.location.href = url;
-    }, 500);
+    }, 200);
 }
 
-// 既存のボタンイベントリスナー
+// 各ボタンのイベントリスナー
 document.getElementById('createCardButton').addEventListener('click', function() {
     navigateTo('../Card/card.html');
 });
@@ -20,15 +42,14 @@ document.getElementById('editDeckButton').addEventListener('click', function() {
     navigateTo('../Card/deck/deck.html');
 });
 
-// 追加した戻るボタンのイベントリスナー
+// 戻るボタンのイベントリスナー
 document.getElementById('returnButton').addEventListener('click', function() {
     const menuUrl = 'https://togeharuki.github.io/Deck-Dreamers/main/Menu/Menu.html';
     
-    // 現在のURLをチェックして相対パスを調整
     if (window.location.href.includes('battle/Battle/battle.html')) {
-        navigateTo('../../main/Menu/Menu.html');
+        navigateTo('../../main/Menu/Menu.html', true);  // キャンセル音を使用
     } else {
-        navigateTo(menuUrl);
+        navigateTo(menuUrl, true);  // キャンセル音を使用
     }
 });
 
