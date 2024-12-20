@@ -180,18 +180,62 @@ entryBox.addEventListener('click', async function() {
 });
 
 // 対戦開始ボタンのイベント
-button.addEventListener('click', async function() {
-    if (!button.disabled) {
-        playButtonSound();  // 決定音を再生
-        try {
-            // ... 既存のコード ...
-        } catch (error) {
-            console.error('対戦開始エラー:', error);
-            alert('対戦開始に失敗しました');
-        }
-    }
-});
+const startButtons = document.querySelectorAll('.start-button');
+startButtons.forEach((button, index) => {
+    button.addEventListener('click', async function() {
+        if (!button.disabled) {
+            try {
+                const playerId = localStorage.getItem('playerId');
+                if (!playerId) {
+                    alert('プレイヤー情報が見つかりません');
+                    return;
+                }
 
+                // 対戦相手の確認
+                const tableNumber = index + 1;
+                const roomRef = db.collection('rooms').doc(roomId);
+                const roomDoc = await roomRef.get();
+                
+                if (!roomDoc.exists) {
+                    alert('ルーム情報が見つかりません');
+                    return;
+                }
+
+                const roomData = roomDoc.data();
+                const players = roomData.players || {};
+                const tablePlayers = Object.values(players).filter(p => 
+                    p.tableNumber === tableNumber.toString()
+                );
+
+                // 対戦相手が存在するか確認
+                if (tablePlayers.length !== 2) {
+                    alert('対戦相手が見つかりません');
+                    return;
+                }
+
+                // 効果音を再生してから遷移
+                playButtonSound();
+                
+                // 対戦画面へ遷移
+                const taisenUrl = new URL('../fight/taisen.html', window.location.href);
+                taisenUrl.searchParams.set('roomId', roomId);
+                taisenUrl.searchParams.set('tableNumber', tableNumber);
+                
+                // フェードアウトと遷移
+                document.body.style.transition = 'opacity 0.5s';
+                document.body.style.opacity = '0';
+
+                setTimeout(() => {
+                    window.location.href = taisenUrl.toString();
+                }, 200);
+
+            } catch (error) {
+                console.error('対戦開始エラー:', error);
+                alert('対戦開始に失敗しました');
+            }
+        }
+    });
+});
 // メニューバーのリンクイベント
 item.addEventListener('click', function(e) {
     e.preventDefault();
