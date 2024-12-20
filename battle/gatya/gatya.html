@@ -21,8 +21,8 @@
     </div>
 
     <div class="button-container">
-        <button id="gachaButton" onclick="showCards()">ガチャを引く</button>
-        <button id="reloadButton" style="display:none;">ホームに戻る</button>
+        <button id="gachaButton" onclick="playSound('音声/決定音.mp3'); showCards()">ガチャを引く</button>
+        <button id="reloadButton" style="display:none;" onclick="playSound('音声/キャンセル.mp3')">ホームに戻る</button>
     </div>
     
     <!-- モーダルウィンドウ -->
@@ -34,5 +34,11 @@
     </div>
 
     <script src="gatya.js"></script>
+    <script>
+        function playSound(filename) {
+            var audio = new Audio(filename);
+            audio.play();
+        }
+    </script>
 </body>
 </html>
