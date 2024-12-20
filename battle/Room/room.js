@@ -166,7 +166,6 @@ function confirmCreateRoom() {
 
 // ルーム検索関数
 async function searchRoom() {
-    playButtonSound();  // 決定音を再生
     const roomId = document.getElementById('roomIdInput').value;
     const regex = /^\d{3}-\d{4}$/;
     
@@ -176,6 +175,10 @@ async function searchRoom() {
     }
 
     try {
+        playButtonSound();  // 決定音を再生
+        document.body.style.transition = 'opacity 0.5s';
+        document.body.style.opacity = '0';
+        
         // Firestoreでルームを検索
         const roomDoc = await db.collection('rooms').doc(roomId).get();
         
@@ -189,10 +192,14 @@ async function searchRoom() {
                 return;
             }
 
-            const url = new URL('../Match/matching.html', window.location.href);
-            url.searchParams.set('roomId', roomId);
-            url.searchParams.set('maxPlayers', roomData.maxPlayers);
-            window.location.href = url.toString();
+            // 効果音を再生してから遷移
+            setTimeout(function() {
+                const url = new URL('../Match/matching.html', window.location.href);
+                url.searchParams.set('roomId', roomId);
+                url.searchParams.set('maxPlayers', roomData.maxPlayers);
+                window.location.href = url.toString();
+            }, 200);
+            
             console.log(`ルーム ${roomId} が見つかりました`);
         } else {
             alert('指定されたルームが見つかりませんでした');
