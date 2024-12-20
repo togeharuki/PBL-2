@@ -47,6 +47,12 @@
         // タイトルボタンの処理（前のページに戻る）
         document.getElementById('titleButton').addEventListener('click', function() {
 
+            function playCancelSound() {
+            const sound = document.getElementById('cancelSound');
+            sound.currentTime = 0;
+            sound.play();
+            }
+
             document.body.style.transition = 'opacity 0.5s';
             document.body.style.opacity = '0';
 
