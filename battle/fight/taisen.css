@@ -130,17 +130,16 @@ body {
 .battle-content {
     display: flex;
     align-items: center;
-    gap: 40px;
     justify-content: center;
+    padding: 20px 0;
 }
 
 .battle-area {
     display: flex;
     align-items: center;
-    gap: 20px;
+    justify-content: center;
     min-width: 120px;
     height: 150px;
-    justify-content: center;
 }
 
 .opponent-battle-area {
@@ -195,13 +194,7 @@ body {
 }
 
 .timer {
-    font-size: 36px;
-    font-weight: bold;
-    color: #ff9800;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-    margin: 0 40px;
-    min-width: 80px;
-    text-align: center;
+    display: none;
 }
 
 .turn-indicator {
@@ -902,4 +895,14 @@ body {
     overflow: hidden;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     transition: transform 0.3s ease;
+}
+
+/* VS表示のスタイルを追加 */
+.vs-text {
+    font-size: 36px;
+    font-weight: bold;
+    color: #ff9800;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    margin: 0 20px;
+    user-select: none;
 }
