@@ -42,18 +42,12 @@
     <button id="titleButton">戻る</button>
 
     <script src="../main/Menu/bgm.js"></script>
-    <script>
-        // 効果音を再生する関数
-        function playCancelSound() {
-            const sound = document.getElementById('cancelSound');
-            sound.currentTime = 0;
-            sound.play();
-        }
-
+    <script type="module">
+        import { playSoundEffect } from './Music.js';
         // タイトルボタンの処理（前のページに戻る）
         document.getElementById('titleButton').addEventListener('click', function() {
             // 効果音を再生
-            playCancelSound();
+            playCancelSound('cancelSound');
 
             document.body.style.transition = 'opacity 0.5s';
             document.body.style.opacity = '0';
