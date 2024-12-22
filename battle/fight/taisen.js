@@ -158,9 +158,6 @@ export class Game {
 
         // イベントリスナー設定
         this.setupEventListeners();
-
-        // 最後に表示したダメージエフェクトのタイムスタンプを追跡
-        this.lastShownDamageEffect = 0;
     }
 
     setupEventListeners() {
@@ -216,7 +213,7 @@ export class Game {
             
             console.log('ゲームドキュメント取得開始');
             const gameDocSnap = await window.getDoc(gameDocRef);
-            console.log('ゲームド����ュメントの存在:', gameDocSnap.exists());
+            console.log('ゲームド    ュメントの存在:', gameDocSnap.exists());
 
             //   ッチング中のオーバーレイを表示
             const matchingOverlay = document.getElementById('matching-overlay');
@@ -345,28 +342,6 @@ export class Game {
                     }
 
                     this.updateUI();
-
-                    // ダメージエフェクトの監視を追加
-                    const damageEffect = gameData.battleState?.showDamageEffect;
-                    if (damageEffect?.isActive) {
-                        // 最後に表示したタイムスタンプと比較して、新しい効果なら表示
-                        const lastShownTimestamp = this.lastShownDamageEffect || 0;
-                        if (damageEffect.timestamp > lastShownTimestamp) {
-                            this.lastShownDamageEffect = damageEffect.timestamp;
-                            await this.showDamageToAllEffect(damageEffect.damage);
-                            
-                            // 自分が効果を発動したプレイヤーの場合、フラグをリセット
-                            if (gameData.currentTurn === this.playerId) {
-                                await window.updateDoc(gameRef, {
-                                    'battleState.showDamageEffect': {
-                                        isActive: false,
-                                        damage: 0,
-                                        timestamp: 0
-                                    }
-                                });
-                            }
-                        }
-                    }
                 }
             }
         });
@@ -508,21 +483,26 @@ export class Game {
         handContainer.className = 'hand-container';
         handContainer.style.position = 'relative';
         
-        // 相手のプレイヤーIDを取得
-        const opponentId = Object.keys(this.gameData.players).find(id => id !== this.playerId);
-        const opponentHandCards = this.gameData.players[opponentId]?.hand || [];
-
-        opponentHandCards.forEach((card, index) => {
-            const cardElement = card.isRevealed ? 
-                this.createCardElement(card) : 
-                this.createCardBackElement();
-
-            cardElement.style.position = 'absolute';
-            cardElement.style.left = `${index * 120}px`;
-            cardElement.style.zIndex = index;
+        // 相手の手札枚数分だけ裏向きのカードを表示
+        const opponentHandCount = this.gameState.opponentHandCount || 5;
+        for (let i = 0; i < opponentHandCount; i++) {
+            const cardBack = document.createElement('div');
+            cardBack.className = 'card card-back';
+            cardBack.style.position = 'absolute';
+            cardBack.style.left = `${i * 120}px`;
+            cardBack.style.zIndex = i;
             
-            handContainer.appendChild(cardElement);
-        });
+            // 裏面画像を設定
+            const cardImage = document.createElement('img');
+            cardImage.src = './カードの裏面.png';
+            cardImage.alt = 'カードの裏面';
+            cardImage.style.width = '100%';
+            cardImage.style.height = '100%';
+            cardImage.style.objectFit = 'cover';
+            
+            cardBack.appendChild(cardImage);
+            handContainer.appendChild(cardBack);
+        }
 
         opponentHand.appendChild(handContainer);
     }
@@ -784,7 +764,7 @@ export class Game {
             animation: messageAnimation 1.5s ease-out forwards;
         `;
 
-        // アニメーションスタイル���追加
+        // アニメーションスタイル   追加
         const style = document.createElement('style');
         style.textContent = `
             @keyframes messageAnimation {
@@ -808,7 +788,7 @@ export class Game {
         overlay.appendChild(messageText);
         document.body.appendChild(overlay);
 
-        // ���ニメーション終了後にオーバーレイを削除
+        //    ニメーション終了後にオーバーレイを削除
         setTimeout(() => {
             overlay.remove();
         }, 1500);
@@ -825,7 +805,7 @@ export class Game {
         // 先攻プレイヤーかどうかを判断
         const isFirstPlayer = Object.keys(this.gameData.players)[0] === this.playerId;
         
-        // 新しいバトル状��を作成
+        // 新しいバトル状  を作成
         const newBattleState = {
             battlePhase: 'attack',
             canPlayCard: true,
@@ -839,7 +819,7 @@ export class Game {
 
         console.log('作成するバトル状態:', newBattleState);
 
-        // Firestoreの��態を更新
+        // Firestoreの  態を更新
         const gameRef = window.doc(db, 'games', this.gameId);
         window.updateDoc(gameRef, {
             battleState: newBattleState
@@ -872,7 +852,7 @@ export class Game {
 
             // カードプレイ回数をチェック
             if ((this.battleState.cardsPlayedThisTurn || 0) >= 2) {
-                console.log('このターンはこれ以��カードを出せません');
+                console.log('このターンはこれ以  カードを出せません');
                 return;
             }
 
@@ -1063,40 +1043,29 @@ export class Game {
         try {
             console.log('バトルフェーズ終了処理を開始');
 
-            // 既に終了処理が実行済みの場合は終了
-            if (this.battleState.battlePhase === 'waiting') {
-                console.log('バトルフェーズは既に終了しています');
-                return;
-            }
+            // バトルゾーンのUIをクリア
+            const playerSlot = document.getElementById('player-battle-slot');
+            const opponentSlot = document.getElementById('opponent-battle-slot');
+            if (playerSlot) playerSlot.innerHTML = '';
+            if (opponentSlot) opponentSlot.innerHTML = '';
 
             // 現在のゲーム状態を取得
-            const currentGameData = (await window.getDoc(window.doc(db, 'games', this.gameId))).data();
-            
-            // 先攻プレイヤーを判定
-            const firstPlayerId = Object.keys(currentGameData.players)[0];
-            const isFirstPlayer = this.playerId === firstPlayerId;
-            
-            // 現在のアタッカー状態を取得し、反転させる
-            const currentIsAttacker = currentGameData.battleState.isAttacker;
-            const newIsAttacker = !currentIsAttacker;
-
             const gameRef = window.doc(db, 'games', this.gameId);
-            await window.updateDoc(gameRef, {
-                'battleState.battlePhase': 'waiting',
-                'battleState.attackerCard': null,
-                'battleState.defenderCard': null,
-                'battleState.cardsPlayedThisTurn': 0,
-                'battleState.turnEndCount': 0,
-                'battleState.shouldShowBattlePhase': false,
-                'battleState.playedCards': {},
-                'battleState.battleResult': null,
-                'battleState.isBattlePhaseInProgress': false,
-                'battleState.isAttacker': newIsAttacker
-            });
+            const gameDoc = await window.getDoc(gameRef);
+            const currentGameData = gameDoc.data();
 
-            // ローカルの状態も更新
-            this.battleState = {
-                ...this.battleState,
+            // プレイヤーIDを取得
+            const firstPlayerId = Object.keys(currentGameData.players)[0];
+            const secondPlayerId = Object.keys(currentGameData.players)[1];
+
+            // 現在のアタッカー状態を反転
+            const newIsAttacker = !currentGameData.battleState.isAttacker;
+
+            // 次のターンのプレイヤーを決定
+            const nextPlayerId = currentGameData.currentTurn === firstPlayerId ? secondPlayerId : firstPlayerId;
+
+            // バトルフェーズの状態を完全にリセット
+            const resetBattleState = {
                 battlePhase: 'waiting',
                 attackerCard: null,
                 defenderCard: null,
@@ -1106,19 +1075,37 @@ export class Game {
                 playedCards: {},
                 battleResult: null,
                 isBattlePhaseInProgress: false,
-                isAttacker: newIsAttacker
+                isAttacker: newIsAttacker,
+                canPlayCard: true
             };
 
-            // バトルゾーンのUIをクリア
-            const playerSlot = document.getElementById('player-battle-slot');
-            const opponentSlot = document.getElementById('opponent-battle-slot');
-            if (playerSlot) playerSlot.innerHTML = '';
-            if (opponentSlot) opponentSlot.innerHTML = '';
+            // プレイヤーごとのplayedCardsをリセット
+            resetBattleState.playedCards[firstPlayerId] = {};
+            resetBattleState.playedCards[secondPlayerId] = {};
 
-            console.log('攻守を入れ替え:', { 
-                前の状態: currentIsAttacker,
+            // Firestoreの状態を更新
+            await window.updateDoc(gameRef, {
+                battleState: resetBattleState,
+                currentTurn: nextPlayerId,
+                [`players.${firstPlayerId}.playedCards`]: {},
+                [`players.${secondPlayerId}.playedCards`]: {}
+            });
+
+            // ローカルの状態を更新
+            this.battleState = resetBattleState;
+            this.gameState.isPlayerTurn = this.playerId === nextPlayerId;
+
+            // バトルフェーズ表示をリセット
+            const battlePhaseIndicator = document.getElementById('battle-phase-indicator');
+            if (battlePhaseIndicator) {
+                battlePhaseIndicator.textContent = '';
+                battlePhaseIndicator.className = 'battle-phase-indicator';
+            }
+
+            console.log('攻守を入れ替え:', {
+                前の状態: currentGameData.battleState.isAttacker,
                 新しい状態: newIsAttacker,
-                isFirstPlayer
+                次のプレイヤー: nextPlayerId
             });
 
             this.updateUI();
@@ -1126,7 +1113,6 @@ export class Game {
 
         } catch (error) {
             console.error('バトルフェーズ終了処理でエラー:', error);
-            this.battleState.isBattlePhaseInProgress = false;
         }
     }
 
@@ -1310,7 +1296,7 @@ export class Game {
             cardElement.style.transform = 'scale(1)';
         });
 
-        // カドクリックイベントの追加（詳細表示用）
+        // カードクリックイベントの追加（詳細表示用）
         cardElement.addEventListener('click', () => {
             this.showCardDetail(card);
         });
@@ -1370,7 +1356,7 @@ export class Game {
                 existingModal.remove();
             }
 
-            // カード����説明を取得
+            // カードの説明を取得
             let explanation = '';
             const playerId = localStorage.getItem('playerId');
             
@@ -1510,7 +1496,7 @@ export class Game {
     // 効果カードを発動する関数
     async activateEffectCard(card) {
         try {
-            console.log('効果カードを��動:', card);
+            console.log('効果カードを動:', card);
 
             // 効果の種類を判断
             if (card.effect.includes('ドロー')) {
@@ -1553,6 +1539,7 @@ export class Game {
             console.error('効果カードの発動に失敗:', error);
         }
     }
+
 
     // ターン表示の更新
     updateTurnIndicator() {
@@ -1975,7 +1962,7 @@ export class Game {
                 'battleState.attackerCard': null,
                 'battleState.defenderCard': null,
                 'battleState.battlePhase': 'waiting',
-                'battleState.cardsPlayedThisTurn': 0  // カー��使用回数をリセット
+                'battleState.cardsPlayedThisTurn': 0  // カー  使用回数をリセット
             };
 
             await window.updateDoc(gameRef, updateData);
@@ -2202,7 +2189,7 @@ export class Game {
 
     // updateHands メソッドを修正
     updateHands() {
-        // プレイヤーの手札を更新
+        // プレ   ヤーの手札を更新
         const playerHand = document.getElementById('player-hand');
         if (playerHand) {
             playerHand.innerHTML = '';
@@ -2273,315 +2260,6 @@ export class Game {
         } catch (error) {
             console.error('墓地への送信に失敗:', error);
         }
-    }
-
-    // 相手のカードを表示する新しいメソッドを追加
-    async revealOpponentCards() {
-        try {
-            // 相手のプレイヤーIDを取得
-            const opponentId = Object.keys(this.gameData.players).find(id => id !== this.playerId);
-            if (!opponentId) {
-                console.error('相手プレイヤーが見つかりません');
-                return;
-            }
-
-            // 相手の手札を取得
-            const opponentHand = this.gameData.players[opponentId].hand;
-            if (!opponentHand || opponentHand.length === 0) {
-                console.log('相手の手札が空です');
-                return;
-            }
-
-            // ランダムに2枚選択（手札が2枚未満の場合は全て）
-            const numCardsToReveal = Math.min(2, opponentHand.length);
-            const shuffledHand = [...opponentHand].sort(() => Math.random() - 0.5);
-            const cardsToReveal = shuffledHand.slice(0, numCardsToReveal);
-
-            // 選択されたカードにrevealedフラグを追加
-            const revealedCards = cardsToReveal.map(card => ({
-                ...card,
-                isRevealed: true
-            }));
-
-            // 相手の手札を更新（選択されたカードを表向きにする）
-            const updatedHand = opponentHand.map(card => 
-                revealedCards.some(rc => rc.id === card.id) ? { ...card, isRevealed: true } : card
-            );
-
-            // Firestoreの状態を更新
-            const gameRef = window.doc(db, 'games', this.gameId);
-            await window.updateDoc(gameRef, {
-                [`players.${opponentId}.hand`]: updatedHand
-            });
-
-            // 公開されたカードを表示
-            const overlay = document.createElement('div');
-            overlay.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.8);
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                z-index: 1000;
-            `;
-
-            const title = document.createElement('div');
-            title.textContent = '公開された相手の手札';
-            title.style.cssText = `
-                color: white;
-                font-size: 24px;
-                margin-bottom: 20px;
-            `;
-            overlay.appendChild(title);
-
-            const cardContainer = document.createElement('div');
-            cardContainer.style.cssText = `
-                display: flex;
-                gap: 20px;
-                justify-content: center;
-                align-items: center;
-            `;
-
-            revealedCards.forEach(card => {
-                const cardElement = this.createCardElement(card);
-                cardElement.style.transform = 'scale(1.2)';
-                cardContainer.appendChild(cardElement);
-            });
-
-            overlay.appendChild(cardContainer);
-
-            const message = document.createElement('div');
-            message.textContent = 'これらのカードは表向きのまま相手の手札に残ります';
-            message.style.cssText = `
-                color: white;
-                font-size: 16px;
-                margin-top: 20px;
-            `;
-            overlay.appendChild(message);
-
-            const closeButton = document.createElement('button');
-            closeButton.textContent = '閉じる';
-            closeButton.style.cssText = `
-                margin-top: 20px;
-                padding: 10px 20px;
-                background: #4CAF50;
-                color: white;
-                border: none;
-                border-radius: 5px;
-                cursor: pointer;
-                font-size: 16px;
-            `;
-            closeButton.onclick = () => overlay.remove();
-            overlay.appendChild(closeButton);
-
-            document.body.appendChild(overlay);
-
-            // 相手の手札表示を更新
-            this.updateOpponentHandDisplay();
-
-        } catch (error) {
-            console.error('相手のカード表示に失敗:', error);
-        }
-    }
-
-    // 裏向きカード要素を作成する補助メソッド
-    createCardBackElement() {
-        const cardBack = document.createElement('div');
-        cardBack.className = 'card card-back';
-        cardBack.style.cssText = `
-            width: 100px;
-            height: 140px;
-            background-image: url('./カードの裏面.png');
-            background-size: cover;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        `;
-        return cardBack;
-    }
-
-    // 全プレイヤーにダメージを与える新しいメソッドを追加
-    async applyDamageToAll(damage) {
-        try {
-            const gameRef = window.doc(db, 'games', this.gameId);
-            const gameDoc = await window.getDoc(gameRef);
-            const gameData = gameDoc.data();
-
-            // 効果発動フラグを設定
-            await window.updateDoc(gameRef, {
-                'battleState.showDamageEffect': {
-                    isActive: true,
-                    damage: damage,
-                    timestamp: Date.now()
-                }
-            });
-
-            // 全プレイヤーのHPを更新
-            const updates = {};
-            Object.keys(gameData.players).forEach(playerId => {
-                const currentHp = gameData.players[playerId].hp;
-                const newHp = Math.max(0, currentHp - damage);
-                updates[`players.${playerId}.hp`] = newHp;
-
-                // ローカルの状態も更新
-                if (playerId === this.playerId) {
-                    this.gameState.playerHp = newHp;
-                } else {
-                    this.gameState.opponentHp = newHp;
-                }
-            });
-
-            // Firestoreを一括更新
-            await window.updateDoc(gameRef, updates);
-
-            // HPゲージを更新
-            this.updateUI();
-
-        } catch (error) {
-            console.error('全体ダメージの適用に失敗:', error);
-        }
-    }
-
-    // 全体ダメージのエフェクトを表示する新しいメソッドを追加
-    async showDamageToAllEffect(damage) {
-        return new Promise((resolve) => {
-            const overlay = document.createElement('div');
-            overlay.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.8);
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                z-index: 1000;
-            `;
-
-            // アニメーションスタイルを追加
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes damageFlash {
-                    0% { transform: scale(0.5); opacity: 0; }
-                    50% { transform: scale(1.2); opacity: 1; }
-                    100% { transform: scale(1); opacity: 1; }
-                }
-                @keyframes damagePopup {
-                    0% { transform: translateY(20px); opacity: 0; }
-                    100% { transform: translateY(0); opacity: 1; }
-                }
-                @keyframes hpDecrease {
-                    from { width: var(--initial-width); }
-                    to { width: var(--final-width); }
-                }
-                .damage-number {
-                    position: absolute;
-                    color: #ff4444;
-                    font-weight: bold;
-                    font-size: 24px;
-                    animation: damagePopup 0.5s ease-out;
-                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-                }
-            `;
-            document.head.appendChild(style);
-
-            // メインメッセージ
-            const messageElement = document.createElement('div');
-            messageElement.textContent = '互いの心身に傷がついた！';
-            messageElement.style.cssText = `
-                color: #ff4444;
-                font-size: 32px;
-                font-weight: bold;
-                margin-bottom: 20px;
-                text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
-                animation: damageFlash 0.5s ease-in-out;
-            `;
-
-            // ダメージ表示
-            const damageElement = document.createElement('div');
-            damageElement.textContent = `${damage}ダメージ！`;
-            damageElement.style.cssText = `
-                color: white;
-                font-size: 24px;
-                animation: damagePopup 0.5s ease-out;
-            `;
-
-            overlay.appendChild(messageElement);
-            overlay.appendChild(damageElement);
-            document.body.appendChild(overlay);
-
-            // プレイヤーとオポーネントのHPバーにダメージ表示を追加
-            const playerHpBar = document.getElementById('player-hp-bar');
-            const opponentHpBar = document.getElementById('opponent-hp-bar');
-            const playerHpText = document.getElementById('player-hp');
-            const opponentHpText = document.getElementById('opponent-hp');
-
-            if (playerHpBar && opponentHpBar) {
-                // 現在のHP値を取得
-                const currentPlayerHp = parseInt(playerHpText.textContent);
-                const currentOpponentHp = parseInt(opponentHpText.textContent);
-                
-                // プレイヤーのダメージ数字表示
-                const playerDamageNumber = document.createElement('div');
-                playerDamageNumber.className = 'damage-number';
-                playerDamageNumber.textContent = `-${damage}`;
-                playerDamageNumber.style.cssText = `
-                    position: absolute;
-                    left: ${playerHpBar.offsetLeft + playerHpBar.offsetWidth/2}px;
-                    top: ${playerHpBar.offsetTop - 20}px;
-                `;
-                document.body.appendChild(playerDamageNumber);
-
-                // オポーネントのダメージ数字表示
-                const opponentDamageNumber = document.createElement('div');
-                opponentDamageNumber.className = 'damage-number';
-                opponentDamageNumber.textContent = `-${damage}`;
-                opponentDamageNumber.style.cssText = `
-                    position: absolute;
-                    left: ${opponentHpBar.offsetLeft + opponentHpBar.offsetWidth/2}px;
-                    top: ${opponentHpBar.offsetTop - 20}px;
-                `;
-                document.body.appendChild(opponentDamageNumber);
-
-                // HPバーのアニメーション
-                const playerInitialWidth = playerHpBar.offsetWidth;
-                const opponentInitialWidth = opponentHpBar.offsetWidth;
-                const playerFinalWidth = (playerInitialWidth * (currentPlayerHp - damage)) / 10;
-                const opponentFinalWidth = (opponentInitialWidth * (currentOpponentHp - damage)) / 10;
-
-                playerHpBar.style.setProperty('--initial-width', `${playerInitialWidth}px`);
-                playerHpBar.style.setProperty('--final-width', `${playerFinalWidth}px`);
-                opponentHpBar.style.setProperty('--initial-width', `${opponentInitialWidth}px`);
-                opponentHpBar.style.setProperty('--final-width', `${opponentFinalWidth}px`);
-
-                playerHpBar.style.animation = 'hpDecrease 1s ease-in-out forwards';
-                opponentHpBar.style.animation = 'hpDecrease 1s ease-in-out forwards';
-
-                // HPテキストの更新
-                setTimeout(() => {
-                    playerHpText.textContent = `${currentPlayerHp - damage}/10`;
-                    opponentHpText.textContent = `${currentOpponentHp - damage}/10`;
-                }, 1000);
-
-                // ダメージ数字の削除
-                setTimeout(() => {
-                    playerDamageNumber.remove();
-                    opponentDamageNumber.remove();
-                }, 1500);
-            }
-
-            // 2秒後にオーバーレイを削除して処理を完了
-            setTimeout(() => {
-                overlay.remove();
-                resolve();
-            }, 2000);
-        });
     }
 }
 
