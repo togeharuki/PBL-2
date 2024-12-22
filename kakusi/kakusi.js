@@ -24,7 +24,7 @@ const hiddenCard = {
     name: "伝説のカード",
     image: "https://togeharuki.github.io/Deck-Dreamers/kakusi/kami.jpg", 
     effect: "⚡ D:15 ⚡",
-    explanation:""
+    explanation:"⚡ D:15 ⚡"
 };
 
 // ページ読み込み時の処理
@@ -96,6 +96,7 @@ async function saveDefaultCard(playerId, card) {
         name: card.name,
         image: card.image,
         effect: card.effect,
+        explanation: card.explanation,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
     };
 
