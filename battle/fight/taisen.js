@@ -994,58 +994,48 @@ export class Game {
     }
 
     // ダメージの適用
-    async applyDamage(damage) {
-        const gameRef = window.doc(db, 'games', this.gameId);
-        const opponentId = Object.keys(this.gameData.players).find(id => id !== this.playerId);
+    async applyDamage(damage, targetPlayerId) {
+        try {
+            console.log('ダメージ適用開始:', {
+                damage,
+                targetPlayerId,
+                自分のID: this.playerId
+            });
 
-        // ダメージを受けるプレイヤーのHPを更新
-        const targetPlayerId = this.battleState.isAttacker ? opponentId : this.playerId;
-        const currentHp = this.gameData.players[targetPlayerId].hp;
-        const newHp = Math.max(0, currentHp - damage);
+            const gameRef = window.doc(db, 'games', this.gameId);
+            const gameDoc = await window.getDoc(gameRef);
+            const gameData = gameDoc.data();
 
-        console.log('ダメージ適用:', {
-            targetPlayerId,
-            currentHp,
-            damage,
-            newHp
-        });
+            // 現在のHPを取得
+            const currentHp = gameData.players[targetPlayerId].hp;
+            const newHp = Math.max(0, currentHp - damage);
 
-        // 新しいバトル状態を作成
-        const newBattleState = {
-            battlePhase: 'waiting',
-            canPlayCard: true,
-            isAttacker: !this.battleState.isAttacker,
-            attackerCard: null,
-            defenderCard: null,
-            isEffectCardUsed: false,
-            battleResult: {
-                damage: damage,
-                targetPlayer: targetPlayerId,
-                attackerCard: this.battleState.attackerCard,
-                defenderCard: this.battleState.defenderCard
+            // Firestoreのプレイヤーのhpを更新
+            await window.updateDoc(gameRef, {
+                [`players.${targetPlayerId}.hp`]: newHp
+            });
+
+            // ローカルのHP状態を更新（ターゲットプレイヤーのHPのみ更新）
+            if (targetPlayerId === this.playerId) {
+                this.gameState.playerHp = newHp;
+            } else {
+                this.gameState.opponentHp = newHp;
             }
-        };
 
-        // Firestoreの状態を更新
-        await window.updateDoc(gameRef, {
-            [`players.${targetPlayerId}.hp`]: newHp,
-            battleState: newBattleState,
-            currentTurn: opponentId
-        });
+            // HPゲージを更新
+            this.updateHpBar(targetPlayerId, newHp);
 
-        // ローカルの状態を更新
-        this.battleState = newBattleState;
-        this.gameState.isPlayerTurn = false;
+            console.log('ダメージ適用完了:', {
+                targetPlayerId,
+                damage,
+                newHp,
+                自分のHP: this.gameState.playerHp,
+                相手のHP: this.gameState.opponentHp
+            });
 
-        console.log('バトル終了:', {
-            damage,
-            targetPlayer: targetPlayerId,
-            newHp,
-            nextTurn: 'opponent'
-        });
-
-        // UIを更新
-        this.updateUI();
+        } catch (error) {
+            console.error('ダメージ適用中にエラーが発生:', error);
+        }
     }
 
     // バトルフェーズの終了
@@ -1053,24 +1043,39 @@ export class Game {
         try {
             console.log('バトルフェーズ終了処理を開始');
 
+            // 既に終了処理が実行済みの場合は終了
+            if (this.battleState.battlePhase === 'waiting') {
+                console.log('バトルフェーズは既に終了しています');
+                return;
+            }
+
             const gameRef = window.doc(db, 'games', this.gameId);
             await window.updateDoc(gameRef, {
-                'battleState.playedCards': {},
+                'battleState.battlePhase': 'waiting',
+                'battleState.attackerCard': null,
+                'battleState.defenderCard': null,
                 'battleState.cardsPlayedThisTurn': 0,
-                'battleState.isAttacker': !this.battleState.isAttacker,
-                'battleState.battlePhase': 'waiting'
+                'battleState.turnEndCount': 0,
+                'battleState.shouldShowBattlePhase': false,
+                'battleState.playedCards': {} // バトルゾーンのカードをクリア
             });
 
-            // ローカルの状態を更新
-            this.battleState.playedCards = {};
-            this.battleState.cardsPlayedThisTurn = 0;
-            this.battleState.isAttacker = !this.battleState.isAttacker;
+            // ローカルの状態も更新
             this.battleState.battlePhase = 'waiting';
+            this.battleState.attackerCard = null;
+            this.battleState.defenderCard = null;
+            this.battleState.cardsPlayedThisTurn = 0;
+            this.battleState.turnEndCount = 0;
+            this.battleState.shouldShowBattlePhase = false;
+            this.battleState.playedCards = {}; // ローカルのバトルゾーンのカードもクリア
 
-            // UI更新
+            // バトルゾーンのUIをクリア
+            const playerSlot = document.getElementById('player-battle-slot');
+            const opponentSlot = document.getElementById('opponent-battle-slot');
+            if (playerSlot) playerSlot.innerHTML = '';
+            if (opponentSlot) opponentSlot.innerHTML = '';
+
             this.updateUI();
-            this.updateBattleZone();
-
             console.log('バトルフェーズ終了処理完了');
 
         } catch (error) {
@@ -1134,7 +1139,7 @@ export class Game {
             const cards = Object.values(this.battleState.playedCards[this.playerId]);
             const latestCard = cards[cards.length - 1]; // 最新のカードのみを取得
             if (latestCard) {
-                const cardElement = this.createCardElement(latestCard);
+                const cardElement = this.createBattleCardElement(latestCard);
                 cardElement.setAttribute('data-card-id', latestCard.id);
                 cardElement.style.position = 'relative';
                 cardElement.style.left = '0';
@@ -1142,14 +1147,14 @@ export class Game {
             }
         }
 
-        // 相手のードを表示（最新の1枚のみ）
+        // 相手のカードを表示（最新の1枚のみ）
         const opponentId = Object.keys(this.gameData.players).find(id => id !== this.playerId);
         if (this.battleState.playedCards && this.battleState.playedCards[opponentId]) {
             opponentSlot.innerHTML = ''; // 既存のカードをクリア
             const cards = Object.values(this.battleState.playedCards[opponentId]);
             const latestCard = cards[cards.length - 1]; // 最新のカードのみを取得
             if (latestCard) {
-                const cardElement = this.createCardElement(latestCard);
+                const cardElement = this.createBattleCardElement(latestCard);
                 cardElement.setAttribute('data-card-id', latestCard.id);
                 cardElement.style.position = 'relative';
                 cardElement.style.left = '0';
@@ -1305,7 +1310,7 @@ export class Game {
         else if (effect.includes('H')) {
             return `${effect}`;
         }
-        // それ以外の効果カー���の場合
+        // それ以外の効果カーの場合
         return effect;
     }
 
@@ -1336,7 +1341,7 @@ export class Game {
                 }
             });
 
-            // 説明が見つからない場合はデフ��ルトの説明を使用
+            // 説明が見つからない場合はデフルトの説明を使用
             if (!explanation) {
                 if (card.effect.includes('D')) {
                     const damageMatch = card.effect.match(/D(\d+)/);
@@ -1638,7 +1643,7 @@ export class Game {
             </div>
         `;
 
-        // 結果表示
+        // 結果表示（プレイヤーの立場に応じてメッセージを変更）
         const resultText = document.createElement('div');
         resultText.style.cssText = `
             font-size: 32px;
@@ -1648,18 +1653,37 @@ export class Game {
         `;
 
         if (damage > 0) {
-            resultText.innerHTML = `
-                <div style="color: #ff4444;">
-                    ${isPlayerAttacker ? '相手に' : 'プレイヤーに'}
-                    ${damage}ダメージ！
-                </div>
-            `;
+            if (isPlayerAttacker) {
+                // プレイヤーが攻撃側の場合
+                resultText.innerHTML = `
+                    <div style="color: #ff4444;">
+                        相手に${damage}ダメージを与えた！
+                    </div>
+                `;
+            } else {
+                // プレ   ヤーが防   側の場合
+                resultText.innerHTML = `
+                    <div style="color: #ff4444;">
+                        ${damage}ダメージを受けた！
+                    </div>
+                `;
+            }
         } else {
-            resultText.innerHTML = `
-                <div style="color: #4444ff;">
-                    ダメージを防いだ！
-                </div>
-            `;
+            if (isPlayerAttacker) {
+                // プレイヤーが攻撃側の場合
+                resultText.innerHTML = `
+                    <div style="color: #4444ff;">
+                        ダメージを防がれた！
+                    </div>
+                `;
+            } else {
+                // プレイヤーが防御側の場合
+                resultText.innerHTML = `
+                    <div style="color: #4444ff;">
+                        ダメージを防いだ！
+                    </div>
+                `;
+            }
         }
 
         resultContent.appendChild(battleText);
@@ -1736,41 +1760,32 @@ export class Game {
             overflow: hidden;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             transition: transform 0.3s ease;
-            cursor: pointer;
         `;
 
         cardElement.innerHTML = `
-            <div style="height: 70%; overflow: hidden;">
+            <div style="height: 75%; overflow: hidden;">
                 <img src="${card.image || `https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/${encodeURIComponent(card.name)}.jpg`}" 
                      alt="${card.name}" 
                      style="width: 100%; height: 100%; object-fit: cover;">
             </div>
-            <div style="padding: 5px; text-align: center; background-color: #1a237e; color: white;">
+            <div style="padding: 5px; text-align: center; background-color: #1a237e; color: white; height: 25%;">
                 ${card.name}
             </div>
-            <div style="padding: 5px; text-align: center;">
-                ${card.effect}
-            </div>
         `;
-
-        // カードクリックイベントの追加
-        cardElement.addEventListener('click', () => {
-            this.showBattleCardDetail(card);
-        });
 
         return cardElement;
     }
 
-    // バトルカードの詳細表示用の新しいメソ�����ドを追加
+    // バトルカードの詳細表示用の新しいメソドを追加
     async showBattleCardDetail(card) {
         try {
-            // 既存のモーダル��あれば削除
+            // 既存のモーダルあれば削除
             const existingModal = document.querySelector('.card-detail-modal');
             if (existingModal) {
                 existingModal.remove();
             }
 
-            // カード��説明��取得
+            // カード説明取得
             let explanation = '';
             const deckRef = window.collection(db, 'Deck');
             const snapshot = await window.getDocs(deckRef);
@@ -1996,7 +2011,6 @@ export class Game {
         try {
             console.log('バトル比較処理を開始');
 
-            // バトル比較が既に実行済みの場合は終了
             if (this.battleState.battleResult !== null) {
                 console.log('バトル比較は既に実行済みです');
                 return;
@@ -2005,7 +2019,6 @@ export class Game {
             const opponentId = Object.keys(this.gameData.players).find(id => id !== this.playerId);
             const currentGameData = (await window.getDoc(window.doc(db, 'games', this.gameId))).data();
 
-            // アタッカーとディフェンダーのカードを取得
             const attackerCard = currentGameData.battleState.attackerCard;
             const defenderCard = currentGameData.battleState.defenderCard;
 
@@ -2014,14 +2027,12 @@ export class Game {
                 return;
             }
 
-            // カードの効果値を抽出
             const attackMatch = attackerCard.effect.match(/D\s*(\d+)/);
             const defendMatch = defenderCard.effect.match(/D\s*(\d+)/);
             
             const attackValue = attackMatch ? parseInt(attackMatch[1]) : 0;
             const defendValue = defendMatch ? parseInt(defendMatch[1]) : 0;
 
-            // ダメージ計算
             const damage = attackValue > defendValue ? attackValue - defendValue : 0;
 
             // バトル結果を保存
@@ -2031,99 +2042,43 @@ export class Game {
                     attackValue,
                     defendValue,
                     damage,
-                    isProcessed: false // ダメージ処理済みフラグを追加
+                    isProcessed: false
                 }
             });
 
-            // バトル結果の表示
-            await this.showBattleResult(attackValue, defendValue, damage, this.battleState.isAttacker);
+            // プレイヤーが攻撃側かどうかを判定（isAttackerの値を直接使用）
+            const isPlayerAttacker = currentGameData.battleState.isAttacker === (this.playerId === Object.keys(this.gameData.players)[0]);
 
-            // ダメージがある場合、HPを減少（一度だけ実行）
+            // バトル結果の表示（プレイヤーの立場に応じたメッセージを表示）
+            await this.showBattleResult(attackValue, defendValue, damage, isPlayerAttacker);
+
+            // ダメージがある場合、防御側のHPのみを減少
             if (damage > 0 && !currentGameData.battleState?.battleResult?.isProcessed) {
-                const targetPlayerId = currentGameData.battleState.isAttacker ? 
-                    opponentId :  // アタッカーの場合、相手がダメージを受ける
-                    this.playerId; // ディフェンダーの場合、自分がダメージを受ける
-
+                // 防御側のプレイヤーIDを特定（isAttackerを基に判定）
+                const defenderPlayerId = currentGameData.battleState.isAttacker ? 
+                    Object.keys(this.gameData.players)[1] :  // アタッカーが先攻の場合、後攻プレイヤーが防御側
+                    Object.keys(this.gameData.players)[0];   // アタッカーが後攻の場合、先攻プレイヤーが防御側
+                
                 console.log('ダメージ適用:', {
                     damage,
                     isAttacker: currentGameData.battleState.isAttacker,
-                    targetPlayerId,
+                    defenderPlayerId,
                     自分のID: this.playerId,
                     相手のID: opponentId
                 });
 
-                await this.applyDamage(damage, targetPlayerId);
+                // 防御側のプレイヤーにのみダメージを適用
+                await this.applyDamage(damage, defenderPlayerId);
 
-                // ダメージ処理済みフラグを設定
                 await window.updateDoc(gameRef, {
                     'battleState.battleResult.isProcessed': true
                 });
             }
 
-            // バトルフェーズの終了
             await this.endBattlePhase();
 
         } catch (error) {
             console.error('バトル比較処理でエラー:', error);
-        }
-    }
-
-    async endBattlePhase() {
-        try {
-            console.log('バトルフェーズ終了処理を開始');
-
-            // 既に終了処理が実行済みの場合は終了
-            if (this.battleState.battlePhase === 'waiting') {
-                console.log('バトルフェーズは既に終了しています');
-                return;
-            }
-
-            const gameRef = window.doc(db, 'games', this.gameId);
-            await window.updateDoc(gameRef, {
-                'battleState.battlePhase': 'waiting',
-                'battleState.attackerCard': null,
-                'battleState.defenderCard': null,
-                'battleState.cardsPlayedThisTurn': 0,
-                'battleState.turnEndCount': 0,
-                'battleState.shouldShowBattlePhase': false
-            });
-
-            this.updateUI();
-            console.log('バトルフェーズ終了処理完了');
-
-        } catch (error) {
-            console.error('バトルフェーズ終了処理でエラー:', error);
-        }
-    }
-
-    // ダメージ適用処理を修正
-    async applyDamage(damage, targetPlayerId) {
-        try {
-            const gameRef = window.doc(db, 'games', this.gameId);
-            const gameDoc = await window.getDoc(gameRef);
-            const gameData = gameDoc.data();
-
-            // 現在のHPを取得
-            const currentHp = gameData.players[targetPlayerId].hp;
-            const newHp = Math.max(0, currentHp - damage);
-
-            // Firestoreのプレイヤーのhpを更新
-            await window.updateDoc(gameRef, {
-                [`players.${targetPlayerId}.hp`]: newHp
-            });
-
-            // ローカルのHP状態を更新
-            if (targetPlayerId === this.playerId) {
-                this.gameState.playerHp = newHp;
-            } else {
-                this.gameState.opponentHp = newHp;
-            }
-
-            // HPゲージを更新
-            this.updateHpBar(targetPlayerId, newHp);
-
-        } catch (error) {
-            console.error('ダメージ適用中にエラーが発生:', error);
         }
     }
 
@@ -2168,7 +2123,7 @@ export class Game {
                     [`battleState.playedCards.${this.playerId}`]: {}
                 });
                 
-                // ローカルの状態も更新
+                // ローカの状態も更新
                 if (this.battleState.playedCards) {
                     this.battleState.playedCards[this.playerId] = {};
                 }
