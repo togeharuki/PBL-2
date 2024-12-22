@@ -158,6 +158,9 @@ export class Game {
 
         // イベントリスナー設定
         this.setupEventListeners();
+
+        // 最後に表示したダメージエフェクトのタイムスタンプを追跡
+        this.lastShownDamageEffect = 0;
     }
 
     setupEventListeners() {
@@ -342,6 +345,28 @@ export class Game {
                     }
 
                     this.updateUI();
+
+                    // ダメージエフェクトの監視を追加
+                    const damageEffect = gameData.battleState?.showDamageEffect;
+                    if (damageEffect?.isActive) {
+                        // 最後に表示したタイムスタンプと比較して、新しい効果なら表示
+                        const lastShownTimestamp = this.lastShownDamageEffect || 0;
+                        if (damageEffect.timestamp > lastShownTimestamp) {
+                            this.lastShownDamageEffect = damageEffect.timestamp;
+                            await this.showDamageToAllEffect(damageEffect.damage);
+                            
+                            // 自分が効果を発動したプレイヤーの場合、フラグをリセット
+                            if (gameData.currentTurn === this.playerId) {
+                                await window.updateDoc(gameRef, {
+                                    'battleState.showDamageEffect': {
+                                        isActive: false,
+                                        damage: 0,
+                                        timestamp: 0
+                                    }
+                                });
+                            }
+                        }
+                    }
                 }
             }
         });
@@ -1324,7 +1349,7 @@ export class Game {
                 existingModal.remove();
             }
 
-            // カードの説明を取得
+            // カード����説明を取得
             let explanation = '';
             const playerId = localStorage.getItem('playerId');
             
@@ -1475,8 +1500,9 @@ export class Game {
                 const damage = damageMatch ? parseInt(damageMatch[0]) : 0;
                 await this.applyDamage(damage);
             } else if (card.effect.includes('相手の手札を2枚見る')) {
-                // 相手の手札を表示する処理を追加
                 await this.revealOpponentCards();
+            } else if (card.effect.includes('両方に2ダメージ')) {
+                await this.applyDamageToAll(2);
             } else {
                 // 攻撃カードの場合（例：⚡ D3 ⚡）
                 const damageMatch = card.effect.match(/D(\d+)/);
@@ -2355,6 +2381,186 @@ export class Game {
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         `;
         return cardBack;
+    }
+
+    // 全プレイヤーにダメージを与える新しいメソッドを追加
+    async applyDamageToAll(damage) {
+        try {
+            const gameRef = window.doc(db, 'games', this.gameId);
+            const gameDoc = await window.getDoc(gameRef);
+            const gameData = gameDoc.data();
+
+            // 効果発動フラグを設定
+            await window.updateDoc(gameRef, {
+                'battleState.showDamageEffect': {
+                    isActive: true,
+                    damage: damage,
+                    timestamp: Date.now()
+                }
+            });
+
+            // 全プレイヤーのHPを更新
+            const updates = {};
+            Object.keys(gameData.players).forEach(playerId => {
+                const currentHp = gameData.players[playerId].hp;
+                const newHp = Math.max(0, currentHp - damage);
+                updates[`players.${playerId}.hp`] = newHp;
+
+                // ローカルの状態も更新
+                if (playerId === this.playerId) {
+                    this.gameState.playerHp = newHp;
+                } else {
+                    this.gameState.opponentHp = newHp;
+                }
+            });
+
+            // Firestoreを一括更新
+            await window.updateDoc(gameRef, updates);
+
+            // HPゲージを更新
+            this.updateUI();
+
+        } catch (error) {
+            console.error('全体ダメージの適用に失敗:', error);
+        }
+    }
+
+    // 全体ダメージのエフェクトを表示する新しいメソッドを追加
+    async showDamageToAllEffect(damage) {
+        return new Promise((resolve) => {
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            `;
+
+            // アニメーションスタイルを追加
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes damageFlash {
+                    0% { transform: scale(0.5); opacity: 0; }
+                    50% { transform: scale(1.2); opacity: 1; }
+                    100% { transform: scale(1); opacity: 1; }
+                }
+                @keyframes damagePopup {
+                    0% { transform: translateY(20px); opacity: 0; }
+                    100% { transform: translateY(0); opacity: 1; }
+                }
+                @keyframes hpDecrease {
+                    from { width: var(--initial-width); }
+                    to { width: var(--final-width); }
+                }
+                .damage-number {
+                    position: absolute;
+                    color: #ff4444;
+                    font-weight: bold;
+                    font-size: 24px;
+                    animation: damagePopup 0.5s ease-out;
+                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+                }
+            `;
+            document.head.appendChild(style);
+
+            // メインメッセージ
+            const messageElement = document.createElement('div');
+            messageElement.textContent = '互いの心身に傷がついた！';
+            messageElement.style.cssText = `
+                color: #ff4444;
+                font-size: 32px;
+                font-weight: bold;
+                margin-bottom: 20px;
+                text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+                animation: damageFlash 0.5s ease-in-out;
+            `;
+
+            // ダメージ表示
+            const damageElement = document.createElement('div');
+            damageElement.textContent = `${damage}ダメージ！`;
+            damageElement.style.cssText = `
+                color: white;
+                font-size: 24px;
+                animation: damagePopup 0.5s ease-out;
+            `;
+
+            overlay.appendChild(messageElement);
+            overlay.appendChild(damageElement);
+            document.body.appendChild(overlay);
+
+            // プレイヤーとオポーネントのHPバーにダメージ表示を追加
+            const playerHpBar = document.getElementById('player-hp-bar');
+            const opponentHpBar = document.getElementById('opponent-hp-bar');
+            const playerHpText = document.getElementById('player-hp');
+            const opponentHpText = document.getElementById('opponent-hp');
+
+            if (playerHpBar && opponentHpBar) {
+                // 現在のHP値を取得
+                const currentPlayerHp = parseInt(playerHpText.textContent);
+                const currentOpponentHp = parseInt(opponentHpText.textContent);
+                
+                // プレイヤーのダメージ数字表示
+                const playerDamageNumber = document.createElement('div');
+                playerDamageNumber.className = 'damage-number';
+                playerDamageNumber.textContent = `-${damage}`;
+                playerDamageNumber.style.cssText = `
+                    position: absolute;
+                    left: ${playerHpBar.offsetLeft + playerHpBar.offsetWidth/2}px;
+                    top: ${playerHpBar.offsetTop - 20}px;
+                `;
+                document.body.appendChild(playerDamageNumber);
+
+                // オポーネントのダメージ数字表示
+                const opponentDamageNumber = document.createElement('div');
+                opponentDamageNumber.className = 'damage-number';
+                opponentDamageNumber.textContent = `-${damage}`;
+                opponentDamageNumber.style.cssText = `
+                    position: absolute;
+                    left: ${opponentHpBar.offsetLeft + opponentHpBar.offsetWidth/2}px;
+                    top: ${opponentHpBar.offsetTop - 20}px;
+                `;
+                document.body.appendChild(opponentDamageNumber);
+
+                // HPバーのアニメーション
+                const playerInitialWidth = playerHpBar.offsetWidth;
+                const opponentInitialWidth = opponentHpBar.offsetWidth;
+                const playerFinalWidth = (playerInitialWidth * (currentPlayerHp - damage)) / 10;
+                const opponentFinalWidth = (opponentInitialWidth * (currentOpponentHp - damage)) / 10;
+
+                playerHpBar.style.setProperty('--initial-width', `${playerInitialWidth}px`);
+                playerHpBar.style.setProperty('--final-width', `${playerFinalWidth}px`);
+                opponentHpBar.style.setProperty('--initial-width', `${opponentInitialWidth}px`);
+                opponentHpBar.style.setProperty('--final-width', `${opponentFinalWidth}px`);
+
+                playerHpBar.style.animation = 'hpDecrease 1s ease-in-out forwards';
+                opponentHpBar.style.animation = 'hpDecrease 1s ease-in-out forwards';
+
+                // HPテキストの更新
+                setTimeout(() => {
+                    playerHpText.textContent = `${currentPlayerHp - damage}/10`;
+                    opponentHpText.textContent = `${currentOpponentHp - damage}/10`;
+                }, 1000);
+
+                // ダメージ数字の削除
+                setTimeout(() => {
+                    playerDamageNumber.remove();
+                    opponentDamageNumber.remove();
+                }, 1500);
+            }
+
+            // 2秒後にオーバーレイを削除して処理を完了
+            setTimeout(() => {
+                overlay.remove();
+                resolve();
+            }, 2000);
+        });
     }
 }
 
