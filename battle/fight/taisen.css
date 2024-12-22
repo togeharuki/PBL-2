@@ -929,3 +929,70 @@ body {
     background-color: #4444ff;
     box-shadow: 0 0 10px rgba(68, 68, 255, 0.5);
 }
+
+/* 墓地関連のスタイルを追加 */
+.deck-area {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.graveyard {
+    position: relative;
+    width: var(--card-width);
+    height: var(--card-height);
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.graveyard:hover {
+    transform: scale(1.05);
+}
+
+.graveyard-image {
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    object-fit: cover;
+    filter: brightness(0.8);
+}
+
+.graveyard-count {
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--card-background);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+/* 墓地一覧モーダルのスタイル */
+.graveyard-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    padding: 20px;
+    border-radius: 10px;
+    z-index: 1000;
+    max-width: 80vw;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.graveyard-modal-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+    padding: 10px;
+}
+
+.graveyard-modal-title {
+    color: white;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 24px;
+}
