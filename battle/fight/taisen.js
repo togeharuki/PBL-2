@@ -483,26 +483,21 @@ export class Game {
         handContainer.className = 'hand-container';
         handContainer.style.position = 'relative';
         
-        // 相手の手札枚数分だけ裏向きのカードを表示
-        const opponentHandCount = this.gameState.opponentHandCount || 5;
-        for (let i = 0; i < opponentHandCount; i++) {
-            const cardBack = document.createElement('div');
-            cardBack.className = 'card card-back';
-            cardBack.style.position = 'absolute';
-            cardBack.style.left = `${i * 120}px`;
-            cardBack.style.zIndex = i;
+        // 相手のプレイヤーIDを取得
+        const opponentId = Object.keys(this.gameData.players).find(id => id !== this.playerId);
+        const opponentHandCards = this.gameData.players[opponentId]?.hand || [];
+
+        opponentHandCards.forEach((card, index) => {
+            const cardElement = card.isRevealed ? 
+                this.createCardElement(card) : 
+                this.createCardBackElement();
+
+            cardElement.style.position = 'absolute';
+            cardElement.style.left = `${index * 120}px`;
+            cardElement.style.zIndex = index;
             
-            // 裏面画像を設定
-            const cardImage = document.createElement('img');
-            cardImage.src = './カードの裏面.png';
-            cardImage.alt = 'カードの裏面';
-            cardImage.style.width = '100%';
-            cardImage.style.height = '100%';
-            cardImage.style.objectFit = 'cover';
-            
-            cardBack.appendChild(cardImage);
-            handContainer.appendChild(cardBack);
-        }
+            handContainer.appendChild(cardElement);
+        });
 
         opponentHand.appendChild(handContainer);
     }
@@ -1290,7 +1285,7 @@ export class Game {
             cardElement.style.transform = 'scale(1)';
         });
 
-        // カードクリックイベントの追加（詳細表示用）
+        // カドクリックイベントの追加（詳細表示用）
         cardElement.addEventListener('click', () => {
             this.showCardDetail(card);
         });
@@ -1500,14 +1495,17 @@ export class Game {
                 const damageMatch = card.effect.match(/\d+/);
                 const damage = damageMatch ? parseInt(damageMatch[0]) : 0;
                 await this.applyDamage(damage);
+            } else if (card.effect.includes('相手の手札を2枚見る')) {
+                // 相手の手札を表示する処理を追加
+                await this.revealOpponentCards();
             } else {
-                // 攻撃カードの場（例：⚡ D3 ⚡）
+                // 攻撃カードの場合（例：⚡ D3 ⚡）
                 const damageMatch = card.effect.match(/D(\d+)/);
                 if (damageMatch) {
                     const damage = parseInt(damageMatch[1]);
                     await this.applyDamage(damage);
                 } else {
-                    console.log('実装の効果:', card.effect);
+                    console.log('未実装の効果:', card.effect);
                 }
             }
 
@@ -2249,6 +2247,135 @@ export class Game {
         } catch (error) {
             console.error('墓地への送信に失敗:', error);
         }
+    }
+
+    // 相手のカードを表示する新しいメソッドを追加
+    async revealOpponentCards() {
+        try {
+            // 相手のプレイヤーIDを取得
+            const opponentId = Object.keys(this.gameData.players).find(id => id !== this.playerId);
+            if (!opponentId) {
+                console.error('相手プレイヤーが見つかりません');
+                return;
+            }
+
+            // 相手の手札を取得
+            const opponentHand = this.gameData.players[opponentId].hand;
+            if (!opponentHand || opponentHand.length === 0) {
+                console.log('相手の手札が空です');
+                return;
+            }
+
+            // ランダムに2枚選択（手札が2枚未満の場合は全て）
+            const numCardsToReveal = Math.min(2, opponentHand.length);
+            const shuffledHand = [...opponentHand].sort(() => Math.random() - 0.5);
+            const cardsToReveal = shuffledHand.slice(0, numCardsToReveal);
+
+            // 選択されたカードにrevealedフラグを追加
+            const revealedCards = cardsToReveal.map(card => ({
+                ...card,
+                isRevealed: true
+            }));
+
+            // 相手の手札を更新（選択されたカードを表向きにする）
+            const updatedHand = opponentHand.map(card => 
+                revealedCards.some(rc => rc.id === card.id) ? { ...card, isRevealed: true } : card
+            );
+
+            // Firestoreの状態を更新
+            const gameRef = window.doc(db, 'games', this.gameId);
+            await window.updateDoc(gameRef, {
+                [`players.${opponentId}.hand`]: updatedHand
+            });
+
+            // 公開されたカードを表示
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            `;
+
+            const title = document.createElement('div');
+            title.textContent = '公開された相手の手札';
+            title.style.cssText = `
+                color: white;
+                font-size: 24px;
+                margin-bottom: 20px;
+            `;
+            overlay.appendChild(title);
+
+            const cardContainer = document.createElement('div');
+            cardContainer.style.cssText = `
+                display: flex;
+                gap: 20px;
+                justify-content: center;
+                align-items: center;
+            `;
+
+            revealedCards.forEach(card => {
+                const cardElement = this.createCardElement(card);
+                cardElement.style.transform = 'scale(1.2)';
+                cardContainer.appendChild(cardElement);
+            });
+
+            overlay.appendChild(cardContainer);
+
+            const message = document.createElement('div');
+            message.textContent = 'これらのカードは表向きのまま相手の手札に残ります';
+            message.style.cssText = `
+                color: white;
+                font-size: 16px;
+                margin-top: 20px;
+            `;
+            overlay.appendChild(message);
+
+            const closeButton = document.createElement('button');
+            closeButton.textContent = '閉じる';
+            closeButton.style.cssText = `
+                margin-top: 20px;
+                padding: 10px 20px;
+                background: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 16px;
+            `;
+            closeButton.onclick = () => overlay.remove();
+            overlay.appendChild(closeButton);
+
+            document.body.appendChild(overlay);
+
+            // 相手の手札表示を更新
+            this.updateOpponentHandDisplay();
+
+        } catch (error) {
+            console.error('相手のカード表示に失敗:', error);
+        }
+    }
+
+    // 裏向きカード要素を作成する補助メソッド
+    createCardBackElement() {
+        const cardBack = document.createElement('div');
+        cardBack.className = 'card card-back';
+        cardBack.style.cssText = `
+            width: 100px;
+            height: 140px;
+            background-image: url('./カードの裏面.png');
+            background-size: cover;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        `;
+        return cardBack;
     }
 }
 
