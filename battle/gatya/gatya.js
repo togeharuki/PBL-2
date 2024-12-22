@@ -36,7 +36,7 @@ const GACHA_ITEMS = [
     {
         name: '学祭のピザ',
         image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/R-%E5%AD%A6%E7%A5%AD%E3%81%AE%E3%83%94%E3%82%B6.png',
-        effect: 'HP回復+1',  // アイテムの効果
+        effect: 'HP1回復',  // アイテムの効果
         count: 10,  // 残り個数
         rarity: 'R',  // レアリティ
         explanation: '即座にHPを1回復する',
@@ -45,7 +45,7 @@ const GACHA_ITEMS = [
     {
         name: '二郎系',
         image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/R-%E4%BA%8C%E9%83%8E%E7%B3%BB.png',
-        effect: 'HP回復+2',  // アイテムの効果
+        effect: 'HP2回復',  // アイテムの効果
         count: 10,  // 残り個数
         rarity: 'R',  // レアリティ
         explanation: '即座にHPを2回復する',
