@@ -117,7 +117,7 @@ export class Game {
             attackerCard: null,
             defenderCard: null,
             cardsPlayedThisTurn: 0,
-            turnEndCount: 0  // ターンエンド回数を追加
+            turnEndCount: 0
         };
 
         this.gameState = {
@@ -128,6 +128,19 @@ export class Game {
             isPlayerTurn: false,
             turnTime: 60
         };
+
+        // 結果表示用モーダルの作成
+        const resultModal = document.createElement('div');
+        resultModal.id = 'result-modal';
+        resultModal.className = 'result-modal';
+        resultModal.innerHTML = `
+            <div class="result-content">
+                <h2 id="result-title"></h2>
+                <p id="result-message"></p>
+                <button class="return-button">OK</button>
+            </div>
+        `;
+        document.body.appendChild(resultModal);
 
         // URLパラメータから情報を取得
         const urlParams = new URLSearchParams(window.location.search);
@@ -158,6 +171,64 @@ export class Game {
 
         // イベントリスナー設定
         this.setupEventListeners();
+
+        // アニメーションのスタイルを追加
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+
+            .result-modal {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.7);
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            }
+
+            .result-content {
+                background-color: white;
+                padding: 30px;
+                border-radius: 10px;
+                text-align: center;
+                max-width: 80%;
+            }
+
+            .result-content h2 {
+                color: #2196F3;
+                margin-bottom: 20px;
+                font-size: 24px;
+            }
+
+            .result-content p {
+                margin-bottom: 20px;
+                color: #333;
+                font-size: 18px;
+            }
+
+            .return-button {
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 16px;
+                transition: background-color 0.3s;
+            }
+
+            .return-button:hover {
+                background-color: #45a049;
+            }
+        `;
+        document.head.appendChild(style);
     }
 
     setupEventListeners() {
@@ -352,7 +423,7 @@ export class Game {
             console.log('updateGameState開始:', gameData);
             
             if (!gameData || !gameData.players) {
-                console.error('無効なゲームデータ:', gameData);
+                console.error('ゲームデータが不正です:', gameData);
                 return;
             }
 
@@ -371,26 +442,17 @@ export class Game {
             const opponentId = Object.keys(gameData.players).find(id => id !== this.playerId);
             const opponentState = opponentId ? gameData.players[opponentId] : null;
 
-            console.log('レイヤー状態:', {
-                playerId: this.playerId,
-                playerDeck: playerState.deck?.length,
-                opponentId,
-                opponentDeck: opponentState?.deck?.length
-            });
-
             // バトル状態の更新
             if (gameData.battleState) {
                 this.battleState = {
                     ...gameData.battleState,
                     canPlayCard: gameData.battleState.canPlayCard ?? (gameData.currentTurn === this.playerId),
-                    turnEndCount: gameData.battleState.turnEndCount || 0  // turnEndCount を同期
+                    turnEndCount: gameData.battleState.turnEndCount || 0
                 };
             }
 
-            // ゲーム状態の更新
-            this.gameState = {
-                playerHp: playerState.hp || 15,
-                opponentHp: opponentState?.hp || 15,
+            // ゲーム状態の更新（HPは条件付きで更新）
+            const newGameState = {
                 playerDeck: Array.isArray(playerState.deck) ? playerState.deck : [],
                 playerHand: Array.isArray(playerState.hand) ? playerState.hand : [],
                 opponentHandCount: opponentState?.handCount || 0,
@@ -399,13 +461,48 @@ export class Game {
                 turnTime: gameData.turnTime || 60
             };
 
-            console.log('更新後のゲーム態:', {
+            // HPの更新（ゲームが終了していない場合のみ）
+            if (gameData.status === 'finished') {
+                // ゲーム終了時は、HPが0のプレイヤーのHPを0に固定
+                if (gameData.winner) {
+                    const loserPlayerId = gameData.winner === this.playerId ? opponentId : this.playerId;
+                    if (this.playerId === loserPlayerId) {
+                        newGameState.playerHp = 0;
+                        newGameState.opponentHp = gameData.players[opponentId].hp;
+                    } else {
+                        newGameState.playerHp = gameData.players[this.playerId].hp;
+                        newGameState.opponentHp = 0;
+                    }
+                }
+            } else {
+                // 通常時はHPを更新
+                newGameState.playerHp = playerState.hp;
+                newGameState.opponentHp = opponentState?.hp || 15;
+            }
+
+            // 状態を更新
+            this.gameState = {
+                ...this.gameState,
+                ...newGameState
+            };
+
+            // HPバーの更新
+            this.updateHpBar(this.playerId, this.gameState.playerHp);
+            if (opponentId) {
+                this.updateHpBar(opponentId, this.gameState.opponentHp);
+            }
+
+            console.log('更新後のゲーム状態:', {
                 isPlayerTurn: this.gameState.isPlayerTurn,
                 playerDeckCount: this.gameState.playerDeck.length,
                 opponentDeckCount: this.gameState.opponentDeckCount,
                 handLength: this.gameState.playerHand.length,
-                battlePhase: this.battleState.battlePhase
+                battlePhase: this.battleState.battlePhase,
+                playerHp: this.gameState.playerHp,
+                opponentHp: this.gameState.opponentHp,
+                gameStatus: gameData.status
             });
+
         } catch (error) {
             console.error('ゲーム状態の更新に失敗:', error);
             throw error;
@@ -642,7 +739,7 @@ export class Game {
                     throw new Error('有効なカードが取得できませんでした');
                 }
 
-                // カードをシャッフル
+                // カードをシ��ッフル
                 const shuffledDeck = this.shuffleArray([...cards]);
                 const initialHand = shuffledDeck.slice(0, 5);
                 const remainingDeck = shuffledDeck.slice(5);
@@ -825,7 +922,7 @@ export class Game {
             battleState: newBattleState
         })
         .then(() => {
-            console.log('バトルフェーズの状態を更新しました:', this.battleState);
+            console.log('バトルフェ���ズの状態を更新しました:', this.battleState);
             this.updateUI();
         })
         .catch(error => {
@@ -852,7 +949,7 @@ export class Game {
 
             // カードプレイ回数をチェック
             if ((this.battleState.cardsPlayedThisTurn || 0) >= 2) {
-                console.log('このターン   これ以  カードを出せ   せん');
+                console.log('このターン   これ以  カードを出せせん');
                 return;
             }
 
@@ -993,48 +1090,240 @@ export class Game {
         await this.showBattleResult(attackValue, defendValue, damage, this.battleState.isAttacker);
     }
 
-    // ダメージの適用
-    async applyDamage(damage, targetPlayerId) {
+    // ダメージを適用する関数
+    async applyDamage(damage, targetPlayerId = null) {
         try {
-            console.log('ダメージ適用開始:', {
-                damage,
-                targetPlayerId,
-                自分のID: this.playerId
-            });
-
+            console.log('ダメージ適用開始:', { damage, targetPlayerId, '自分のID': this.playerId });
+            
+            // 最新のゲームデータを取得
             const gameRef = window.doc(db, 'games', this.gameId);
             const gameDoc = await window.getDoc(gameRef);
             const gameData = gameDoc.data();
 
+            if (!gameData || !gameData.players) {
+                console.error('ゲームデータが不正です:', gameData);
+                return false;
+            }
+
+            // 対戦相手のIDを取得
+            const opponentId = Object.keys(gameData.players).find(id => id !== this.playerId);
+            
+            // ダメージを受けるプレイヤーのIDを決定
+            const damageTargetId = targetPlayerId || (this.battleState.isAttacker ? this.playerId : opponentId);
+
+            if (!gameData.players[damageTargetId]) {
+                console.error('対象プレイヤーが見つかりません:', { damageTargetId, players: gameData.players });
+                return false;
+            }
+            
             // 現在のHPを取得
-            const currentHp = gameData.players[targetPlayerId].hp;
+            const currentHp = gameData.players[damageTargetId].hp;
+            
+            // 新しいHPを計算（0未満にはならない）
             const newHp = Math.max(0, currentHp - damage);
 
-            // Firestoreのプレイヤーのhpを更新
+            // HPが0になる場合、ゲーム終了処理を実行
+            if (newHp <= 0) {
+                const updateData = {
+                    [`players.${damageTargetId}.hp`]: 0,
+                    status: 'finished',
+                    winner: damageTargetId === this.playerId ? opponentId : this.playerId,
+                    isGameOver: true
+                };
+
+                await window.updateDoc(gameRef, updateData);
+
+                // HPバーの更新
+                this.updateHpBar(damageTargetId, 0);
+
+                console.log('ダメージ適用完了（ゲーム終了）:', {
+                    targetPlayerId: damageTargetId,
+                    damage,
+                    newHp: 0
+                });
+
+                // ゲーム終了処理を実行
+                await this.handleGameOver(damageTargetId);
+                return true;
+            }
+
+            // 通常のダメージ処理
             await window.updateDoc(gameRef, {
-                [`players.${targetPlayerId}.hp`]: newHp
+                [`players.${damageTargetId}.hp`]: newHp
             });
 
-            // ローカルのHP状態を更新（ターゲットプレイヤーのHPのみ更新）
-            if (targetPlayerId === this.playerId) {
+            // HPバーの更新
+            this.updateHpBar(damageTargetId, newHp);
+
+            // ローカルのゲーム状態を更新
+            if (damageTargetId === this.playerId) {
                 this.gameState.playerHp = newHp;
             } else {
                 this.gameState.opponentHp = newHp;
             }
 
-            // HPゲージを更新
-            this.updateHpBar(targetPlayerId, newHp);
-
             console.log('ダメージ適用完了:', {
-                targetPlayerId,
+                targetPlayerId: damageTargetId,
                 damage,
-                newHp,
-                自分のHP: this.gameState.playerHp,
-                相手のHP: this.gameState.opponentHp
+                newHp
             });
 
+            return false;
+
         } catch (error) {
-            console.error('ダメージ適用中にエラーが発生:', error);
+            console.error('ダメージの適用に失敗:', error);
+            return false;
+        }
+    }
+
+    // ゲーム終了時の処理
+    async handleGameOver(loserPlayerId) {
+        try {
+            console.log('ゲーム終了処理開始:', { loserPlayerId });
+
+            // 最新のゲームデータを取得
+            const gameRef = window.doc(db, 'games', this.gameId);
+            const gameDoc = await window.getDoc(gameRef);
+            const gameData = gameDoc.data();
+
+            if (!gameData || !gameData.players) {
+                console.error('ゲーム終了処理でゲームデータの取得に失敗');
+                return;
+            }
+
+            // 対戦相手のIDを取得
+            const opponentId = Object.keys(gameData.players).find(id => id !== this.playerId);
+
+            // ゲームの状態を更新
+            await window.updateDoc(gameRef, {
+                status: 'finished',
+                winner: loserPlayerId === this.playerId ? opponentId : this.playerId,
+                isGameOver: true,
+                // HPが0のプレイヤーのHPを0に固定
+                [`players.${loserPlayerId}.hp`]: 0
+            });
+
+            // 既存のモーダルがあれば削除
+            const existingModal = document.getElementById('result-modal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // 新しいモーダルを作成
+            const modal = document.createElement('div');
+            modal.id = 'result-modal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 9999;
+            `;
+
+            const content = document.createElement('div');
+            content.style.cssText = `
+                background-color: white;
+                padding: 30px;
+                border-radius: 15px;
+                text-align: center;
+                max-width: 80%;
+                animation: fadeIn 0.5s ease-out;
+            `;
+
+            const title = document.createElement('h2');
+            title.style.cssText = `
+                font-size: 32px;
+                color: ${loserPlayerId === this.playerId ? '#ff4444' : '#4CAF50'};
+                margin-bottom: 20px;
+            `;
+            title.textContent = loserPlayerId === this.playerId ? 'You Lose!' : 'You Win!';
+
+            const message = document.createElement('p');
+            message.style.cssText = `
+                font-size: 18px;
+                color: #333;
+                margin-bottom: 30px;
+            `;
+            message.textContent = loserPlayerId === this.playerId ? 
+                '残念！次は勝利を目指そう！' : 
+                'おめでとう！勝利を収めました！';
+
+            const button = document.createElement('button');
+            button.style.cssText = `
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                padding: 15px 30px;
+                border-radius: 5px;
+                font-size: 18px;
+                cursor: pointer;
+                transition: background-color 0.3s;
+            `;
+            button.textContent = 'OK';
+            button.onclick = () => {
+                window.location.href = '../Room/room.html';
+            };
+
+            // ホバーエフェクトを追加
+            button.onmouseover = () => {
+                button.style.backgroundColor = '#45a049';
+            };
+            button.onmouseout = () => {
+                button.style.backgroundColor = '#4CAF50';
+            };
+
+            // モーダルを組み立てて表示
+            content.appendChild(title);
+            content.appendChild(message);
+            content.appendChild(button);
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+
+            // アニメーションのスタイルを追加
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(-20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+            `;
+            document.head.appendChild(style);
+
+            console.log('ゲーム終了処理完了');
+
+        } catch (error) {
+            console.error('ゲーム終了処理に失敗:', error);
+        }
+    }
+
+    // HPバーの更新処理
+    updateHpBar(playerId, newHp) {
+        const isPlayer = playerId === this.playerId;
+        const maxHp = 15; // 最大HP値
+        
+        // HP表示要素の取得
+        const hpElement = document.getElementById(isPlayer ? 'player-hp' : 'opponent-hp');
+        const hpBar = document.getElementById(isPlayer ? 'player-hp-bar' : 'opponent-hp-bar');
+        
+        if (hpElement && hpBar) {
+            // HPテキストの更新
+            hpElement.textContent = `${newHp}/${maxHp}`;
+            
+            // HPバーの幅を更新
+            const hpPercentage = (newHp / maxHp) * 100;
+            hpBar.style.width = `${hpPercentage}%`;
+            
+            // HPの残量に応じて色を変更
+            if (hpPercentage <= 20) {
+                hpBar.style.backgroundColor = '#ff4444';
+            } else if (hpPercentage <= 50) {
+                hpBar.style.backgroundColor = '#ffaa00';
+            }
         }
     }
 
@@ -1387,7 +1676,7 @@ export class Game {
                 }
             }
 
-            // カードの種類に基づいてボタンのテキストを設定
+            // ードの種類に基づいてボタンのテキストを設定
             const isBattleCard = card.effect && (card.effect.includes('D') || card.effect.includes('H'));
             const buttonText = isBattleCard ? '召喚' : '発動';
 
@@ -1634,7 +1923,7 @@ export class Game {
             );
 
             if (targetCards.length === 0) {
-                alert('対象となるカードがありません');
+                alert('対象となるカドがりません');
                 return;
             }
 
@@ -2204,7 +2493,7 @@ export class Game {
                             border-radius: 5px;
                             cursor: pointer;
                             font-size: 16px;
-                        ">手   に戻す</button>
+                        ">手に戻す</button>
                         <button class="close-button" style="
                             background-color: #666;
                             color: white;
@@ -2451,7 +2740,7 @@ export class Game {
         if (hpBar && hpText) {
             const percentage = (newHp / 15) * 100;
             hpBar.style.width = `${percentage}%`;
-            hpText.textContent = `${newHp}/15`;
+            hpText.textContent = `${newHp}/10`;
 
             // HPが低くなったら色を変更
             if (percentage <= 30) {
