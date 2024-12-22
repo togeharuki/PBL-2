@@ -852,7 +852,7 @@ export class Game {
 
             // カードプレイ回数をチェック
             if ((this.battleState.cardsPlayedThisTurn || 0) >= 2) {
-                console.log('このターンはこれ以  カードを出せません');
+                console.log('このターン   これ以  カードを出せません');
                 return;
             }
 
@@ -1496,19 +1496,24 @@ export class Game {
     // 効果カードを発動する関数
     async activateEffectCard(card) {
         try {
-            console.log('効果カードを動:', card);
+            console.log('効果カードを発動:', card);
 
             // 効果の種類を判断
-            if (card.effect.includes('ドロー')) {
+            if (card.effect.includes('山札から１ドロー')) {
+                // 「逆転の1手」「手札足りない」の効果
                 await this.drawCard();
-            } else if (card.effect.includes('強制')) {
-                // 強制ダメージ効果の処理
-                const damageMatch = card.effect.match(/\d+/);
-                const damage = damageMatch ? parseInt(damageMatch[0]) : 0;
-                await this.applyDamage(damage);
             } else if (card.effect.includes('相手の手札を2枚見る')) {
+                // 「のぞき見」「パパラッチ」の効果
                 await this.revealOpponentCards();
+            } else if (card.effect.includes('数値＋２')) {
+                // 「レゴブロック」「ルブタンの財布」の効果
+                await this.increaseCardValue();
+            } else if (card.effect.includes('強制1ダメージ')) {
+                // 「ちくちく」「とげとげ」の効果
+                const opponentId = Object.keys(this.gameData.players).find(id => id !== this.playerId);
+                await this.applyDamage(1, opponentId);
             } else if (card.effect.includes('両方に2ダメージ')) {
+                // 「リストキャット」「共倒れの1手」の効果
                 await this.applyDamageToAll(2);
             } else {
                 // 攻撃カードの場合（例：⚡ D3 ⚡）
@@ -1535,11 +1540,251 @@ export class Game {
             this.gameState.playerHand = newHand;
             this.updateUI();
 
+            // 効果カードを墓地に送る
+            await this.sendToGraveyard([card], this.playerId);
+
         } catch (error) {
             console.error('効果カードの発動に失敗:', error);
         }
     }
 
+    // 相手の手札を見る効果の実装
+    async revealOpponentCards() {
+        try {
+            const opponentId = Object.keys(this.gameData.players).find(id => id !== this.playerId);
+            const opponentHand = this.gameData.players[opponentId].hand;
+
+            if (!opponentHand || opponentHand.length === 0) {
+                console.log('相手の手札が空です');
+                return;
+            }
+
+            // ランダムに2枚選択（または手札が2枚未満の場合は全て）
+            const cardsToReveal = opponentHand.length <= 2 ? 
+                opponentHand : 
+                this.shuffleArray([...opponentHand]).slice(0, 2);
+
+            // カードを表示するモーダルを作成
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                padding: 20px;
+                border-radius: 10px;
+                z-index: 1000;
+                text-align: center;
+            `;
+
+            modal.innerHTML = `
+                <h3 style="margin-bottom: 20px; color: #333;">相手の手札</h3>
+                <div style="display: flex; gap: 20px; justify-content: center; margin-bottom: 20px;">
+                    ${cardsToReveal.map(card => `
+                        <div style="width: 120px;">
+                            <img src="${card.image}" alt="${card.name}" style="width: 100%; height: 160px; object-fit: cover; border-radius: 8px;">
+                            <div style="margin-top: 10px; font-size: 14px; color: #333;">${card.name}</div>
+                            <div style="font-size: 12px; color: #666;">${card.effect}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <button style="
+                    padding: 10px 20px;
+                    background: #4CAF50;
+                    color: white;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                ">閉じる</button>
+            `;
+
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.7);
+                z-index: 999;
+            `;
+
+            document.body.appendChild(overlay);
+            document.body.appendChild(modal);
+
+            // 閉じるボタンのイベントリスナー
+            const closeButton = modal.querySelector('button');
+            closeButton.onclick = () => {
+                modal.remove();
+                overlay.remove();
+            };
+
+        } catch (error) {
+            console.error('相手の手札を見る効果の実行に失敗:', error);
+        }
+    }
+
+    // カードの数値を増加させる効果の実装
+    async increaseCardValue() {
+        try {
+            // プレイヤーの手札から対象となるカードを選択するモーダルを表示
+            const targetCards = this.gameState.playerHand.filter(card => 
+                card.effect.includes('D') || card.effect.includes('H')
+            );
+
+            if (targetCards.length === 0) {
+                alert('対象となるカードがありません');
+                return;
+            }
+
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                padding: 20px;
+                border-radius: 10px;
+                z-index: 1000;
+                text-align: center;
+                max-width: 80%;
+                max-height: 80vh;
+                overflow-y: auto;
+            `;
+
+            modal.innerHTML = `
+                <h3 style="margin-bottom: 20px; color: #333;">数値を増加させるカードを選択</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 20px; margin-bottom: 20px;">
+                    ${targetCards.map(card => `
+                        <div class="target-card" data-card-id="${card.id}" style="
+                            cursor: pointer;
+                            padding: 10px;
+                            border: 2px solid #ddd;
+                            border-radius: 8px;
+                            transition: all 0.3s ease;
+                        ">
+                            <img src="${card.image}" alt="${card.name}" style="width: 100%; height: 160px; object-fit: cover; border-radius: 8px;">
+                            <div style="margin-top: 10px; font-size: 14px; color: #333;">${card.name}</div>
+                            <div style="font-size: 12px; color: #666;">${card.effect}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.7);
+                z-index: 999;
+            `;
+
+            document.body.appendChild(overlay);
+            document.body.appendChild(modal);
+
+            // カード選択のイベントリスナー
+            const cardElements = modal.querySelectorAll('.target-card');
+            cardElements.forEach(element => {
+                element.addEventListener('click', async () => {
+                    const cardId = element.dataset.cardId;
+                    const selectedCard = targetCards.find(card => card.id === cardId);
+                    
+                    if (selectedCard) {
+                        // 数値を増加させる
+                        const newEffect = selectedCard.effect.replace(/[DH](\d+)/, (match, num) => {
+                            const newNum = parseInt(num) + 2;
+                            return match[0] + newNum;
+                        });
+
+                        // カードの効果を更新
+                        const newHand = this.gameState.playerHand.map(card => 
+                            card.id === cardId ? {...card, effect: newEffect} : card
+                        );
+
+                        // Firestoreの状態を更新
+                        const gameRef = window.doc(db, 'games', this.gameId);
+                        await window.updateDoc(gameRef, {
+                            [`players.${this.playerId}.hand`]: newHand
+                        });
+
+                        // ローカルの状態を更新
+                        this.gameState.playerHand = newHand;
+                        this.updateUI();
+
+                        // モーダルを閉じる
+                        modal.remove();
+                        overlay.remove();
+                    }
+                });
+
+                // ホバー効果
+                element.addEventListener('mouseover', () => {
+                    element.style.borderColor = '#4CAF50';
+                    element.style.transform = 'scale(1.05)';
+                });
+
+                element.addEventListener('mouseout', () => {
+                    element.style.borderColor = '#ddd';
+                    element.style.transform = 'scale(1)';
+                });
+            });
+
+        } catch (error) {
+            console.error('カードの数値増加効果の実行に失敗:', error);
+        }
+    }
+
+    // 全プレイヤーにダメージを与える効果の実装
+    async applyDamageToAll(damage) {
+        try {
+            const opponentId = Object.keys(this.gameData.players).find(id => id !== this.playerId);
+            
+            // 両プレイヤーにダメージを適用
+            await this.applyDamage(damage, this.playerId);
+            await this.applyDamage(damage, opponentId);
+
+            // ダメージ効果のアニメーション表示
+            const damageOverlay = document.createElement('div');
+            damageOverlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(255, 0, 0, 0.3);
+                z-index: 1000;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                animation: damageFlash 0.5s ease-out;
+            `;
+
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes damageFlash {
+                    0% { opacity: 0; }
+                    50% { opacity: 1; }
+                    100% { opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+            document.body.appendChild(damageOverlay);
+
+            // アニメーション終了後に要素を削除
+            setTimeout(() => {
+                damageOverlay.remove();
+                style.remove();
+            }, 500);
+
+        } catch (error) {
+            console.error('全体ダメージの適用に失敗:', error);
+        }
+    }
 
     // ターン表示の更新
     updateTurnIndicator() {
@@ -2251,6 +2496,9 @@ export class Game {
                 [`players.${playerId}.graveyard`]: updatedGraveyard
             });
 
+            // 墓地カウントを更新
+            this.updateGraveyardCount(playerId, updatedGraveyard.length);
+
             console.log('カードを墓地に送りました:', {
                 playerId,
                 cards,
@@ -2259,6 +2507,124 @@ export class Game {
 
         } catch (error) {
             console.error('墓地への送信に失敗:', error);
+        }
+    }
+
+    // 墓地の内容を表示
+    async showGraveyardContent(playerId) {
+        try {
+            const gameRef = window.doc(db, 'games', this.gameId);
+            const gameDoc = await window.getDoc(gameRef);
+            const gameData = gameDoc.data();
+            const graveyard = gameData.players[playerId]?.graveyard || [];
+
+            const modal = document.createElement('div');
+            modal.className = 'graveyard-modal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background-color: white;
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0 0 10px rgba(0,0,0,0.5);
+                z-index: 1000;
+                width: 80%;
+                max-width: 800px;
+                max-height: 80vh;
+                overflow-y: auto;
+            `;
+
+            const title = document.createElement('div');
+            title.textContent = playerId === this.playerId ? '自分の墓地' : '相手の墓地';
+            title.style.cssText = `
+                font-size: 24px;
+                font-weight: bold;
+                text-align: center;
+                margin-bottom: 20px;
+                color: #1a237e;
+            `;
+            modal.appendChild(title);
+
+            const content = document.createElement('div');
+            content.style.cssText = `
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 10px;
+                padding: 10px;
+            `;
+
+            graveyard.forEach(card => {
+                const cardElement = this.createCardElement(card);
+                cardElement.style.transform = 'scale(0.9)';
+                content.appendChild(cardElement);
+            });
+
+            modal.appendChild(content);
+
+            const closeButton = document.createElement('button');
+            closeButton.textContent = '閉じる';
+            closeButton.style.cssText = `
+                margin: 20px auto 0;
+                display: block;
+                padding: 10px 20px;
+                background: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 16px;
+            `;
+            closeButton.onclick = () => {
+                modal.remove();
+                overlay.remove();
+            };
+            modal.appendChild(closeButton);
+
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+            `;
+            overlay.onclick = () => {
+                modal.remove();
+                overlay.remove();
+            };
+
+            document.body.appendChild(overlay);
+            document.body.appendChild(modal);
+
+        } catch (error) {
+            console.error('墓地の表示に失敗:', error);
+        }
+    }
+
+    // 墓地のカウントを更新
+    updateGraveyardCount(playerId, count) {
+        const graveyardCount = document.getElementById(
+            playerId === this.playerId ? 'player-graveyard-count' : 'opponent-graveyard-count'
+        );
+        if (graveyardCount) {
+            graveyardCount.textContent = count.toString();
+        }
+    }
+
+    // 墓地関連の処理を初期化
+    initializeGraveyard() {
+        const playerGraveyard = document.getElementById('player-graveyard');
+        const opponentGraveyard = document.getElementById('opponent-graveyard');
+
+        if (playerGraveyard) {
+            playerGraveyard.addEventListener('click', () => this.showGraveyardContent(this.playerId));
+        }
+        if (opponentGraveyard) {
+            opponentGraveyard.addEventListener('click', () => this.showGraveyardContent(Object.keys(this.gameData.players).find(id => id !== this.playerId)));
         }
     }
 }
