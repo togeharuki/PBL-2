@@ -27,64 +27,37 @@ const GACHA_ITEMS = [
     {
         name: '徳田家ののりちゃん',
         image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/N-%E5%BE%B3%E7%94%B0%E5%AE%B6%E3%81%AE%E3%81%AE%E3%82%8A%E3%81%A1%E3%82%83%E3%82%93.png',
-        effect: '攻撃力+1',  // アイテムの効果
+        effect: '山札から１枚ドロー',  // アイテムの効果
         count: 20,  // 残り個数
         rarity: 'N',  // レアリティ
-        explanation: '',
-        weight: 35  // 抽選時の重み（確率）
-    },
-    {
-        name: 'メンズマーモット',
-        image: 'https://raw.githubusercontent.com/haruki1298/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/R-%E3%83%A1%E3%83%B3%E3%82%BA%E3%83%9E%E3%83%BC%E3%83%A2%E3%83%83%E3%83%88.png',
-        effect: '攻撃力+1',  // アイテムの効果
-        count: 20,  // 残り個数
-        rarity: 'N',  // レアリティ
-        explanation: '',
-        weight: 35  // 抽選時の重み（確率）
-    },
-    {
-        name: '夕日マーモット',
-        image: 'https://raw.githubusercontent.com/haruki1298/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/R-%E5%A4%95%E6%97%A5%E3%83%9E%E3%83%BC%E3%83%A2%E3%83%83%E3%83%88.png',
-        effect: '攻撃力+1',  // アイテムの効果
-        count: 20,  // 残り個数
-        rarity: 'N',  // レアリティ
-        explanation: '',
-        weight: 35  // 抽選時の重み（確率）
-    },
-    {
-        name: '遊んでいるマーモット',
-        image: 'https://raw.githubusercontent.com/haruki1298/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/R-%E9%81%8A%E3%82%93%E3%81%A7%E3%81%84%E3%82%8B%E3%83%9E%E3%83%BC%E3%83%A2%E3%83%83%E3%83%88.png',
-        effect: '攻撃力+1',  // アイテムの効果
-        count: 20,  // 残り個数
-        rarity: 'N',  // レアリティ
-        explanation: '',
+        explanation: '徳田家,河合家,喜友名家,佐藤家を墓地で揃えたらゲームに勝つ',
         weight: 35  // 抽選時の重み（確率）
     },
     {
         name: '学祭のピザ',
         image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/R-%E5%AD%A6%E7%A5%AD%E3%81%AE%E3%83%94%E3%82%B6.png',
-        effect: '回復+1',  // アイテムの効果
+        effect: 'HP回復+1',  // アイテムの効果
         count: 10,  // 残り個数
         rarity: 'R',  // レアリティ
-        explanation: '',
+        explanation: '即座にHPを1回復する',
         weight: 30  // 抽選時の重み（確率）
     },
     {
         name: '二郎系',
         image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/R-%E4%BA%8C%E9%83%8E%E7%B3%BB.png',
-        effect: '攻撃力+1',  // アイテムの効果
+        effect: 'HP回復+2',  // アイテムの効果
         count: 10,  // 残り個数
         rarity: 'R',  // レアリティ
-        explanation: '',
+        explanation: '即座にHPを2回復する',
         weight: 30  // 抽選時の重み（確率）
     },
     {
         name: '河合家のりょうちゃん',
         image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SR-%E6%B2%B3%E5%90%88%E5%AE%B6%E3%81%AE%E3%82%8A%E3%82%87%E3%81%86%E3%81%A1%E3%82%83%E3%82%93.png',
-        effect: '攻撃力+2',  // アイテムの効果
+        effect: '山札から１枚ドロー',  // アイテムの効果
         count: 5,  // 残り個数
         rarity: 'SR',  // レアリティ
-        explanation: '',
+        explanation: '徳田家,河合家,喜友名家,佐藤家を墓地で揃えたらゲームに勝つ',
         weight: 15  // 抽選時の重み（確率）
     },
     {
@@ -93,61 +66,61 @@ const GACHA_ITEMS = [
         effect: '攻撃力+2',  // アイテムの効果
         count: 5,  // 残り個数
         rarity: 'SR',  // レアリティ
-        explanation: '',
+        explanation: '徳田家,河合家,喜友名家,佐藤家を墓地で揃えたらゲームに勝つ',
         weight: 15  // 抽選時の重み（確率）
     },
     {
         name: '金田家のしょうちゃん',
         image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SR-%E9%87%91%E7%94%B0%E5%AE%B6%E3%81%AE%E3%81%97%E3%82%87%E3%81%86%E3%81%A1%E3%82%83%E3%82%93.png',
-        effect: '攻撃力+2',  // アイテムの効果
+        effect: '攻撃力+1',  // アイテムの効果
         count: 5,  // 残り個数
         rarity: 'SR',  // レアリティ
-        explanation: '',
+        explanation: 'Dの数値を1増やす',
         weight: 15  // 抽選時の重み（確率）
     },
     {
         name: '佐藤家のやまちゃん',
         image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SR-%E4%BD%90%E8%97%A4%E5%AE%B6%E3%81%AE%E3%82%84%E3%81%BE%E3%81%A1%E3%82%83%E3%82%93.png',
-        effect: '攻撃力+2',  // アイテムの効果
+        effect: '山札から１枚ドロー',  // アイテムの効果
         count: 5,  // 残り個数
         rarity: 'SR',  // レアリティ
-        explanation: '',
+        explanation: '徳田家,河合家,喜友名家,佐藤家を墓地で揃えたらゲームに勝つ',
         weight: 15  // 抽選時の重み（確率）
     },
     {
         name: '中野家のてんちゃん',
         image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SR-%E4%B8%AD%E9%87%8E%E5%AE%B6%E3%81%AE%E3%81%A6%E3%82%93%E3%81%A1%E3%82%83%E3%82%93.png',
-        effect: '攻撃力+2',  // アイテムの効果
+        effect: '3分の1の確率で3ダメージ',  // アイテムの効果
         count: 5,  // 残り個数
         rarity: 'SR',  // レアリティ
-        explanation: '',
+        explanation: '3分の1の確率で3ダメージを与える',
         weight: 15  // 抽選時の重み（確率）
     },
     {
         name: '先生集合',
         image: 'https://raw.githubusercontent.com/haruki1298/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SSR-%E5%85%88%E7%94%9F%E9%9B%86%E5%90%88.png',
-        effect: '攻撃力+3',  // アイテムの効果
+        effect: '攻撃力+2',  // アイテムの効果
         count: 2,  // 残り個数
         rarity: 'SSR',  // レアリティ
-        explanation: '',
+        explanation: 'Dの数値を2増やす',
         weight: 5  // 抽選時の重み（確率）
     },
     {
         name: 'マーモット系男子',
         image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SSR-%E3%83%9E%E3%83%BC%E3%83%A2%E3%83%83%E3%83%88%E7%B3%BB%E7%94%B7%E5%AD%90.png',
-        effect: '攻撃力+3',  // アイテムの効果
+        effect: '発狂をしたら相手に２ダメージ',  // アイテムの効果
         count: 2,  // 残り個数
         rarity: 'SSR',  // レアリティ
-        explanation: '',
+        explanation: '発狂をしたら相手に２ダメージを与える',
         weight: 5  // 抽選時の重み（確率）
     },
     {
         name: '佐藤家のてんちゃん',
         image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SSR-%E4%BD%90%E8%97%A4%E5%AE%B6%E3%81%AE%E3%81%A6%E3%82%93%E3%81%A1%E3%82%83%E3%82%93.png',
-        effect: '回復力+3',  // アイテムの効果
+        effect: '佐藤家のやまちゃんを山札から引く',  // アイテムの効果
         count: 2,  // 残り個数
         rarity: 'SSR',  // レアリティ
-        explanation: '',
+        explanation: '佐藤家のやまちゃんを山札から引く',
         weight: 5  // 抽選時の重み（確率）
     },
 ];
