@@ -213,7 +213,7 @@ export class Game {
             
             console.log('ゲームドキュメント取得開始');
             const gameDocSnap = await window.getDoc(gameDocRef);
-            console.log('ゲームド����ュメントの存在:', gameDocSnap.exists());
+            console.log('ゲームド    ュメントの存在:', gameDocSnap.exists());
 
             //   ッチング中のオーバーレイを表示
             const matchingOverlay = document.getElementById('matching-overlay');
@@ -764,7 +764,7 @@ export class Game {
             animation: messageAnimation 1.5s ease-out forwards;
         `;
 
-        // アニメーションスタイル���追加
+        // アニメーションスタイル   追加
         const style = document.createElement('style');
         style.textContent = `
             @keyframes messageAnimation {
@@ -788,7 +788,7 @@ export class Game {
         overlay.appendChild(messageText);
         document.body.appendChild(overlay);
 
-        // ���ニメーション終了後にオーバーレイを削除
+        //    ニメーション終了後にオーバーレイを削除
         setTimeout(() => {
             overlay.remove();
         }, 1500);
@@ -805,7 +805,7 @@ export class Game {
         // 先攻プレイヤーかどうかを判断
         const isFirstPlayer = Object.keys(this.gameData.players)[0] === this.playerId;
         
-        // 新しいバトル状��を作成
+        // 新しいバトル状  を作成
         const newBattleState = {
             battlePhase: 'attack',
             canPlayCard: true,
@@ -819,7 +819,7 @@ export class Game {
 
         console.log('作成するバトル状態:', newBattleState);
 
-        // Firestoreの��態を更新
+        // Firestoreの  態を更新
         const gameRef = window.doc(db, 'games', this.gameId);
         window.updateDoc(gameRef, {
             battleState: newBattleState
@@ -852,7 +852,7 @@ export class Game {
 
             // カードプレイ回数をチェック
             if ((this.battleState.cardsPlayedThisTurn || 0) >= 2) {
-                console.log('このターンはこれ以��カードを出せません');
+                console.log('このターンはこれ以  カードを出せません');
                 return;
             }
 
@@ -1057,7 +1057,9 @@ export class Game {
                 'battleState.cardsPlayedThisTurn': 0,
                 'battleState.turnEndCount': 0,
                 'battleState.shouldShowBattlePhase': false,
-                'battleState.playedCards': {} // バトルゾーンのカードをクリア
+                'battleState.playedCards': {},
+                'battleState.battleResult': null,  // battleResultをリセット
+                'battleState.isBattlePhaseInProgress': false // フラグをリセット
             });
 
             // ローカルの状態も更新
@@ -1067,7 +1069,9 @@ export class Game {
             this.battleState.cardsPlayedThisTurn = 0;
             this.battleState.turnEndCount = 0;
             this.battleState.shouldShowBattlePhase = false;
-            this.battleState.playedCards = {}; // ローカルのバトルゾーンのカードもクリア
+            this.battleState.playedCards = {};
+            this.battleState.battleResult = null;
+            this.battleState.isBattlePhaseInProgress = false; // フラグをリセット
 
             // バトルゾーンのUIをクリア
             const playerSlot = document.getElementById('player-battle-slot');
@@ -1080,6 +1084,8 @@ export class Game {
 
         } catch (error) {
             console.error('バトルフェーズ終了処理でエラー:', error);
+            // エラー時もフラグを解除
+            this.battleState.isBattlePhaseInProgress = false;
         }
     }
 
@@ -1966,6 +1972,15 @@ export class Game {
         try {
             console.log('バトルフェーズ開始処理を実行');
 
+            // 既にバトルフェーズが実行中の場合は処理を中断
+            if (this.battleState.isBattlePhaseInProgress) {
+                console.log('バトルフェーズは既に実行中です');
+                return;
+            }
+
+            // バトルフェーズ実行中フラグを立てる
+            this.battleState.isBattlePhaseInProgress = true;
+
             // バトルフェーズの表示
             const overlay = document.createElement('div');
             overlay.style.cssText = `
@@ -2001,8 +2016,13 @@ export class Game {
             // バトル処理の実行
             await this.executeBattleComparison();
 
+            // バトルフェーズ実行中フラグを解除
+            this.battleState.isBattlePhaseInProgress = false;
+
         } catch (error) {
             console.error('バトルフェーズ開始処理でエラー:', error);
+            // エラー時もフラグを解除
+            this.battleState.isBattlePhaseInProgress = false;
         }
     }
 
@@ -2011,13 +2031,14 @@ export class Game {
         try {
             console.log('バトル比較処理を開始');
 
-            if (this.battleState.battleResult !== null) {
-                console.log('バトル比較は既に実行済みです');
+            // 現在のゲーム状態を取得
+            const currentGameData = (await window.getDoc(window.doc(db, 'games', this.gameId))).data();
+
+            // 既に処理済みの場合は終了
+            if (currentGameData.battleState?.battleResult?.isProcessed) {
+                console.log('バトル比較は既に処理済みです');
                 return;
             }
-
-            const opponentId = Object.keys(this.gameData.players).find(id => id !== this.playerId);
-            const currentGameData = (await window.getDoc(window.doc(db, 'games', this.gameId))).data();
 
             const attackerCard = currentGameData.battleState.attackerCard;
             const defenderCard = currentGameData.battleState.defenderCard;
@@ -2042,19 +2063,18 @@ export class Game {
                     attackValue,
                     defendValue,
                     damage,
-                    isProcessed: false
+                    isProcessed: true  // 処理済みフラグを立てる
                 }
             });
 
-            // プレイヤーが攻撃側かどうかを判定（isAttackerの値を直接使用）
+            // プレイヤーが攻撃側かどうかを判定
             const isPlayerAttacker = currentGameData.battleState.isAttacker === (this.playerId === Object.keys(this.gameData.players)[0]);
 
-            // バトル結果の表示（プレイヤーの立場に応じたメッセージを表示）
+            // バトル結果の表示
             await this.showBattleResult(attackValue, defendValue, damage, isPlayerAttacker);
 
             // ダメージがある場合、防御側のHPのみを減少
-            if (damage > 0 && !currentGameData.battleState?.battleResult?.isProcessed) {
-                // 防御側のプレイヤーIDを特定（isAttackerを基に判定）
+            if (damage > 0) {
                 const defenderPlayerId = currentGameData.battleState.isAttacker ? 
                     Object.keys(this.gameData.players)[1] :  // アタッカーが先攻の場合、後攻プレイヤーが防御側
                     Object.keys(this.gameData.players)[0];   // アタッカーが後攻の場合、先攻プレイヤーが防御側
@@ -2064,21 +2084,20 @@ export class Game {
                     isAttacker: currentGameData.battleState.isAttacker,
                     defenderPlayerId,
                     自分のID: this.playerId,
-                    相手のID: opponentId
+                    相手のID: Object.keys(this.gameData.players).find(id => id !== this.playerId)
                 });
 
                 // 防御側のプレイヤーにのみダメージを適用
                 await this.applyDamage(damage, defenderPlayerId);
-
-                await window.updateDoc(gameRef, {
-                    'battleState.battleResult.isProcessed': true
-                });
             }
 
+            // バトルフェーズを終了する
             await this.endBattlePhase();
 
         } catch (error) {
             console.error('バトル比較処理でエラー:', error);
+            // エラー時もバトルフェーズを終了する
+            await this.endBattlePhase();
         }
     }
 
