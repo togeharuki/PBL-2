@@ -121,8 +121,8 @@ export class Game {
         };
 
         this.gameState = {
-            playerHp: 10,
-            opponentHp: 10,
+            playerHp: 15,
+            opponentHp: 15,
             playerDeck: [],
             playerHand: [],
             isPlayerTurn: false,
@@ -389,8 +389,8 @@ export class Game {
 
             // ゲーム状態の更新
             this.gameState = {
-                playerHp: playerState.hp || 10,
-                opponentHp: opponentState?.hp || 10,
+                playerHp: playerState.hp || 15,
+                opponentHp: opponentState?.hp || 15,
                 playerDeck: Array.isArray(playerState.deck) ? playerState.deck : [],
                 playerHand: Array.isArray(playerState.hand) ? playerState.hand : [],
                 opponentHandCount: opponentState?.handCount || 0,
@@ -421,8 +421,8 @@ export class Game {
             });
             
             // HP表示の更新
-            document.getElementById('player-hp').textContent = `${this.gameState.playerHp}/10`;
-            document.getElementById('opponent-hp').textContent = `${this.gameState.opponentHp}/10`;
+            document.getElementById('player-hp').textContent = `${this.gameState.playerHp}/15`;
+            document.getElementById('opponent-hp').textContent = `${this.gameState.opponentHp}/15`;
 
             // デッキ数の更         
             const playerDeckCount = document.getElementById('player-deck-count');
@@ -598,7 +598,7 @@ export class Game {
         const initialGameState = {
             players: {
                 [this.playerId]: {
-                    hp: 10,
+                    hp: 15,
                     deck: remainingDeck,
                     hand: initialHand,
                     handCount: 5
@@ -648,7 +648,7 @@ export class Game {
                 const remainingDeck = shuffledDeck.slice(5);
 
                 const playerData = {
-                    hp: 10,
+                    hp: 15,
                     deck: remainingDeck,
                     hand: initialHand,
                     handCount: 5
@@ -852,7 +852,7 @@ export class Game {
 
             // カードプレイ回数をチェック
             if ((this.battleState.cardsPlayedThisTurn || 0) >= 2) {
-                console.log('このターン   これ以  カードを出せません');
+                console.log('このターン   これ以  カードを出せ   せん');
                 return;
             }
 
@@ -1695,30 +1695,90 @@ export class Game {
                     const selectedCard = targetCards.find(card => card.id === cardId);
                     
                     if (selectedCard) {
-                        // 数値を増加させる
-                        const newEffect = selectedCard.effect.replace(/[DH](\d+)/, (match, num) => {
-                            const newNum = parseInt(num) + 2;
-                            return match[0] + newNum;
-                        });
+                        try {
+                            // 数値を増加させる
+                            const newEffect = selectedCard.effect.replace(/[DH]\s*(\d+)/, (match, num) => {
+                                const newNum = parseInt(num) + 2;
+                                return match.charAt(0) + ' ' + newNum;
+                            });
 
-                        // カードの効果を更新
-                        const newHand = this.gameState.playerHand.map(card => 
-                            card.id === cardId ? {...card, effect: newEffect} : card
-                        );
+                            console.log('効果の更新処理:', {
+                                元の効果: selectedCard.effect,
+                                マッチ結果: selectedCard.effect.match(/[DH]\s*(\d+)/),
+                                新しい効果: newEffect
+                            });
 
-                        // Firestoreの状態を更新
-                        const gameRef = window.doc(db, 'games', this.gameId);
-                        await window.updateDoc(gameRef, {
-                            [`players.${this.playerId}.hand`]: newHand
-                        });
+                            // 更新されたカードを作成
+                            const updatedCard = {
+                                ...selectedCard,
+                                effect: newEffect
+                            };
 
-                        // ローカルの状態を更新
-                        this.gameState.playerHand = newHand;
-                        this.updateUI();
+                            // 手札の更新
+                            const newHand = this.gameState.playerHand.map(card => 
+                                card.id === cardId ? updatedCard : card
+                            );
 
-                        // モーダルを閉じる
-                        modal.remove();
-                        overlay.remove();
+                            // Firestoreの状態を更新
+                            const gameRef = window.doc(db, 'games', this.gameId);
+                            await window.updateDoc(gameRef, {
+                                [`players.${this.playerId}.hand`]: newHand,
+                                [`players.${this.playerId}.handCount`]: newHand.length
+                            });
+
+                            // ローカルの状態を更新
+                            this.gameState.playerHand = newHand;
+
+                            // 効果の適用を表示
+                            const effectOverlay = document.createElement('div');
+                            effectOverlay.style.cssText = `
+                                position: fixed;
+                                top: 0;
+                                left: 0;
+                                width: 100%;
+                                height: 100%;
+                                background: rgba(0, 255, 0, 0.2);
+                                z-index: 1000;
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                                animation: effectFlash 0.5s ease-out;
+                            `;
+
+                            const style = document.createElement('style');
+                            style.textContent = `
+                                @keyframes effectFlash {
+                                    0% { opacity: 0; }
+                                    50% { opacity: 1; }
+                                    100% { opacity: 0; }
+                                }
+                            `;
+                            document.head.appendChild(style);
+                            document.body.appendChild(effectOverlay);
+
+                            // アニメーション終了後に要素を削除
+                            setTimeout(() => {
+                                effectOverlay.remove();
+                                style.remove();
+                            }, 500);
+
+                            // UIを更新
+                            this.updateUI();
+
+                            // モーダルを閉じる
+                            modal.remove();
+                            overlay.remove();
+
+                            console.log('カードの効果を更新:', {
+                                元の効果: selectedCard.effect,
+                                新しい効果: newEffect,
+                                更新後の手札: newHand
+                            });
+
+                        } catch (error) {
+                            console.error('カードの効果更新に失敗:', error);
+                            alert('カードの効果を更新できませんでした');
+                        }
                     }
                 });
 
@@ -1736,6 +1796,7 @@ export class Game {
 
         } catch (error) {
             console.error('カードの数値増加効果の実行に失敗:', error);
+            alert('効果の実行に失敗しました');
         }
     }
 
@@ -2143,7 +2204,7 @@ export class Game {
                             border-radius: 5px;
                             cursor: pointer;
                             font-size: 16px;
-                        ">手札に戻す</button>
+                        ">手   に戻す</button>
                         <button class="close-button" style="
                             background-color: #666;
                             color: white;
@@ -2388,9 +2449,9 @@ export class Game {
         const hpText = document.getElementById(hpTextId);
         
         if (hpBar && hpText) {
-            const percentage = (newHp / 10) * 100;
+            const percentage = (newHp / 15) * 100;
             hpBar.style.width = `${percentage}%`;
-            hpText.textContent = `${newHp}/10`;
+            hpText.textContent = `${newHp}/15`;
 
             // HPが低くなったら色を変更
             if (percentage <= 30) {
