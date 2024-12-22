@@ -13,11 +13,17 @@
             <div class="player-info">
                 <div class="hp-display">
                     HP: <div class="hp-bar"><div id="opponent-hp-bar" class="hp-fill" style="width: 100%;"></div></div>
-                    <span id="opponent-hp">10/10</span>
+                    <span id="opponent-hp">15/15</span>
                 </div>
-                <div class="deck">
-                    <img src="./カードの裏面.png" alt="カードの裏面" class="card-back">
-                    <span class="deck-count" id="opponent-deck-count">25</span>
+                <div class="deck-area">
+                    <div class="deck">
+                        <img src="./カードの裏面.png" alt="カードの裏面" class="card-back">
+                        <span class="deck-count" id="opponent-deck-count">25</span>
+                    </div>
+                    <div class="graveyard" id="opponent-graveyard">
+                        <img src="./墓地.png" alt="墓地" class="graveyard-image">
+                        <span class="graveyard-count" id="opponent-graveyard-count">0</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -57,11 +63,17 @@
             <div class="player-info">
                 <div class="hp-display">
                     HP: <div class="hp-bar"><div id="player-hp-bar" class="hp-fill" style="width: 100%;"></div></div>
-                    <span id="player-hp">10/10</span>
+                    <span id="player-hp">15/15</span>
                 </div>
-                <div class="deck">
-                    <img src="./カードの裏面.png" alt="カードの裏面" class="card-back">
-                    <span class="deck-count" id="player-deck-count">25</span>
+                <div class="deck-area">
+                    <div class="deck">
+                        <img src="./カードの裏面.png" alt="カードの裏面" class="card-back">
+                        <span class="deck-count" id="player-deck-count">25</span>
+                    </div>
+                    <div class="graveyard" id="player-graveyard">
+                        <img src="./墓地.png" alt="墓地" class="graveyard-image">
+                        <span class="graveyard-count" id="player-graveyard-count">0</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -116,4 +128,3 @@
     <script type="module" src="taisen.js"></script>
 </body>
 </html>
-
