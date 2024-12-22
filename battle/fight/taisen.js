@@ -180,6 +180,38 @@ export class Game {
                 to { opacity: 1; }
             }
 
+            @keyframes healEffect {
+                0% { opacity: 0; transform: scale(0.5); }
+                50% { opacity: 1; transform: scale(1.2); }
+                100% { opacity: 0; transform: scale(1); }
+            }
+
+            @keyframes marmotEffect {
+                0% { opacity: 0; transform: scale(0.5) rotate(-10deg); }
+                50% { opacity: 1; transform: scale(1.2) rotate(10deg); }
+                100% { opacity: 0; transform: scale(1) rotate(0deg); }
+            }
+
+            @keyframes randomEffect {
+                0% { opacity: 0; transform: translateY(-50px); }
+                50% { opacity: 1; transform: translateY(0); }
+                100% { opacity: 0; transform: translateY(50px); }
+            }
+
+            @keyframes berserkEffect {
+                0% { opacity: 0; transform: scale(0.5); }
+                25% { opacity: 1; transform: scale(1.2); }
+                50% { opacity: 1; transform: scale(0.8); }
+                75% { opacity: 1; transform: scale(1.1); }
+                100% { opacity: 0; transform: scale(1); }
+            }
+
+            @keyframes battlePhaseAnimation {
+                0% { opacity: 0; transform: scale(0.5); }
+                50% { opacity: 1; transform: scale(1.2); }
+                100% { opacity: 0; transform: scale(1); }
+            }
+
             .result-modal {
                 display: none;
                 position: fixed;
@@ -809,7 +841,7 @@ export class Game {
             const updateData = {
                 currentTurn: opponentId,
                 'battleState.turnEndCount': newTurnEndCount,
-                // 両方のプレイヤーがターンを終了した場合にバトルフェーズを開始
+                // 両方の��レイヤーがターンを終了した場合にバトルフェーズを開始
                 'battleState.shouldShowBattlePhase': newTurnEndCount >= 2
             };
 
@@ -987,7 +1019,7 @@ export class Game {
             const firstPlayerId = Object.keys(this.gameData.players)[0];
             const isFirstPlayer = this.playerId === firstPlayerId;
 
-            // アタッカーまたはディフェンダーとしてカードを設定
+            // アタッカーまたはディフェ���ダーとしてカードを設定
             if (isFirstPlayer === this.battleState.isAttacker) {
                 updateData['battleState.attackerCard'] = cardToPlay;
                 console.log('アタッカーとしてカードを設定:', cardToPlay);
@@ -1804,15 +1836,38 @@ export class Game {
             } else if (card.effect.includes('両方に2ダメージ')) {
                 // 「リストキャット」「共倒れの1手」の効果
                 await this.applyDamageToAll(2);
-            } else {
-                // 攻撃カードの場合（例：⚡ D3 ⚡）
-                const damageMatch = card.effect.match(/D(\d+)/);
-                if (damageMatch) {
-                    const damage = parseInt(damageMatch[1]);
-                    await this.applyDamage(damage);
-                } else {
-                    console.log('未実装の効果:', card.effect);
-                }
+            } else if (card.effect.includes('自分に１ダメージ')) {
+                // マーモットカードの効果
+                await this.applyDamage(1, this.playerId);
+                // 墓地のマーモット数をチェック
+                await this.checkMarmotEffect();
+            } else if (card.effect.includes('HP1回復')) {
+                // 「学祭のピザ」の効果
+                await this.healPlayer(1);
+            } else if (card.effect.includes('HP2回復')) {
+                // 「二郎系」の効果
+                await this.healPlayer(2);
+            } else if (card.effect.includes('徳田家ののりちゃんを山札からドロー')) {
+                // 「はま寿司」の効果
+                await this.drawSpecificCard('徳田家ののりちゃん');
+            } else if (card.effect.includes('河合家のりょうちゃんを山札からドロー')) {
+                // 「毒キノコ」の効果
+                await this.drawSpecificCard('河合家のりょうちゃん');
+            } else if (card.effect.includes('佐藤家のやまちゃんを山札から引く')) {
+                // 「佐藤家のてんちゃん」の効果
+                await this.drawSpecificCard('佐藤家のやまちゃん');
+            } else if (card.effect.includes('攻撃力+1')) {
+                // 「金田家のしょうちゃん」の効果
+                await this.increaseAttackPower(1);
+            } else if (card.effect.includes('攻撃力+2')) {
+                // 「喜友名家のともちゃん」「先生集合」の効果
+                await this.increaseAttackPower(2);
+            } else if (card.effect.includes('3分の1の確率で3ダメージ')) {
+                // 「中野家のてんちゃん」の効果
+                await this.randomDamageEffect();
+            } else if (card.effect.includes('発狂をしたら相手に２ダメージ')) {
+                // 「マーモット系男子」の効果
+                await this.checkBerserkEffect();
             }
 
             // カードを手札から除去
@@ -1831,6 +1886,9 @@ export class Game {
 
             // 効果カードを墓地に送る
             await this.sendToGraveyard([card], this.playerId);
+
+            // 家族カードの効果をチェック
+            await this.checkFamilyCompletion();
 
         } catch (error) {
             console.error('効果カードの発動に失敗:', error);
@@ -2204,7 +2262,7 @@ export class Game {
         return match ? parseInt(match[1]) : 0;
     }
 
-    // バトルードを表にする
+    // バトルードを表��する
     async revealBattleCards() {
         // アニメーション付きでカードを表にする処理
         const attackerCard = document.querySelector('.attacker-zone .card');
@@ -2782,7 +2840,7 @@ export class Game {
         }
     }
 
-    // updateHands メソッドを修正
+    // updateHands メソ��ドを修正
     updateHands() {
         // プレ   ヤーの手札を更新
         const playerHand = document.getElementById('player-hand');
@@ -2976,6 +3034,339 @@ export class Game {
         if (opponentGraveyard) {
             opponentGraveyard.addEventListener('click', () => this.showGraveyardContent(Object.keys(this.gameData.players).find(id => id !== this.playerId)));
         }
+    }
+
+    // HPを回復する関数
+    async healPlayer(amount) {
+        try {
+            const currentHp = this.gameState.playerHp;
+            const maxHp = 15;
+            const newHp = Math.min(currentHp + amount, maxHp);
+
+            // Firestoreの状態を更新
+            const gameRef = window.doc(db, 'games', this.gameId);
+            await window.updateDoc(gameRef, {
+                [`players.${this.playerId}.hp`]: newHp
+            });
+
+            // ローカルの状態を更新
+            this.gameState.playerHp = newHp;
+            this.updateHpBar(this.playerId, newHp);
+
+            // 回復エフェクトを表示
+            this.showHealEffect(amount);
+        } catch (error) {
+            console.error('回復処理に失敗:', error);
+        }
+    }
+
+    // 特定のカードを山札から引く関数
+    async drawSpecificCard(cardName) {
+        try {
+            const deck = this.gameState.playerDeck;
+            const cardIndex = deck.findIndex(card => card.name === cardName);
+
+            if (cardIndex === -1) {
+                console.log(`${cardName}は山札にありません`);
+                return;
+            }
+
+            // カードを山札から取り除き、手札に加える
+            const drawnCard = deck[cardIndex];
+            const newDeck = [...deck.slice(0, cardIndex), ...deck.slice(cardIndex + 1)];
+            const newHand = [...this.gameState.playerHand, drawnCard];
+
+            // Firestoreの状態を更新
+            const gameRef = window.doc(db, 'games', this.gameId);
+            await window.updateDoc(gameRef, {
+                [`players.${this.playerId}.deck`]: newDeck,
+                [`players.${this.playerId}.hand`]: newHand,
+                [`players.${this.playerId}.handCount`]: newHand.length
+            });
+
+            // ローカルの状態を更新
+            this.gameState.playerDeck = newDeck;
+            this.gameState.playerHand = newHand;
+            this.updateUI();
+        } catch (error) {
+            console.error('特定のカードを引く処理に失敗:', error);
+        }
+    }
+
+    // マーモット効果をチェックする関数
+    async checkMarmotEffect() {
+        try {
+            const gameRef = window.doc(db, 'games', this.gameId);
+            const gameDoc = await window.getDoc(gameRef);
+            const graveyard = gameDoc.data().players[this.playerId]?.graveyard || [];
+
+            // 墓地のマーモットカードをカウント
+            const marmotCount = graveyard.filter(card => 
+                card.name.includes('マーモット')
+            ).length;
+
+            // 3体以上のマーモットがいる場合、相手に6ダメージ
+            if (marmotCount >= 3) {
+                const opponentId = Object.keys(this.gameData.players).find(id => id !== this.playerId);
+                await this.applyDamage(6, opponentId);
+                this.showMarmotEffect();
+            }
+        } catch (error) {
+            console.error('マーモット効果のチェックに失敗:', error);
+        }
+    }
+
+    // 家族カードの効果をチェックする関数
+    async checkFamilyCompletion() {
+        try {
+            const gameRef = window.doc(db, 'games', this.gameId);
+            const gameDoc = await window.getDoc(gameRef);
+            const graveyard = gameDoc.data().players[this.playerId]?.graveyard || [];
+
+            // 必要な家族カードの名前
+            const requiredFamilies = [
+                '徳田家ののりちゃん',
+                '河合家のりょうちゃん',
+                '喜友名家のともちゃん',
+                '佐藤家のやまちゃん'
+            ];
+
+            // 全ての必要なカードが墓地にあるかチェック
+            const hasAllFamilies = requiredFamilies.every(familyName =>
+                graveyard.some(card => card.name === familyName)
+            );
+
+            if (hasAllFamilies) {
+                // ゲーム勝利処理
+                await this.handleGameWin();
+            }
+        } catch (error) {
+            console.error('家族カードの効果チェックに失敗:', error);
+        }
+    }
+
+    // ランダムダメージ効果の関数
+    async randomDamageEffect() {
+        try {
+            // 3分の1の確率でダメージを与える
+            if (Math.random() < 1/3) {
+                const opponentId = Object.keys(this.gameData.players).find(id => id !== this.playerId);
+                await this.applyDamage(3, opponentId);
+                this.showRandomDamageEffect(true);
+            } else {
+                this.showRandomDamageEffect(false);
+            }
+        } catch (error) {
+            console.error('ランダムダメージ効果の実行に失敗:', error);
+        }
+    }
+
+    // 発狂効果をチェックする関数
+    async checkBerserkEffect() {
+        try {
+            const gameRef = window.doc(db, 'games', this.gameId);
+            const gameDoc = await window.getDoc(gameRef);
+            const playerState = gameDoc.data().players[this.playerId];
+
+            // HPが5以下の場合を「発狂状態」とする
+            if (playerState.hp <= 5) {
+                const opponentId = Object.keys(this.gameData.players).find(id => id !== this.playerId);
+                await this.applyDamage(2, opponentId);
+                this.showBerserkEffect();
+            }
+        } catch (error) {
+            console.error('発狂効果のチェックに失敗:', error);
+        }
+    }
+
+    // 攻撃力を増加させる関数
+    async increaseAttackPower(amount) {
+        try {
+            // プレイヤーの手札から攻撃カードを探す
+            const attackCards = this.gameState.playerHand.filter(card => 
+                card.effect.includes('D')
+            );
+
+            if (attackCards.length === 0) {
+                console.log('攻撃力を増加させる対象のカードがありません');
+                return;
+            }
+
+            // カード選択用のモーダルを表示
+            await this.showCardSelectionModal(attackCards, amount);
+        } catch (error) {
+            console.error('攻撃力増加処理に失敗:', error);
+        }
+    }
+
+    // 回復エフェクトを表示する関数
+    showHealEffect(amount) {
+        const effectOverlay = document.createElement('div');
+        effectOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 255, 0, 0.2);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: healEffect 1s ease-out;
+        `;
+
+        const healText = document.createElement('div');
+        healText.textContent = `+${amount} HP`;
+        healText.style.cssText = `
+            color: #4CAF50;
+            font-size: 48px;
+            font-weight: bold;
+            text-shadow: 0 0 10px #fff;
+        `;
+
+        effectOverlay.appendChild(healText);
+        document.body.appendChild(effectOverlay);
+
+        setTimeout(() => effectOverlay.remove(), 1000);
+    }
+
+    // マーモット効果の表示
+    showMarmotEffect() {
+        const effectOverlay = document.createElement('div');
+        effectOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 0, 0, 0.2);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: marmotEffect 1s ease-out;
+        `;
+
+        const effectText = document.createElement('div');
+        effectText.textContent = 'マーモット大集合！6ダメージ！';
+        effectText.style.cssText = `
+            color: #ff4444;
+            font-size: 48px;
+            font-weight: bold;
+            text-shadow: 0 0 10px #fff;
+        `;
+
+        effectOverlay.appendChild(effectText);
+        document.body.appendChild(effectOverlay);
+
+        setTimeout(() => effectOverlay.remove(), 1000);
+    }
+
+    // ゲーム勝利処理
+    async handleGameWin() {
+        const gameRef = window.doc(db, 'games', this.gameId);
+        await window.updateDoc(gameRef, {
+            status: 'finished',
+            winner: this.playerId,
+            isGameOver: true
+        });
+
+        // 勝利画面の表示
+        const victoryOverlay = document.createElement('div');
+        victoryOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        `;
+
+        const victoryContent = document.createElement('div');
+        victoryContent.innerHTML = `
+            <div style="text-align: center; color: #fff;">
+                <h1 style="font-size: 48px; margin-bottom: 20px;">家族カード集合！勝利！</h1>
+                <button onclick="window.location.href='../Room/room.html'" 
+                        style="padding: 10px 20px; font-size: 24px; 
+                               background: #4CAF50; color: white; 
+                               border: none; border-radius: 5px; 
+                               cursor: pointer;">
+                    ルームに戻る
+                </button>
+            </div>
+        `;
+
+        victoryOverlay.appendChild(victoryContent);
+        document.body.appendChild(victoryOverlay);
+    }
+
+    // ランダムダメージ効果の表示
+    showRandomDamageEffect(success) {
+        const effectOverlay = document.createElement('div');
+        effectOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: ${success ? 'rgba(255, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.2)'};
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: randomEffect 1s ease-out;
+        `;
+
+        const effectText = document.createElement('div');
+        effectText.textContent = success ? '3ダメージ成功！' : 'ダメージ失敗...';
+        effectText.style.cssText = `
+            color: ${success ? '#ff4444' : '#666'};
+            font-size: 48px;
+            font-weight: bold;
+            text-shadow: 0 0 10px #fff;
+        `;
+
+        effectOverlay.appendChild(effectText);
+        document.body.appendChild(effectOverlay);
+
+        setTimeout(() => effectOverlay.remove(), 1000);
+    }
+
+    // 発狂効果の表示
+    showBerserkEffect() {
+        const effectOverlay = document.createElement('div');
+        effectOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 0, 0, 0.3);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: berserkEffect 1s ease-out;
+        `;
+
+        const effectText = document.createElement('div');
+        effectText.textContent = '発狂！2ダメージ！';
+        effectText.style.cssText = `
+            color: #ff4444;
+            font-size: 48px;
+            font-weight: bold;
+            text-shadow: 0 0 10px #fff;
+        `;
+
+        effectOverlay.appendChild(effectText);
+        document.body.appendChild(effectOverlay);
+
+        setTimeout(() => effectOverlay.remove(), 1000);
     }
 }
 
