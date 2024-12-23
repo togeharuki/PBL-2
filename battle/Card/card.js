@@ -69,10 +69,11 @@ document.addEventListener('DOMContentLoaded', function() {
             for (let i = 0; i < healCardCount; i++) {
                 const value = Math.floor(Math.random() * 3) + 1; // 1から3のランダムな値
                 const newCard = {
-                    name: `回復カード ${cards.length + 1}`,
+                    name: `自動作成カード`,
                     image: "https://togeharuki.github.io/Deck-Dreamers/kakusi/スライム.jpg",
                     effect: `✨ H ${value} ✨`,
-                    timestamp: new Date()
+                    timestamp: new Date(),
+                    explanation:"回復"
                 };
 
                 const firebaseId = await saveCardToFirebase(newCard);
@@ -89,10 +90,11 @@ document.addEventListener('DOMContentLoaded', function() {
             for (let i = 0; i < attackCardCount; i++) {
                 const value = Math.floor(Math.random() * 8) + 3; // 3から10のランダムな値
                 const newCard = {
-                    name: `攻撃カード ${cards.length + 1}`,
+                    name: `自動作成カード`,
                     image: "https://togeharuki.github.io/Deck-Dreamers/kakusi/スライム.jpg",
                     effect: `⚡ D ${value} ⚡`,
-                    timestamp: new Date()
+                    timestamp: new Date(),
+                    explanation:"攻撃"
                 };
 
                 const firebaseId = await saveCardToFirebase(newCard);

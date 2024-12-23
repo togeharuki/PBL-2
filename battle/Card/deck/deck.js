@@ -210,7 +210,7 @@ async function loadGachaCards() {
 
     } catch (error) {
         console.error('ガチャカードの読み込みに失敗しました:', error);
-        showNotification('ガチャカードの読み込みに失敗しました', 'error');
+        showNotification('ガチャカードの読み込みに��敗しました', 'error');
     }
 }
 
@@ -273,16 +273,15 @@ function createCardElement(card, isCreated = false) {
             if (e.target !== checkbox) {
                 checkbox.checked = !checkbox.checked;
                 checkbox.dispatchEvent(new Event('change'));
-                playClickSound(); // クリック音を再生
             }
         });
 
         checkbox.addEventListener('change', function() {
             const checkedCount = document.querySelectorAll('input[data-card-type="normal"]:checked').length;
             
-            if (this.checked && checkedCount > 10) {
+            if (this.checked && checkedCount > 15) {
                 this.checked = false;
-                showNotification('既存カードとデッキカードは10枚までしか選択できません', 'warning');
+                showNotification('既存カードとガチャカードは合計15枚までしか選択できません', 'warning');
                 return;
             }
             
@@ -315,14 +314,6 @@ function createCardElement(card, isCreated = false) {
     return cardElement;
 }
 
-// サウンド再生関数
-function playClickSound() {
-    const sound = new Audio('path/to/決定音.mp3');
-    sound.play().catch(error => {
-        console.error('クリック音の再生に失敗:', error);
-    });
-}
-
 function getCardImagePath(card) {
     const cardName = encodeURIComponent(card.name);
     return `https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/${cardName}.jpg`;
@@ -346,8 +337,8 @@ async function saveDeck() {
             explanation: card.explanation
         }));
 
-        if (normalCards.length !== 10) {
-            showNotification('既存カードを10枚選択してください', 'warning');
+        if (normalCards.length !== 15) {
+            showNotification('既存カードとガチャカードを合計15枚選択してください', 'warning');
             return;
         }
 
@@ -422,7 +413,7 @@ function updateSaveButton() {
     const cardCounter = document.getElementById('card-counter');
     
     const checkedCount = document.querySelectorAll('input[data-card-type="normal"]:checked').length;
-    const isValid = checkedCount === 10 && createdCards.length === 20;
+    const isValid = checkedCount === 15 && createdCards.length === 20;
     
     if (saveButton) {
         saveButton.disabled = !isValid;
@@ -430,7 +421,7 @@ function updateSaveButton() {
     }
     
     if (cardCounter) {
-        cardCounter.textContent = `選択中: ${checkedCount}/10枚 (作成カード: ${createdCards.length}/20枚)`;
+        cardCounter.textContent = `選択中: ${checkedCount}/15枚 (作成カード: ${createdCards.length}/20枚)`;
         cardCounter.classList.toggle('complete', isValid);
     }
 }

@@ -63,7 +63,7 @@ const GACHA_ITEMS = [
     {
         name: '喜友名家のともちゃん',
         image: 'https://raw.githubusercontent.com/togeharuki/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/SR-%E5%96%9C%E5%8F%8B%E5%90%8D%E5%AE%B6%E3%81%AE%E3%81%A8%E3%82%82%E3%81%A1%E3%82%83%E3%82%93.png',
-        effect: '攻撃力+2',  // アイテムの効果
+        effect: '山札から１枚ドロー',  // アイテムの効果
         count: 5,  // 残り個数
         rarity: 'SR',  // レアリティ
         explanation: '徳田家,河合家,喜友名家,佐藤家を墓地で揃えたらゲームに勝つ',
@@ -160,7 +160,7 @@ async function addCardToSouko(card) {
         const doc = await soukoRef.get();
         const existingData = doc.data() || {};
         
-        // 既存のカードを配列として取得
+        // 既のカードを配列として取得
         const cards = Object.values(existingData).filter(item => item.type === 'gacha');
         
         // 新しいカードIDを生成
@@ -201,7 +201,7 @@ function shuffleArray(array) {
     return array;
 }
 
-// 効果音の追加
+// 効��音の追加
 const gachaSound = new Audio('音声/クリック音.mp3');
 
 // 行にカードを配置
@@ -247,7 +247,8 @@ function renderCards() {
                         <img src="${card.image}" alt="${card.name}">
                         <p>カード名: ${card.name}<br>効果: ${card.effect}<br>レアリティ: ${card.rarity}</p>
                     `;
-                    document.getElementById('modal').style.display = 'block';
+                    const modal = document.getElementById('modal');
+                    modal.classList.add('show');
 
                     await addCardToSouko(card);
 
@@ -263,13 +264,157 @@ function renderCards() {
     }
 }
 
+// パックガチャの処理を修正
+async function handlePackGacha() {
+    const packContainer = document.getElementById('packContainer');
+    const pack = packContainer.querySelector('.pack');
+    const modal = document.getElementById('modal');
+    const gachaResult = document.getElementById('gachaResult');
 
-// カードを表示させる関数
-function showCards() {
-    document.getElementById('gachaContainer').style.display = 'block';
-    shuffleCards('row1');
-    shuffleCards('row2');
-    shuffleCards('row3');
+    // 5枚のカードを選択（既存のGACHA_ITEMSから重み付きランダム選択）
+    const selectedCards = [];
+    for (let i = 0; i < 5; i++) {
+        const totalWeight = GACHA_ITEMS.reduce((sum, card) => sum + card.weight, 0);
+        let randomWeight = Math.random() * totalWeight;
+        
+        for (const card of GACHA_ITEMS) {
+            randomWeight -= card.weight;
+            if (randomWeight <= 0) {
+                selectedCards.push(card);
+                break;
+            }
+        }
+    }
+
+    // パックを開けるアニメーション
+    pack.classList.add('opening');
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // 5枚のカード表示用HTML
+    showPackResults(selectedCards);
+
+    // カードを保存
+    try {
+        for (const card of selectedCards) {
+            await addCardToSouko(card);
+            gachaSound.play();
+        }
+    } catch (error) {
+        console.error('カードの保存に失敗しました:', error);
+        alert('カードの保存に失敗しまし��');
+    }
+}
+
+// 5枚のカード表示関数
+function showPackResults(selectedCards) {
+    const gachaResult = document.getElementById('gachaResult');
+    const modal = document.getElementById('modal');
+
+    let resultHTML = `
+        <h3>獲得したカード</h3>
+        <div class="pack-result-grid">
+    `;
+
+    selectedCards.forEach((card, index) => {
+        resultHTML += `
+            <div class="pack-result-card" style="animation-delay: ${index * 0.2}s">
+                <div class="rarity-badge ${card.rarity}">${card.rarity}</div>
+                <img src="${card.image}" alt="${card.name}" 
+                    class="card-image rarity-${card.rarity}" 
+                    onclick="showCardModal(this, '${card.name}', '${card.effect}', '${card.rarity}', ${true})">
+            </div>
+        `;
+    });
+
+    resultHTML += '</div>';
+    gachaResult.innerHTML = resultHTML;
+    modal.classList.add('show');
+
+    // カードのアニメーション
+    setTimeout(() => {
+        const cards = document.querySelectorAll('.pack-result-card');
+        cards.forEach(card => {
+            card.classList.add('appear');
+            // レアリティに応じて効果音を再生
+            const rarity = card.querySelector('.rarity-badge').textContent;
+            playRaritySound(rarity);
+        });
+    }, 100);
+}
+
+// レアリティに応じた効果音を再生する関数
+function playRaritySound(rarity) {
+    let sound;
+    switch(rarity) {
+        case 'SSR':
+            sound = new Audio('音声/クリック音.mp3'); // SSR用の効果音
+            sound.volume = 1.0;
+            break;
+        case 'SR':
+            sound = new Audio('音声/クリック音.mp3'); // SR用の効果音
+            sound.volume = 0.8;
+            break;
+        case 'R':
+            sound = new Audio('音声/クリック音.mp3'); // R用の効果音
+            sound.volume = 0.6;
+            break;
+        default:
+            sound = new Audio('音声/クリック音.mp3'); // N用の効果音
+            sound.volume = 0.4;
+    }
+    sound.play();
+}
+
+// カードモーダル表示関数も修正
+function showCardModal(imgElement, name, effect, rarity, isPackGacha = false) {
+    const gachaResult = document.getElementById('gachaResult');
+    const modal = document.getElementById('modal');
+    
+    if (isPackGacha) {
+        modal.dataset.previousHtml = gachaResult.innerHTML;
+    }
+
+    gachaResult.innerHTML = `
+        <h3>カードの詳細</h3>
+        <div class="rarity-badge ${rarity}">${rarity}</div>
+        <img src="${imgElement.src}" alt="${name}" 
+            class="rarity-${rarity}"
+            style="width: 200px; height: 300px; object-fit: cover;">
+        <p>カード名: ${name}<br>効果: ${effect}<br>レアリティ: ${rarity}</p>
+    `;
+}
+
+// モーダルを閉じる処理を修正
+document.getElementById('closeModal').addEventListener('click', function() {
+    const modal = document.getElementById('modal');
+    const gachaResult = document.getElementById('gachaResult');
+    
+    // パックガチャで保存された以前のHTML表示がある場合は復元
+    if (modal.dataset.previousHtml) {
+        gachaResult.innerHTML = modal.dataset.previousHtml;
+        delete modal.dataset.previousHtml;
+    } else {
+        modal.classList.remove('show');
+    }
+});
+
+// showCards関数を修正
+function showCards(isPack = false) {
+    if (isPack) {
+        document.getElementById('packContainer').style.display = 'block';
+        document.getElementById('gachaContainer').style.display = 'none';
+        
+        // パックをクリックしたときの処理
+        document.querySelector('.pack').addEventListener('click', handlePackGacha, { once: true });
+    } else {
+        document.getElementById('packContainer').style.display = 'none';
+        document.getElementById('gachaContainer').style.display = 'block';
+        renderCards();
+    }
+    
+    document.getElementById('gachaButton').style.display = 'none';
+    document.getElementById('packGachaButton').style.display = 'none';
+    document.getElementById('reloadButton').style.display = 'block';
 }
 
 // ページ読み込み時に各行のカードをランダムに並べ替える
@@ -309,7 +454,8 @@ document.getElementById('reloadButton').addEventListener('click', function() {
 });
 
 document.getElementById('closeModal').addEventListener('click', function() {
-    document.getElementById('modal').style.display = 'none';
+    const modal = document.getElementById('modal');
+    modal.classList.remove('show');
 });
 
 document.getElementById('gachaContainer').addEventListener('click', function(event) {
