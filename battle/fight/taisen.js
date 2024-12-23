@@ -2870,7 +2870,7 @@ export class Game {
         if (hpBar && hpText) {
             const percentage = (newHp / 15) * 100;
             hpBar.style.width = `${percentage}%`;
-            hpText.textContent = `${newHp}/10`;
+            hpText.textContent = `${newHp}/15`;
 
             // HPが低くなったら色を変更
             if (percentage <= 30) {
