@@ -822,7 +822,7 @@ export class Game {
 
                 return gameData;
             } else if (Object.keys(gameData.players).length >= 2) {
-                throw new Error('このテーブルは既に対戦が始   っています。');
+                throw new Error('このテーブルは既に対戦が始�������っています。');
             } else {
                 throw new Error('ゲームに参加できません。');
             }
@@ -1880,57 +1880,6 @@ export class Game {
                 }
             });
 
-            // 効果の種類を判断
-            if (card.effect.includes('山札から１ドロー')) {
-                // 「逆転の1手」「手札足りない」の効果
-                await this.drawCard();
-            } else if (card.effect.includes('相手の手札を2枚る')) {
-                // 「のぞき見」「パパラッチ」の効果
-                await this.revealOpponentCards();
-            } else if (card.effect.includes('数値＋２')) {
-                // 「レゴブロック」「ルブタンの財布」の効果
-                await this.increaseCardValue();
-            } else if (card.effect.includes('強制1ダメージ')) {
-                // 「ちくちく」「とげとげ」の効果
-                const opponentId = Object.keys(this.gameData.players).find(id => id !== this.playerId);
-                await this.applyDamage(1, opponentId);
-            } else if (card.effect.includes('両方に2ダメージ')) {
-                // 「リストキャット」「共倒れの1手」の効果
-                await this.applyDamageToAll(2);
-            } else if (card.effect.includes('自分に１ダメージ')) {
-                // マーモットカードの効果
-                await this.applyDamage(1, this.playerId);
-                // 墓地のマーモット数をチェック
-                await this.checkMarmotEffect();
-            } else if (card.effect === 'HP1回復') {
-                // 「学祭のピザ」の効果
-                await this.instantHealEffect(1, card);
-            } else if (card.effect === 'HP2回復') {
-                // 「二郎系」の効果
-                await this.instantHealEffect(2, card);
-            } else if (card.effect.includes('徳田家ののりちゃんを山札からドロー')) {
-                // 「はま寿司」の効果
-                await this.drawSpecificCard('徳田家ののりちゃん');
-            } else if (card.effect.includes('河合家のりょうちゃんを山札からドロー')) {
-                // 「毒キノコ」の効果
-                await this.drawSpecificCard('河合家のりょうちゃん');
-            } else if (card.effect.includes('佐藤家のやまちゃんを山札から引く')) {
-                // 「佐藤家のてんちゃん」の効果
-                await this.drawSpecificCard('佐藤家のやまちゃん');
-            } else if (card.effect.includes('攻撃力+1')) {
-                // 「金田家のしょうちゃん」の効果
-                await this.increaseAttackPower(1);
-            } else if (card.effect.includes('攻撃力+2')) {
-                // 「喜友名家のともちゃん」「先生集合」の効果
-                await this.increaseAttackPower(2);
-            } else if (card.effect.includes('3分の1の確率で3ダメージ')) {
-                // 「中野家のてんちゃん」の効果
-                await this.randomDamageEffect();
-            } else if (card.effect.includes('発狂をしたら相手に２ダメージ')) {
-                // 「マーモット系男子」の効果
-                await this.checkBerserkEffect();
-            }
-
             // カードを手札から除去
             const newHand = this.gameState.playerHand.filter(c => c.id !== card.id);
             
@@ -1942,10 +1891,48 @@ export class Game {
 
             // ローカルの状態を更新
             this.gameState.playerHand = newHand;
-            this.updateUI();
 
             // 効果カードを墓地に送る
             await this.sendToGraveyard([card], this.playerId);
+
+            // 効果の種類を判断
+            if (card.effect.includes('山札から１ドロー')) {
+                await this.drawCard();
+            } else if (card.effect.includes('相手の手札を2枚る')) {
+                await this.revealOpponentCards();
+            } else if (card.effect.includes('数値＋２')) {
+                await this.increaseCardValue();
+            } else if (card.effect.includes('強制1ダメージ')) {
+                const opponentId = Object.keys(this.gameData.players).find(id => id !== this.playerId);
+                await this.applyDamage(1, opponentId);
+            } else if (card.effect.includes('両方に2ダメージ')) {
+                await this.applyDamageToAll(2);
+            } else if (card.effect.includes('自分に１ダメージ')) {
+                // マーモットカードの効果
+                await this.applyDamage(1, this.playerId);
+                // 墓地のマーモット数をチェック（カードを墓地に送った後にチェック）
+                await this.checkMarmotEffect();
+            } else if (card.effect === 'HP1回復') {
+                await this.instantHealEffect(1, card);
+            } else if (card.effect === 'HP2回復') {
+                await this.instantHealEffect(2, card);
+            } else if (card.effect.includes('徳田家ののりちゃんを山札からドロー')) {
+                await this.drawSpecificCard('徳田家ののりちゃん');
+            } else if (card.effect.includes('河合家のりょうちゃんを山札からドロー')) {
+                await this.drawSpecificCard('河合家のりょうちゃん');
+            } else if (card.effect.includes('佐藤家のやまちゃんを山札から引く')) {
+                await this.drawSpecificCard('佐藤家のやまちゃん');
+            } else if (card.effect.includes('攻撃力+1')) {
+                await this.increaseAttackPower(1);
+            } else if (card.effect.includes('攻撃力+2')) {
+                await this.increaseAttackPower(2);
+            } else if (card.effect.includes('3分の1の確率で3ダメージ')) {
+                await this.randomDamageEffect();
+            } else if (card.effect.includes('発狂をしたら相手に２ダメージ')) {
+                await this.checkBerserkEffect();
+            }
+
+            this.updateUI();
 
             // 家族カードの効果をチェック
             await this.checkFamilyCompletion();
@@ -3154,11 +3141,33 @@ export class Game {
                     padding: 15px;
                 `;
 
-                // 墓地のカードを表示
+                // 墓地のカードを表示（クリックイベントなし）
                 graveyard.forEach(card => {
-                    const cardElement = this.createCardElement(card);
-                    cardElement.style.transform = 'scale(0.9)';
-                    content.appendChild(cardElement);
+                    const cardContainer = document.createElement('div');
+                    cardContainer.style.cssText = `
+                        width: 100px;
+                        height: 140px;
+                        border-radius: 8px;
+                        background-color: white;
+                        display: flex;
+                        flex-direction: column;
+                        overflow: hidden;
+                        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                        transform: scale(0.9);
+                    `;
+
+                    cardContainer.innerHTML = `
+                        <div style="height: 75%; overflow: hidden;">
+                            <img src="${card.image || `https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/${encodeURIComponent(card.name)}.jpg`}" 
+                                 alt="${card.name}" 
+                                 style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                        <div style="padding: 5px; text-align: center; background-color: #1a237e; color: white; height: 25%;">
+                            ${card.name}
+                        </div>
+                    `;
+
+                    content.appendChild(cardContainer);
                 });
 
                 modal.appendChild(content);
@@ -3257,24 +3266,116 @@ export class Game {
     // マーモット効果をチェックする関数
     async checkMarmotEffect() {
         try {
+            // 最新のゲームデータを取得
             const gameRef = window.doc(db, 'games', this.gameId);
             const gameDoc = await window.getDoc(gameRef);
             const graveyard = gameDoc.data().players[this.playerId]?.graveyard || [];
 
-            // 墓地のマーモットカードをカウント
-            const marmotCount = graveyard.filter(card => 
-                card.name.includes('マーモット')
-            ).length;
+            // 墓地のマーモットカードをカウント（名前に"マーモット"を含むカードをすべてカウント）
+            const marmotCards = graveyard.filter(card => 
+                card.name && card.name.includes('マーモット')
+            );
+            const marmotCount = marmotCards.length;
+
+            console.log('墓地のマーモット数:', marmotCount, 'マーモットカード:', marmotCards);
 
             // 3体以上のマーモットがいる場合、相手に6ダメージ
             if (marmotCount >= 3) {
                 const opponentId = Object.keys(this.gameData.players).find(id => id !== this.playerId);
+                
+                // マーモット効果のアニメーションを表示
+                await this.showMarmotSacrificeEffect();
+                
+                // 相手に6ダメージを与える
                 await this.applyDamage(6, opponentId);
-                this.showMarmotEffect();
+
+                // 使用したマーモットカードを墓地から除外
+                const usedMarmotCards = marmotCards.slice(0, 3); // 最初の3枚を使用
+                const newGraveyard = graveyard.filter(card => 
+                    !usedMarmotCards.some(marmot => marmot.id === card.id)
+                );
+
+                // 墓地を更新
+                await window.updateDoc(gameRef, {
+                    [`players.${this.playerId}.graveyard`]: newGraveyard
+                });
+
+                // 墓地カウントを更新
+                this.updateGraveyardCount(this.playerId, newGraveyard.length);
+
+                console.log('マーモット効果発動完了:', {
+                    使用したマーモット: usedMarmotCards,
+                    残りの墓地: newGraveyard
+                });
             }
         } catch (error) {
             console.error('マーモット効果のチェックに失敗:', error);
         }
+    }
+
+    // マーモットの犠牲エフェクトを表示する関数
+    async showMarmotSacrificeEffect() {
+        return new Promise((resolve) => {
+            const effectOverlay = document.createElement('div');
+            effectOverlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(255, 0, 0, 0.3);
+                z-index: 1000;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                animation: marmotSacrifice 2s ease-out;
+            `;
+
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes marmotSacrifice {
+                    0% { opacity: 0; transform: scale(0.5); }
+                    50% { opacity: 1; transform: scale(1.2); }
+                    100% { opacity: 0; transform: scale(1); }
+                }
+            `;
+            document.head.appendChild(style);
+
+            const messageContainer = document.createElement('div');
+            messageContainer.style.cssText = `
+                text-align: center;
+            `;
+
+            const sacrificeText = document.createElement('div');
+            sacrificeText.textContent = 'マーモットの尊い犠牲により';
+            sacrificeText.style.cssText = `
+                color: #fff;
+                font-size: 36px;
+                font-weight: bold;
+                text-shadow: 0 0 10px #ff0000;
+                margin-bottom: 10px;
+            `;
+
+            const damageText = document.createElement('div');
+            damageText.textContent = '6ダメージ！';
+            damageText.style.cssText = `
+                color: #ff0000;
+                font-size: 48px;
+                font-weight: bold;
+                text-shadow: 0 0 15px #fff;
+            `;
+
+            messageContainer.appendChild(sacrificeText);
+            messageContainer.appendChild(damageText);
+            effectOverlay.appendChild(messageContainer);
+            document.body.appendChild(effectOverlay);
+
+            setTimeout(() => {
+                effectOverlay.remove();
+                style.remove();
+                resolve();
+            }, 2000);
+        });
     }
 
     // 家族カードの効果をチェックする関数
@@ -3635,7 +3736,7 @@ export class Game {
                 return;
             }
 
-            // カードを山札から取り除き、手札に加える
+            // カードを山札から取り除���、手札に加える
             const drawnCard = deck[cardIndex];
             const newDeck = [...deck.slice(0, cardIndex), ...deck.slice(cardIndex + 1)];
             const newHand = [...this.gameState.playerHand, drawnCard];
