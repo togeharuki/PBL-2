@@ -10,6 +10,45 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 </head>
 <body>
+    <div class="initial-screen">
+        <h1 class="gacha-title">Deck Dreamers Gacha</h1>
+        
+        <!-- 排出率とレアカード情報を表示するセクションを追加 -->
+        <div class="gacha-info">
+            <div class="rarity-rates">
+                <h2>【排出率】</h2>
+                <p>SSR：5%</p>
+                <p>SR：15%</p>
+                <p>R：30%</p>
+                <p>N：35%</p>
+            </div>
+            <div class="rare-cards">
+                <h2>【レアカード】</h2>
+                <div class="rare-card-list">
+                    <div class="rare-card-item">
+                        <p class="rarity ssr">SSR</p>
+                        <p>・先生集合</p>
+                        <p>・マーモット系男子</p>
+                        <p>・佐藤家のてんちゃん</p>
+                    </div>
+                    <div class="rare-card-item">
+                        <p class="rarity sr">SR</p>
+                        <p>・河合家のりょうちゃん</p>
+                        <p>・喜友名家のともちゃん</p>
+                        <p>・金田家のしょうちゃん</p>
+                        <p>・佐藤家のやまちゃん</p>
+                        <p>・中野家のてんちゃん</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-container">
+            <button id="gachaButton" onclick="playSound('音声/決定音.mp3'); showCards(false)">1回引く</button>
+            <button id="packGachaButton" onclick="playSound('音声/決定音.mp3'); showCards(true)">5連パック</button>
+            <button id="reloadButton" style="display:none;" onclick="playSound('音声/キャンセル.mp3')">ホームに戻る</button>
+        </div>
+    </div>
 
     <div class="gacha-container" id="gachaContainer">
         <!-- 1行目のガチャアイテム -->
@@ -20,16 +59,18 @@
         <div class="gacha-row card" id="row3"></div>
     </div>
 
-    <div class="button-container">
-        <button id="gachaButton" onclick="playSound('音声/決定音.mp3'); showCards()">ガチャを引く</button>
-        <button id="reloadButton" style="display:none;" onclick="playSound('音声/キャンセル.mp3')">ホームに戻る</button>
-    </div>
-    
     <!-- モーダルウィンドウ -->
     <div id="modal" class="modal">
         <div class="modal-content">
             <span id="closeModal" class="close">&times;</span>
             <div id="gachaResult" class="gacha-result"></div>
+        </div>
+    </div>
+
+    <!-- パックガチャ用のコンテナを追加 -->
+    <div class="pack-container" id="packContainer" style="display: none;">
+        <div class="pack">
+            <img src="https://raw.githubusercontent.com/haruki1298/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/%E3%82%AB%E3%83%BC%E3%83%89%E3%81%AE%E8%A3%8F%E9%9D%A2.png" alt="パック" class="pack-image">
         </div>
     </div>
 

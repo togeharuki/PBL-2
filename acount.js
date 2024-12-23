@@ -10,7 +10,7 @@ const DEFAULT_CARDS = [
         name: "手札足りない",
         image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/手札足りない.jpeg",
         effect: "山札から１ドロー",
-        explanation:"山札からカードを１１枚引く"
+        explanation:"山札からカードを１枚引く"
     },
     {
         name: "のぞき見",
@@ -205,11 +205,8 @@ createAccountButton.addEventListener('click', async () => {
             // プレイヤー情報を保存
             await createPlayer(playerName, nextPlayerId);
 
-            // デフォルトカードを倉庫に保��
+            // デフォルトカードを倉庫に保存
             await createSoukoCards(nextPlayerId);
-
-            // 効果音を再生
-            playButtonSound();
 
             // 成功メッセージを表示
             const notification = document.createElement('div');

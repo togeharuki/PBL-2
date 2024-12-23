@@ -53,28 +53,32 @@ body {
 }
 
 button {
-    padding: 15px 30px;
-    background-color: #4ecdc4; /* ボタン色を更新 */
+    padding: 20px 40px;
+    background: linear-gradient(45deg, #6b46c1, #805ad5);
     color: #fff;
     border: none;
-    border-radius: 25px;
-    font-size: 1.2em;
+    border-radius: 50px;
+    font-size: 1.4em;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s ease;
     margin-top: 30px;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 4px 15px rgba(107, 70, 193, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: bold;
 }
 
 button:hover {
-    background-color: #45b7a8; /* ボタンホバー色を更新 */
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(45deg, #805ad5, #6b46c1);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(107, 70, 193, 0.4);
 }
 
 button:active {
     transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 10px rgba(107, 70, 193, 0.3);
 }
 
 button::before {
@@ -175,38 +179,82 @@ button:hover::before {
     background-color: rgba(0,0,0,0.4); /* 背景色（透明度） */
 }
 
+/* モーダルが表示される時のスタイル */
+.modal.show {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 /* モーダルウィンドウのスタイルを調整 */
 .modal-content {
     position: relative;
-    background-color: #fefefe;
-    margin: auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%; /* 幅を80%に拡大 */
-    max-width: 800px; /* 最大幅を800pxに設定 */
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    border-radius: 10px;
+    background: linear-gradient(135deg, #2a2a4e, #1a1a2e);
+    color: #fff;
+    padding: 30px;
+    border: none;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    transform: scale(0.95);
+    opacity: 0;
+    animation: modalFadeIn 0.3s forwards;
+}
+
+@keyframes modalFadeIn {
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 .close {
-    color: #ff4d4d;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    color: #fff;
+    font-size: 32px;
+    opacity: 0.8;
+    transition: all 0.3s ease;
 }
 
-.close:hover,
-.close:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
+.close:hover {
+    color: #ff4d4d;
+    opacity: 1;
+    transform: rotate(90deg);
 }
 
 /* 選択したカードの画像サイズを縦150px、横100pxに設定 */
 .gacha-result img {
-    width: 100px;
-    height: 150px;
+    width: 200px;
+    height: 300px;
     object-fit: cover;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    margin: 20px 0;
+    transition: transform 0.3s ease;
+}
+
+.gacha-result img:hover {
+    transform: scale(1.05);
+}
+
+.gacha-result h3 {
+    color: #fff;
+    font-size: 24px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.gacha-result p {
+    font-size: 18px;
+    line-height: 1.6;
+    margin-top: 20px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
 }
 
 /* ボタンを中央に配置するためのスタイル */
@@ -214,4 +262,305 @@ button:hover::before {
     display: flex;
     justify-content: center;
     margin-top: 30px;
+}
+
+/* 初期画面のスタイル */
+.initial-screen {
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #1a1a2e, #2a2a4e);
+    padding: 20px;
+}
+
+/* ガチャタイトルのスタイル追加 */
+.gacha-title {
+    font-size: 3em;
+    color: #fff;
+    text-shadow: 0 2px 10px rgba(255,255,255,0.2);
+    margin-bottom: 40px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    animation: titleGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes titleGlow {
+    from {
+        text-shadow: 0 0 10px rgba(255,255,255,0.2);
+    }
+    to {
+        text-shadow: 0 0 20px rgba(255,255,255,0.4),
+                     0 0 30px rgba(107, 70, 193, 0.3);
+    }
+}
+
+/* ガチャ情報のスタイル */
+.gacha-info {
+    background: rgba(42, 42, 78, 0.8);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 30px;
+    width: 80%;
+    max-width: 600px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.rarity-rates {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.rarity-rates h2, .rare-cards h2 {
+    color: #fff;
+    font-size: 1.5em;
+    margin-bottom: 15px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.rarity-rates p {
+    color: #fff;
+    font-size: 1.1em;
+    margin: 8px 0;
+}
+
+.rare-cards {
+    text-align: center;
+}
+
+.rare-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.rare-card-item {
+    color: #fff;
+    font-size: 1.1em;
+}
+
+.rare-card-item p {
+    margin: 5px 0;
+}
+
+.rarity {
+    font-weight: bold;
+    font-size: 1.2em;
+    margin-bottom: 10px;
+}
+
+.ssr {
+    color: #ffd700;
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}
+
+.sr {
+    color: #ff69b4;
+    text-shadow: 0 0 5px rgba(255, 105, 180, 0.5);
+}
+
+/* ボタンの位置を調整 */
+.button-container {
+    margin-top: 20px;
+}
+
+/* パックガチャのスタイル */
+.pack-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+}
+
+.pack {
+    width: 300px;
+    height: 400px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.pack:hover {
+    transform: scale(1.05);
+}
+
+.pack-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+/* パックを開けるアニメーション */
+@keyframes openPack {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(0);
+        opacity: 0;
+    }
+}
+
+.pack.opening {
+    animation: openPack 1s forwards;
+}
+
+/* パック結果のスタイルを修正 */
+.pack-result-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 20px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.pack-result-card {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px;
+    border-radius: 10px;
+    text-align: center;
+    transform: scale(0);
+    opacity: 0;
+}
+
+.pack-result-card img {
+    width: 100%;
+    height: auto;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    position: relative;
+}
+
+.pack-result-card img:hover {
+    transform: scale(1.05);
+}
+
+.card-details {
+    margin-top: 10px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+    color: #fff;
+    font-size: 0.9em;
+}
+
+.card-details p {
+    margin: 5px 0;
+}
+
+@keyframes cardAppear {
+    0% {
+        transform: scale(0) rotate(-10deg);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1) rotate(0);
+        opacity: 1;
+    }
+}
+
+.pack-result-card.appear {
+    animation: cardAppear 0.5s forwards;
+}
+
+/* ボタンのスタイルを調整 */
+.button-container {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+#packGachaButton {
+    background: linear-gradient(45deg, #805ad5, #6b46c1);
+}
+
+/* モーダル内のカード詳細スタイル */
+.gacha-result h3 {
+    margin-bottom: 20px;
+}
+
+.gacha-result img {
+    margin: 20px 0;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.gacha-result p {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 20px;
+}
+
+/* レアリティ別の光るエフェクト */
+@keyframes glowN {
+    0%, 100% { box-shadow: 0 0 5px #ffffff; }
+    50% { box-shadow: 0 0 15px #ffffff; }
+}
+
+@keyframes glowR {
+    0%, 100% { box-shadow: 0 0 10px #4a9eff; }
+    50% { box-shadow: 0 0 20px #4a9eff; }
+}
+
+@keyframes glowSR {
+    0%, 100% { box-shadow: 0 0 15px #ff69b4; }
+    50% { box-shadow: 0 0 30px #ff69b4, 0 0 40px #ff69b4; }
+}
+
+@keyframes glowSSR {
+    0%, 100% { 
+        box-shadow: 0 0 20px #ffd700, 0 0 30px #ffd700;
+    }
+    50% { 
+        box-shadow: 0 0 40px #ffd700, 0 0 50px #ffd700, 0 0 60px #ffd700;
+    }
+}
+
+/* レアリティクラス */
+.rarity-N {
+    animation: glowN 2s ease-in-out infinite;
+}
+
+.rarity-R {
+    animation: glowR 2s ease-in-out infinite;
+}
+
+.rarity-SR {
+    animation: glowSR 2s ease-in-out infinite;
+}
+
+.rarity-SSR {
+    animation: glowSSR 2s ease-in-out infinite;
+}
+
+/* レアリティ表示バッジ */
+.rarity-badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 0.8em;
+    font-weight: bold;
+    z-index: 1;
+}
+
+.rarity-badge.N { background: rgba(255, 255, 255, 0.8); color: #333; }
+.rarity-badge.R { background: rgba(74, 158, 255, 0.8); color: white; }
+.rarity-badge.SR { background: rgba(255, 105, 180, 0.8); color: white; }
+.rarity-badge.SSR { 
+    background: linear-gradient(45deg, #ffd700, #ffa500);
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
