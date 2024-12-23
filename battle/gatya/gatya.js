@@ -111,7 +111,7 @@ const GACHA_ITEMS = [
         effect: '発狂をしたら相手に２ダメージ',  // アイテムの効果
         count: 2,  // 残り個数
         rarity: 'SSR',  // レアリティ
-        explanation: '発狂をしたら相手に２ダメージを与える',
+        explanation: '発狂状態(HP5以下)になったら相手に２ダメージを与える',
         weight: 5  // 抽選時の重み（確率）
     },
     {
