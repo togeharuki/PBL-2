@@ -822,7 +822,7 @@ export class Game {
 
                 return gameData;
             } else if (Object.keys(gameData.players).length >= 2) {
-                throw new Error('このテーブルは既に対戦が始まっています。');
+                throw new Error('このテーブルは既に対戦が始   っています。');
             } else {
                 throw new Error('ゲームに参加できません。');
             }
@@ -875,7 +875,7 @@ export class Game {
         }
     }
 
-    // ターンセット終了時の���示を行うメソッドを追加
+    // ターンセット終了時の   示を行うメソッドを追加
     showTurnSetEnd() {
         // オーバーレイを作成
         const overlay = document.createElement('div');
@@ -1008,13 +1008,20 @@ export class Game {
                 return;
             }
 
-            // 効果カードの処理（HP回復カードを含む）
-            if (cardToPlay.effect && (!cardToPlay.effect.includes('D') || cardToPlay.effect.includes('HP1回復') || cardToPlay.effect.includes('HP2回復'))) {
+            // 即座回復カードの判定を追加
+            if (cardToPlay.effect === 'HP1回復' || cardToPlay.effect === 'HP2回復') {
+                console.log('即座回復カードは直接発動します');
                 await this.activateEffectCard(cardToPlay);
                 return;
             }
 
-            // 攻撃カードの処理（バトルゾーンに配置）
+            // 効果カードの処理（回復カード以外の効果カード）
+            if (cardToPlay.effect && !cardToPlay.effect.includes('D') && !cardToPlay.effect.includes('H')) {
+                await this.activateEffectCard(cardToPlay);
+                return;
+            }
+
+            // 攻撃カードまたは回復カードの処理（バトルゾーンに配置）
             const newCardsPlayedThisTurn = (this.battleState.cardsPlayedThisTurn || 0) + 1;
             const gameRef = window.doc(db, 'games', this.gameId);
             const updateData = {
@@ -1077,13 +1084,12 @@ export class Game {
             // ローカルのHP状態を更新
             if (targetPlayerId === this.playerId) {
                 this.gameState.playerHp = newHp;
+                // 自分が回復対象の場合のみ回復エフェクトを表示
+                this.showHealEffect(amount);
             } else {
                 this.gameState.opponentHp = newHp;
             }
             this.updateHpBar(targetPlayerId, newHp);
-
-            // 回復エフェクトを表示
-            this.showHealEffect(amount);
 
             console.log('回復処理完了:', {
                 回復量: amount,
@@ -1561,7 +1567,7 @@ export class Game {
         }
     }
 
-    // バ��ルスタート表示用新しいメソッドを追加
+    // バ  ルスタート表示用新しいメソッドを追加
     showBattleStart() {
         // バルスタートのオーバーレイを作成
         const battleStartOverlay = document.createElement('div');
@@ -1896,12 +1902,12 @@ export class Game {
                 await this.applyDamage(1, this.playerId);
                 // 墓地のマーモット数をチェック
                 await this.checkMarmotEffect();
-            } else if (card.effect.includes('HP1回復')) {
+            } else if (card.effect === 'HP1回復') {
                 // 「学祭のピザ」の効果
-                await this.healPlayer(1, card, this.playerId);
-            } else if (card.effect.includes('HP2回復')) {
+                await this.instantHealEffect(1, card);
+            } else if (card.effect === 'HP2回復') {
                 // 「二郎系」の効果
-                await this.healPlayer(2, card, this.playerId);
+                await this.instantHealEffect(2, card);
             } else if (card.effect.includes('徳田家ののりちゃんを山札からドロー')) {
                 // 「はま寿司」の効果
                 await this.drawSpecificCard('徳田家ののりちゃん');
@@ -1947,6 +1953,72 @@ export class Game {
         } catch (error) {
             console.error('効果カードの発動に失敗:', error);
         }
+    }
+
+    // 即座に回復する効果カード用の新しいメソッド
+    async instantHealEffect(amount, card) {
+        try {
+            console.log('即座回復効果の処理開始:', { amount, card });
+            const currentHp = this.gameData.players[this.playerId].hp;
+            const maxHp = 15;
+            const newHp = Math.min(currentHp + amount, maxHp);
+
+            // Firestoreの状態を更新
+            const gameRef = window.doc(db, 'games', this.gameId);
+            await window.updateDoc(gameRef, {
+                [`players.${this.playerId}.hp`]: newHp
+            });
+
+            // ローカルのHP状態を更新
+            this.gameState.playerHp = newHp;
+            
+            // 回復エフェクトを表示
+            this.showInstantHealEffect(amount);
+            
+            // HPバーの更新
+            this.updateHpBar(this.playerId, newHp);
+
+            console.log('即座回復効果の処理完了:', {
+                回復量: amount,
+                新しいHP: newHp,
+                使用カード: card.name
+            });
+
+        } catch (error) {
+            console.error('即座回復効果の処理に失敗:', error);
+        }
+    }
+
+    // 即座回復用のエフェクト表示
+    showInstantHealEffect(amount) {
+        const effectOverlay = document.createElement('div');
+        effectOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 255, 0, 0.2);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: instantHealEffect 1s ease-out;
+        `;
+
+        const healText = document.createElement('div');
+        healText.textContent = `即座回復 +${amount} HP`;
+        healText.style.cssText = `
+            color: #4CAF50;
+            font-size: 48px;
+            font-weight: bold;
+            text-shadow: 0 0 10px #fff;
+        `;
+
+        effectOverlay.appendChild(healText);
+        document.body.appendChild(effectOverlay);
+
+        setTimeout(() => effectOverlay.remove(), 1000);
     }
 
     // 相手の手札を見る効果の実装
@@ -2282,7 +2354,7 @@ export class Game {
             return;
         }
 
-        // カードを表にする（アニメーション付���）
+        // カードを表にする（アニメーション付   ）
         await this.revealBattleCards();
 
         // 数値の比較とダメージ計算
@@ -2346,7 +2418,7 @@ export class Game {
         await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
-    // バトル結果を表示
+    // バトル果を表示
     async showBattleResult(attackValue, defenseValue, damage, isPlayerAttacker) {
         const resultOverlay = document.createElement('div');
         resultOverlay.style.cssText = `
@@ -2388,7 +2460,7 @@ export class Game {
             </div>
         `;
 
-        // 結果表示（プレイヤーの立場に応じてメッセージを変更）
+        // 果表示（プレイヤーの立場に応じてメッセージを変更）
         const resultText = document.createElement('div');
         resultText.style.cssText = `
             font-size: 32px;
@@ -2619,7 +2691,7 @@ export class Game {
                 </div>
             `;
 
-            // 背景オーバーレイの作成
+            // 背景オーバーレイの成
             const overlay = document.createElement('div');
             overlay.style.cssText = `
                 position: fixed;
@@ -2790,35 +2862,24 @@ export class Game {
             let attackValue = 0;
             let defendValue = 0;
 
-            // 回復カードの処理
-            if (attackerCard.effect?.includes('H')) {
-                const healMatch = attackerCard.effect.match(/H\s*(\d+)/);
-                if (healMatch) {
-                    const healAmount = parseInt(healMatch[1]);
-                    const attackerPlayerId = Object.keys(currentGameData.players)[0];
-                    await this.healPlayer(healAmount, attackerCard, attackerPlayerId);
-                }
-                // 回復カードは攻撃力0として扱う
-                attackValue = 0;
-            } else if (attackerCard.effect?.includes('D')) {
-                // 通常の攻撃カードの場合
+            // 攻撃値の計算
+            if (attackerCard.effect?.includes('D')) {
                 const attackMatch = attackerCard.effect.match(/D\s*(\d+)/);
                 attackValue = attackMatch ? parseInt(attackMatch[1]) : 0;
             }
+            // 回復カードは攻撃力0として扱う
+            else if (attackerCard.effect?.includes('H')) {
+                attackValue = 0;
+            }
 
-            if (defenderCard.effect?.includes('H')) {
-                const healMatch = defenderCard.effect.match(/H\s*(\d+)/);
-                if (healMatch) {
-                    const healAmount = parseInt(healMatch[1]);
-                    const defenderPlayerId = Object.keys(currentGameData.players)[1];
-                    await this.healPlayer(healAmount, defenderCard, defenderPlayerId);
-                }
-                // 回復カードは攻撃力0として扱う
-                defendValue = 0;
-            } else if (defenderCard.effect?.includes('D')) {
-                // 通常の攻撃カードの場合
+            // 防御値の計算
+            if (defenderCard.effect?.includes('D')) {
                 const defendMatch = defenderCard.effect.match(/D\s*(\d+)/);
                 defendValue = defendMatch ? parseInt(defendMatch[1]) : 0;
+            }
+            // 回復カードは防御力0として扱う
+            else if (defenderCard.effect?.includes('H')) {
+                defendValue = 0;
             }
 
             const damage = attackValue > defendValue ? attackValue - defendValue : 0;
@@ -2849,12 +2910,51 @@ export class Game {
                 await this.applyDamage(damage, defenderPlayerId);
             }
 
+            // 回復効果の処理
+            await this.processHealEffects(attackerCard, defenderCard);
+
             // バトルフェーズを終了する
             await this.endBattlePhase();
 
         } catch (error) {
             console.error('バトル比較処理でエラー:', error);
             await this.endBattlePhase();
+        }
+    }
+
+    // 回復効果を処理する新しい関数
+    async processHealEffects(attackerCard, defenderCard) {
+        try {
+            const firstPlayerId = Object.keys(this.gameData.players)[0];
+            const secondPlayerId = Object.keys(this.gameData.players)[1];
+
+            // アタッカーの回復効果を処理
+            if (attackerCard.effect?.includes('H')) {
+                const healMatch = attackerCard.effect.match(/H\s*(\d+)/);
+                if (healMatch) {
+                    const healAmount = parseInt(healMatch[1]);
+                    // アタッカーのプレイヤーIDを取得
+                    const attackerPlayerId = this.battleState.isAttacker ? 
+                        Object.keys(this.gameData.players)[0] : 
+                        Object.keys(this.gameData.players)[1];
+                    await this.healPlayer(healAmount, attackerCard, attackerPlayerId);
+                }
+            }
+
+            // ディフェンダーの回復効果を処理
+            if (defenderCard.effect?.includes('H')) {
+                const healMatch = defenderCard.effect.match(/H\s*(\d+)/);
+                if (healMatch) {
+                    const healAmount = parseInt(healMatch[1]);
+                    // ディフェンダーのプレイヤーIDを取得
+                    const defenderPlayerId = this.battleState.isAttacker ? 
+                        Object.keys(this.gameData.players)[1] : 
+                        Object.keys(this.gameData.players)[0];
+                    await this.healPlayer(healAmount, defenderCard, defenderPlayerId);
+                }
+            }
+        } catch (error) {
+            console.error('回復効果の処理に失敗:', error);
         }
     }
 
@@ -3240,7 +3340,7 @@ export class Game {
         }
     }
 
-    // 攻撃力を増加させる関数
+    // 撃力を増加させる関数
     async increaseAttackPower(amount) {
         try {
             // プレイヤーの手札から攻撃カードを探す
