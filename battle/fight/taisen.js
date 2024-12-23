@@ -1491,7 +1491,7 @@ export class Game {
     async drawCard() {
         try {
             if (this.gameState.playerDeck.length === 0) {
-                console.log('山札が空です');
+                console.log('山札が空���す');
                 return;
             }
 
@@ -3763,6 +3763,154 @@ export class Game {
         } catch (error) {
             console.error('特定のカードを引く処理に失敗:', error);
         }
+    }
+
+    // カード選択モーダルを表示する関数
+    async showCardSelectionModal(cards, powerIncrease) {
+        return new Promise((resolve) => {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                padding: 20px;
+                border-radius: 10px;
+                z-index: 1000;
+                max-width: 80%;
+                max-height: 80vh;
+                overflow-y: auto;
+            `;
+
+            modal.innerHTML = `
+                <h3 style="margin-bottom: 20px; color: #333; text-align: center;">
+                    攻撃力を${powerIncrease}上げるカードを選択
+                </h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 20px; margin-bottom: 20px;">
+                    ${cards.map(card => `
+                        <div class="target-card" data-card-id="${card.id}" style="
+                            cursor: pointer;
+                            padding: 10px;
+                            border: 2px solid #ddd;
+                            border-radius: 8px;
+                            transition: all 0.3s ease;
+                        ">
+                            <img src="${card.image}" alt="${card.name}" 
+                                 style="width: 100%; height: 160px; object-fit: cover; border-radius: 8px;">
+                            <div style="margin-top: 10px; font-size: 14px; color: #333;">${card.name}</div>
+                            <div style="font-size: 12px; color: #666;">${card.effect}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.7);
+                z-index: 999;
+            `;
+
+            document.body.appendChild(overlay);
+            document.body.appendChild(modal);
+
+            // カード選択のイベントリスナー
+            const cardElements = modal.querySelectorAll('.target-card');
+            cardElements.forEach(element => {
+                element.addEventListener('click', async () => {
+                    const cardId = element.dataset.cardId;
+                    const selectedCard = cards.find(card => card.id === cardId);
+                    
+                    if (selectedCard) {
+                        try {
+                            // 攻撃力を増加
+                            const newEffect = selectedCard.effect.replace(/D\s*(\d+)/, (match, num) => {
+                                const newNum = parseInt(num) + powerIncrease;
+                                return 'D ' + newNum;
+                            });
+
+                            // 更新されたカードを作成
+                            const updatedCard = {
+                                ...selectedCard,
+                                effect: newEffect
+                            };
+
+                            // 手札の更新
+                            const newHand = this.gameState.playerHand.map(card => 
+                                card.id === cardId ? updatedCard : card
+                            );
+
+                            // Firestoreの状態を更新
+                            const gameRef = window.doc(db, 'games', this.gameId);
+                            await window.updateDoc(gameRef, {
+                                [`players.${this.playerId}.hand`]: newHand
+                            });
+
+                            // ローカルの状態を更新
+                            this.gameState.playerHand = newHand;
+
+                            // 効果適用のアニメーション表示
+                            const effectOverlay = document.createElement('div');
+                            effectOverlay.style.cssText = `
+                                position: fixed;
+                                top: 0;
+                                left: 0;
+                                width: 100%;
+                                height: 100%;
+                                background: rgba(0, 255, 0, 0.2);
+                                z-index: 1000;
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                                animation: effectFlash 0.5s ease-out;
+                            `;
+
+                            const effectText = document.createElement('div');
+                            effectText.textContent = `攻撃力が${powerIncrease}上昇！`;
+                            effectText.style.cssText = `
+                                color: #4CAF50;
+                                font-size: 48px;
+                                font-weight: bold;
+                                text-shadow: 0 0 10px #fff;
+                            `;
+
+                            effectOverlay.appendChild(effectText);
+                            document.body.appendChild(effectOverlay);
+
+                            setTimeout(() => {
+                                effectOverlay.remove();
+                            }, 1000);
+
+                            // UIを更新
+                            this.updateUI();
+                        } catch (error) {
+                            console.error('カードの効果更新に失敗:', error);
+                        }
+                    }
+
+                    // モーダルを閉じる
+                    modal.remove();
+                    overlay.remove();
+                    resolve();
+                });
+
+                // ホバー効果
+                element.addEventListener('mouseover', () => {
+                    element.style.borderColor = '#4CAF50';
+                    element.style.transform = 'scale(1.05)';
+                });
+
+                element.addEventListener('mouseout', () => {
+                    element.style.borderColor = '#ddd';
+                    element.style.transform = 'scale(1)';
+                });
+            });
+        });
     }
 }
 
