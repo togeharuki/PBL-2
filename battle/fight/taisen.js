@@ -259,8 +259,132 @@ export class Game {
             .return-button:hover {
                 background-color: #45a049;
             }
+
+            @keyframes drawCardAnimation {
+                0% {
+                    transform: translate(0, 0) scale(0.7) rotate(0deg);
+                    opacity: 0;
+                }
+                20% {
+                    transform: translate(50px, -50px) scale(1.2) rotate(15deg);
+                    opacity: 1;
+                }
+                60% {
+                    transform: translate(100px, -20px) scale(1.1) rotate(-5deg);
+                    opacity: 1;
+                }
+                100% {
+                    transform: translate(150px, 0) scale(1) rotate(0deg);
+                    opacity: 1;
+                }
+            }
+
+            @keyframes cardGlowEffect {
+                0% {
+                    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+                }
+                50% {
+                    box-shadow: 0 0 30px rgba(255, 215, 0, 0.8),
+                                0 0 50px rgba(255, 215, 0, 0.6);
+                }
+                100% {
+                    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+                }
+            }
+
+            .drawn-card {
+                animation: drawCardAnimation 1s ease-out forwards,
+                         cardGlowEffect 2s ease-in-out;
+                position: fixed;
+                z-index: 1000;
+            }
+
+            @keyframes slideInFromBottom {
+                0% {
+                    transform: translateY(100%);
+                    opacity: 0;
+                }
+                100% {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+            }
+
+            @keyframes glowEffect {
+                0% {
+                    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+                }
+                50% {
+                    box-shadow: 0 0 30px rgba(255, 215, 0, 0.8),
+                                0 0 50px rgba(255, 215, 0, 0.6);
+                }
+                100% {
+                    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+                }
+            }
+
+            .card-entrance {
+                animation: slideInFromBottom 0.5s ease-out forwards,
+                         glowEffect 2s ease-in-out;
+            }
         `;
         document.head.appendChild(style);
+
+        // BGMの初期化
+        this.bgm = new Audio();
+        this.bgm.src = 'https://togeharuki.github.io/Deck-Dreamers/battle/fight/ユートピアを追い求めて_M322.mp3';
+        this.bgm.loop = true;  // ループ再生を有効化
+        this.bgm.volume = 0.3; // 音量を30%に設定
+        
+        // BGMの読み込みが完了したら再生を開始
+        this.bgm.addEventListener('canplaythrough', () => {
+            console.log('BGMの読み込みが完了しました');
+            this.startBGM();
+        });
+
+        // エラーハンドリングを追加
+        this.bgm.addEventListener('error', (e) => {
+            console.error('BGMの読み込みに失敗:', e);
+        });
+
+        // ページを離れる時にBGMを停止
+        window.addEventListener('beforeunload', () => {
+            this.stopBGM();
+        });
+
+        // プレイヤーIDを取得
+        this.playerId = localStorage.getItem('playerId');
+        if (!this.playerId) {
+            this.playerId = Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('playerId', this.playerId);
+        }
+
+        // ページを離れる時にBGMを停止
+        window.addEventListener('beforeunload', () => {
+            this.stopBGM();
+        });
+    }
+
+    // BGMを開始するメソッド
+    startBGM() {
+        this.bgm.play().catch(e => {
+            console.log('BGMの再生に失敗:', e);
+        });
+    }
+
+    // BGMを停止するメソッド
+    stopBGM() {
+        if (this.bgm) {
+            this.bgm.pause();
+            this.bgm.currentTime = 0;
+        }
+    }
+
+    // BGMの音量を調整するメソッド
+    setBGMVolume(volume) {
+        if (this.bgm) {
+            this.bgm.volume = Math.max(0, Math.min(1, volume));
+        }
     }
 
     setupEventListeners() {
@@ -557,7 +681,7 @@ export class Game {
         }
     }
 
-    updateUI() {
+    async updateUI() {
         try {
             console.log('UI更新開始:', {
                 playerDeckCount: this.gameState.playerDeck.length,
@@ -569,7 +693,7 @@ export class Game {
             document.getElementById('player-hp').textContent = `${this.gameState.playerHp}/15`;
             document.getElementById('opponent-hp').textContent = `${this.gameState.opponentHp}/15`;
 
-            // デッキ数の更         
+            // デッキ数の更新
             const playerDeckCount = document.getElementById('player-deck-count');
             const opponentDeckCount = document.getElementById('opponent-deck-count');
             
@@ -578,6 +702,14 @@ export class Game {
             }
             if (opponentDeckCount) {
                 opponentDeckCount.textContent = this.gameState.opponentDeckCount.toString();
+            }
+
+            // 手札が3枚未満で、山札がある場合はドロー
+            if (this.gameState.playerHand.length < 3 && this.gameState.playerDeck.length > 0) {
+                const cardsNeeded = 3 - this.gameState.playerHand.length;
+                for (let i = 0; i < cardsNeeded && this.gameState.playerDeck.length > 0; i++) {
+                    await this.drawCard();
+                }
             }
 
             // 札の更新
@@ -688,7 +820,7 @@ export class Game {
 
             const deckData = deckDoc.data();
             if (!deckData.cards || !Array.isArray(deckData.cards)) {
-                throw new Error('デッキのカードの形式正です');
+                throw new Error('デッキのカードの形式が正しくありません');
             }
 
             console.log('カード情報取得完了');
@@ -710,7 +842,7 @@ export class Game {
             return allCards;
         } catch (error) {
             console.error('カード効果の取得に失敗:', error);
-            console.error('エーの詳細:', {
+            console.error('エラーの詳細:', {
                 gameId: this.gameId,
                 playerId: this.playerId,
                 error: error.message,
@@ -822,7 +954,7 @@ export class Game {
 
                 return gameData;
             } else if (Object.keys(gameData.players).length >= 2) {
-                throw new Error('このテーブルは既に対戦が始�������っています。');
+                throw new Error('このテーブルは既に対戦が始まっています。');
             } else {
                 throw new Error('ゲームに参加できません。');
             }
@@ -851,7 +983,7 @@ export class Game {
             const updateData = {
                 currentTurn: opponentId,
                 'battleState.turnEndCount': newTurnEndCount,
-                // 両方の  レイヤーがターンを終了した場合にバトルフェーズを開始
+                // 両方のプレイヤーがターンを終了した場合にバトルフェーズを開始
                 'battleState.shouldShowBattlePhase': newTurnEndCount >= 2
             };
 
@@ -871,11 +1003,11 @@ export class Game {
             this.updateUI();
 
         } catch (error) {
-            console.error('ターン終了処理でエラーが発生:', error);
+            console.error('ターンエンド処理でエラーが発生:', error);
         }
     }
 
-    // ターンセット終了時の   示を行うメソッドを追加
+    // ターンセット終了時の表示を行うメソッドを追加
     showTurnSetEnd() {
         // オーバーレイを作成
         const overlay = document.createElement('div');
@@ -903,7 +1035,7 @@ export class Game {
             animation: messageAnimation 1.5s ease-out forwards;
         `;
 
-        // アニメーションスタイル   追加
+        // アニメーションスタイルを追加
         const style = document.createElement('style');
         style.textContent = `
             @keyframes messageAnimation {
@@ -923,11 +1055,11 @@ export class Game {
         `;
         document.head.appendChild(style);
 
-        // オーバーレイにテッセージを追加
+        // オーバーレイにテキストを追加
         overlay.appendChild(messageText);
         document.body.appendChild(overlay);
 
-        //    ニメーション終了後にオーバーレイを削除
+        // アニメーション終了後にオーバーレイを削除
         setTimeout(() => {
             overlay.remove();
         }, 1500);
@@ -944,7 +1076,7 @@ export class Game {
         // 先攻プレイヤーかどうかを判断
         const isFirstPlayer = Object.keys(this.gameData.players)[0] === this.playerId;
         
-        // 新しいバトル状  を作成
+        // 新しいバトル状態を作成
         const newBattleState = {
             battlePhase: 'attack',
             canPlayCard: true,
@@ -958,13 +1090,13 @@ export class Game {
 
         console.log('作成するバトル状態:', newBattleState);
 
-        // Firestoreの  態を更新
+        // Firestoreの状態を更新
         const gameRef = window.doc(db, 'games', this.gameId);
         window.updateDoc(gameRef, {
             battleState: newBattleState
         })
         .then(() => {
-            console.log('バトルフェ   ズの状態を更新しました:', this.battleState);
+            console.log('バトルフェーズの状態を更新しました:', this.battleState);
             this.updateUI();
         })
         .catch(error => {
@@ -1035,7 +1167,7 @@ export class Game {
             const firstPlayerId = Object.keys(this.gameData.players)[0];
             const isFirstPlayer = this.playerId === firstPlayerId;
 
-            // アタッカーまたはディフェンダーとしてカードを設定
+            // アタッカーまたはディフェンダーとしてカードを��定
             if (isFirstPlayer === this.battleState.isAttacker) {
                 updateData['battleState.attackerCard'] = cardToPlay;
             } else {
@@ -1044,7 +1176,7 @@ export class Game {
 
             await window.updateDoc(gameRef, updateData);
 
-            // ローカルの状態を更新
+            // ローカルの状��を更新
             this.gameState.playerHand = this.gameState.playerHand.filter(c => c.id !== cardToPlay.id);
             this.battleState.cardsPlayedThisTurn = newCardsPlayedThisTurn;
             if (isFirstPlayer === this.battleState.isAttacker) {
@@ -1057,8 +1189,14 @@ export class Game {
             this.updateBattleZone();
             this.updateTurnEndButton();
 
+            // 1秒の遅延を追加
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // 遅延後にターンエンドボタンを有効化
+            this.updateTurnEndButton();
+
         } catch (error) {
-            console.error('カードプレイ中にエラーが発生:', error);
+            console.error('カー��プレイ中にエラーが発生:', error);
         }
     }
 
@@ -1180,7 +1318,7 @@ export class Game {
             // 対戦相手のIDを取得
             const opponentId = Object.keys(gameData.players).find(id => id !== this.playerId);
             
-            // ダメージを受ける   レイヤーのIDを決定
+            // ダメージを受けるプレイヤーのIDを決定
             const damageTargetId = targetPlayerId || (this.battleState.isAttacker ? this.playerId : opponentId);
 
             if (!gameData.players[damageTargetId]) {
@@ -1234,7 +1372,7 @@ export class Game {
                 this.gameState.opponentHp = newHp;
             }
 
-            console.log('ダメージ   用完了:', {
+            console.log('ダメージ適用完了:', {
                 targetPlayerId: damageTargetId,
                 damage,
                 newHp
@@ -1248,7 +1386,7 @@ export class Game {
         }
     }
 
-    // ゲーム終時の処理
+    // ゲーム終了時の処理
     async handleGameOver(loserPlayerId) {
         try {
             console.log('ゲーム終了処理開始:', { loserPlayerId });
@@ -1266,12 +1404,11 @@ export class Game {
             // 対戦相手のIDを取得
             const opponentId = Object.keys(gameData.players).find(id => id !== this.playerId);
 
-            // ゲームの状態を  新
+            // ゲームの状態を更新
             await window.updateDoc(gameRef, {
                 status: 'finished',
                 winner: loserPlayerId === this.playerId ? opponentId : this.playerId,
                 isGameOver: true,
-                // HPが0のプレイヤーのHP   0に固定
                 [`players.${loserPlayerId}.hp`]: 0
             });
 
@@ -1281,90 +1418,160 @@ export class Game {
                 existingModal.remove();
             }
 
-            // 新しいモーダルを作成
-            const modal = document.createElement('div');
-            modal.id = 'result-modal';
-            modal.style.cssText = `
+            // 勝敗エフェクトのオーバーレイを作成
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
                 position: fixed;
                 top: 0;
                 left: 0;
                 width: 100%;
                 height: 100%;
-                background-color: rgba(0, 0, 0, 0.8);
+                background: rgba(0, 0, 0, 0.9);
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 z-index: 9999;
+                opacity: 0;
+                transition: opacity 1s ease-in;
             `;
 
-            const content = document.createElement('div');
-            content.style.cssText = `
-                background-color: white;
-                padding: 30px;
-                border-radius: 15px;
+            // 勝敗表示のコンテナ
+            const resultContainer = document.createElement('div');
+            resultContainer.style.cssText = `
                 text-align: center;
-                max-width: 80%;
-                animation: fadeIn 0.5s ease-out;
+                transform: scale(0);
+                transition: transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             `;
 
-            const title = document.createElement('h2');
-            title.style.cssText = `
-                font-size: 32px;
-                color: ${loserPlayerId === this.playerId ? '#ff4444' : '#4CAF50'};
-                margin-bottom: 20px;
-            `;
-            title.textContent = loserPlayerId === this.playerId ? 'You Lose!' : 'You Win!';
-
-            const message = document.createElement('p');
-            message.style.cssText = `
-                font-size: 18px;
-                color: #333;
+            // 勝敗テキストとスタイルを設定
+            const isWinner = loserPlayerId !== this.playerId;
+            const resultText = document.createElement('div');
+            resultText.style.cssText = `
+                font-size: 72px;
+                font-weight: bold;
                 margin-bottom: 30px;
+                font-family: 'Arial Black', sans-serif;
+                text-transform: uppercase;
+                animation: resultGlow 2s infinite;
             `;
-            message.textContent = loserPlayerId === this.playerId ? 
-                '残念！次は勝利を目そう' : 
-                'おめでとう！勝利を収めました！';
 
-            const button = document.createElement('button');
-            button.style.cssText = `
-                background-color: #4CAF50;
-                color: white;
-                border: none;
-                padding: 15px 30px;
-                border-radius: 5px;
-                font-size: 18px;
-                cursor: pointer;
-                transition: background-color 0.3s;
-            `;
-            button.textContent = 'OK';
-            button.onclick = () => {
-                window.location.href = '../Room/room.html';
-            };
+            // 勝敗に応じたスタイルとテキストを設定
+            if (isWinner) {
+                resultText.textContent = 'VICTORY';
+                resultText.style.color = '#ffd700';
+            } else {
+                resultText.textContent = 'DEFEAT';
+                resultText.style.color = '#ff4444';
+            }
 
-            // ホバーエフェクトを追加
-            button.onmouseover = () => {
-                button.style.backgroundColor = '#45a049';
-            };
-            button.onmouseout = () => {
-                button.style.backgroundColor = '#4CAF50';
-            };
-
-            // モーダルを組み立てて表示
-            content.appendChild(title);
-            content.appendChild(message);
-            content.appendChild(button);
-            modal.appendChild(content);
-            document.body.appendChild(modal);
-
-            // アニメーションのスタイルを追加
+            // アニメーションスタイルを追加
             const style = document.createElement('style');
             style.textContent = `
-                @keyframes fadeIn {
-                    from { opacity: 0; transform: translateY(-20px); }
-                    to { opacity: 1; transform: translateY(0); }
+                @keyframes resultGlow {
+                    0% { text-shadow: 0 0 10px currentColor; }
+                    50% { text-shadow: 0 0 30px currentColor, 0 0 50px currentColor; }
+                    100% { text-shadow: 0 0 10px currentColor; }
+                }
+
+                @keyframes particleAnimation {
+                    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+                    100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+                }
+
+                @keyframes bounceIn {
+                    0% { transform: scale(0.3); opacity: 0; }
+                    50% { transform: scale(1.1); opacity: 0.8; }
+                    80% { transform: scale(0.9); opacity: 0.9; }
+                    100% { transform: scale(1); opacity: 1; }
                 }
             `;
             document.head.appendChild(style);
+
+            // メッセージテキスト
+            const messageText = document.createElement('div');
+            messageText.style.cssText = `
+                font-size: 24px;
+                color: white;
+                margin-bottom: 40px;
+                opacity: 0;
+                transform: translateY(20px);
+                transition: all 0.5s ease-out 0.5s;
+            `;
+            messageText.textContent = isWinner ? 
+                '見事な勝利を収めました！' : 
+                '次こそは勝利を掴もう！';
+
+            // 戻るボタン
+            const returnButton = document.createElement('button');
+            returnButton.textContent = 'ルームに戻る';
+            returnButton.style.cssText = `
+                background: linear-gradient(45deg, #4CAF50, #45a049);
+                color: white;
+                border: none;
+                padding: 15px 40px;
+                border-radius: 25px;
+                font-size: 18px;
+                cursor: pointer;
+                opacity: 0;
+                transform: translateY(20px);
+                transition: all 0.5s ease-out 0.8s;
+                box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+            `;
+
+            returnButton.onmouseover = () => {
+                returnButton.style.transform = 'scale(1.05) translateY(20px)';
+                returnButton.style.boxShadow = '0 6px 20px rgba(76, 175, 80, 0.4)';
+            };
+            returnButton.onmouseout = () => {
+                returnButton.style.transform = 'scale(1) translateY(20px)';
+                returnButton.style.boxShadow = '0 4px 15px rgba(76, 175, 80, 0.3)';
+            };
+            returnButton.onclick = () => {
+                window.location.href = '../Room/room.html';
+            };
+
+            // ホーティクルエフェクトを追加（勝利時のみ）
+            if (isWinner) {
+                for (let i = 0; i < 50; i++) {
+                    const particle = document.createElement('div');
+                    particle.style.cssText = `
+                        position: absolute;
+                        width: 10px;
+                        height: 10px;
+                        background: ${['#ffd700', '#ff0', '#fff'][Math.floor(Math.random() * 3)]};
+                        border-radius: 50%;
+                        left: ${Math.random() * 100}vw;
+                        bottom: -20px;
+                        animation: particleAnimation ${1 + Math.random() * 2}s linear infinite;
+                        animation-delay: ${Math.random() * 2}s;
+                    `;
+                    overlay.appendChild(particle);
+                }
+            }
+
+            // 要素を組み立てて表示
+            resultContainer.appendChild(resultText);
+            resultContainer.appendChild(messageText);
+            resultContainer.appendChild(returnButton);
+            overlay.appendChild(resultContainer);
+            document.body.appendChild(overlay);
+
+            // サウンド効果を追加
+            const soundEffect = new Audio(isWinner ? 
+                'https://togeharuki.github.io/Deck-Dreamers/battle/sound/victory.mp3' : 
+                'https://togeharuki.github.io/Deck-Dreamers/battle/sound/defeat.mp3'
+            );
+            soundEffect.volume = 0.3;
+            soundEffect.play().catch(e => console.log('サウンド再生に失敗:', e));
+
+            // アニメーションを開始
+            requestAnimationFrame(() => {
+                overlay.style.opacity = '1';
+                resultContainer.style.transform = 'scale(1)';
+                messageText.style.opacity = '1';
+                messageText.style.transform = 'translateY(0)';
+                returnButton.style.opacity = '1';
+            });
 
             console.log('ゲーム終了処理完了');
 
@@ -1473,7 +1680,7 @@ export class Game {
                 battlePhaseIndicator.className = 'battle-phase-indicator';
             }
 
-            console.log('攻守を入   替え:', {
+            console.log('攻守を入れ替え:', {
                 前の状態: currentGameData.battleState.isAttacker,
                 新しい状態: newIsAttacker,
                 次のプレイヤー: nextPlayerId
@@ -1487,11 +1694,11 @@ export class Game {
         }
     }
 
-    // drawCard メソドを追加
+    // drawCard メソッドを追加
     async drawCard() {
         try {
             if (this.gameState.playerDeck.length === 0) {
-                console.log('山札が空���す');
+                console.log('山札が空です');
                 return;
             }
 
@@ -1499,6 +1706,89 @@ export class Game {
             const drawnCard = this.gameState.playerDeck[0];
             const newDeck = this.gameState.playerDeck.slice(1);
             const newHand = [...this.gameState.playerHand, drawnCard];
+
+            // アニメーション用のスタイルを追加
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes drawCardAnimation {
+                    0% {
+                        transform: translate(0, 0) scale(0.7) rotate(0deg);
+                        opacity: 0;
+                    }
+                    20% {
+                        transform: translate(50px, -50px) scale(1.2) rotate(15deg);
+                        opacity: 1;
+                    }
+                    60% {
+                        transform: translate(100px, -20px) scale(1.1) rotate(-5deg);
+                        opacity: 1;
+                    }
+                    100% {
+                        transform: translate(150px, 0) scale(1) rotate(0deg);
+                        opacity: 1;
+                    }
+                }
+
+                @keyframes cardGlowEffect {
+                    0% {
+                        box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+                    }
+                    50% {
+                        box-shadow: 0 0 30px rgba(255, 215, 0, 0.8),
+                                   0 0 50px rgba(255, 215, 0, 0.6);
+                    }
+                    100% {
+                        box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+                    }
+                }
+
+                .drawn-card {
+                    animation: drawCardAnimation 1s ease-out forwards,
+                             cardGlowEffect 2s ease-in-out;
+                    position: fixed;
+                    z-index: 1000;
+                }
+            `;
+            document.head.appendChild(style);
+
+            // アニメーション用の一時的なカード要素を作成
+            const animatedCard = document.createElement('div');
+            animatedCard.className = 'drawn-card';
+            animatedCard.style.cssText = `
+                width: 100px;
+                height: 140px;
+                background-color: white;
+                border-radius: 8px;
+                position: fixed;
+                top: 50%;
+                left: 20%;
+                transform-origin: center;
+                overflow: hidden;
+            `;
+
+            // カードの内容を表示
+            animatedCard.innerHTML = `
+                <div style="height: 70%; overflow: hidden;">
+                    <img src="${drawnCard.image}" alt="${drawnCard.name}" 
+                         style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div style="padding: 5px; text-align: center; background-color: #1a237e; color: white;">
+                    ${drawnCard.name}
+                </div>
+            `;
+
+            document.body.appendChild(animatedCard);
+
+            // サウンド効果を追加
+            const drawSound = new Audio('https://togeharuki.github.io/Deck-Dreamers/battle/sound/card_draw.mp3');
+            drawSound.volume = 0.3;
+            drawSound.play().catch(e => console.log('サウンド再生に失敗:', e));
+
+            // アニメーション終了後に要素を削除
+            setTimeout(() => {
+                animatedCard.remove();
+                style.remove();
+            }, 1000);
 
             // Firestoreの状態を更新
             const gameRef = window.doc(db, 'games', this.gameId);
@@ -1537,17 +1827,65 @@ export class Game {
             opponentSlot.innerHTML = '';
         }
 
+        // アニメーションのスタイルを追加
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInFromBottom {
+                0% {
+                    transform: translateY(100vh) scale(0.5);
+                    opacity: 0;
+                }
+                60% {
+                    transform: translateY(-20px) scale(1.1);
+                    opacity: 1;
+                }
+                80% {
+                    transform: translateY(10px) scale(0.95);
+                }
+                100% {
+                    transform: translateY(0) scale(1);
+                }
+            }
+
+            @keyframes glowEffect {
+                0% {
+                    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5),
+                               0 0 10px rgba(255, 255, 255, 0.5);
+                }
+                50% {
+                    box-shadow: 0 0 20px rgba(255, 255, 255, 0.8),
+                               0 0 40px rgba(0, 255, 255, 0.8),
+                               0 0 60px rgba(0, 150, 255, 0.6);
+                }
+                100% {
+                    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5),
+                               0 0 10px rgba(255, 255, 255, 0.5);
+                }
+            }
+
+            .card-entrance {
+                animation: slideInFromBottom 0.8s ease-out, glowEffect 2s ease-in-out;
+            }
+        `;
+        document.head.appendChild(style);
+
         // プレイヤーのカードを表示（最新の1枚のみ）
         if (this.battleState.playedCards && this.battleState.playedCards[this.playerId]) {
             playerSlot.innerHTML = ''; // 既存のカードをクリア
             const cards = Object.values(this.battleState.playedCards[this.playerId]);
-            const latestCard = cards[cards.length - 1]; // 最新のカードのを取
+            const latestCard = cards[cards.length - 1]; // 最新のカードのみを取得
             if (latestCard) {
                 const cardElement = this.createBattleCardElement(latestCard);
                 cardElement.setAttribute('data-card-id', latestCard.id);
                 cardElement.style.position = 'relative';
                 cardElement.style.left = '0';
+                cardElement.classList.add('card-entrance');
                 playerSlot.appendChild(cardElement);
+
+                // サウンド効果を追加
+                const summonSound = new Audio('https://togeharuki.github.io/Deck-Dreamers/battle/sound/card_summon.mp3');
+                summonSound.volume = 0.5;
+                summonSound.play().catch(e => console.log('サウンド再生に失敗:', e));
             }
         }
 
@@ -1562,14 +1900,20 @@ export class Game {
                 cardElement.setAttribute('data-card-id', latestCard.id);
                 cardElement.style.position = 'relative';
                 cardElement.style.left = '0';
+                cardElement.classList.add('card-entrance');
                 opponentSlot.appendChild(cardElement);
             }
         }
+
+        // 一定時間後にスタイル要素を削除
+        setTimeout(() => {
+            style.remove();
+        }, 3000);
     }
 
-    // バ  ルスタート表示用新しいメソッドを追加
+    // バトルスタート表示用新しいメソッドを追加
     showBattleStart() {
-        // バルスタートのオーバーレイを作成
+        // バトルスタートのオーバーレイを作成
         const battleStartOverlay = document.createElement('div');
         battleStartOverlay.style.cssText = `
             position: fixed;
@@ -1584,7 +1928,7 @@ export class Game {
             z-index: 1000;
         `;
 
-        // バトルスタートのテストを作成
+        // バトルスタートのテキストを作成
         const battleStartText = document.createElement('div');
         battleStartText.textContent = 'バトルスタート！';
         battleStartText.style.cssText = `
@@ -1595,7 +1939,7 @@ export class Game {
             animation: battleStart 1.5s ease-out forwards;
         `;
 
-        // アニメーションのスイルを追加
+        // アニメーションのスタイルを追加
         const style = document.createElement('style');
         style.textContent = `
             @keyframes battleStart {
@@ -1619,7 +1963,7 @@ export class Game {
         battleStartOverlay.appendChild(battleStartText);
         document.body.appendChild(battleStartOverlay);
 
-        // アニメーション終了後にオーバーレイを除
+        // アニメーション終了後にオーバーレイを削除
         setTimeout(() => {
             battleStartOverlay.remove();
         }, 1500);
@@ -1667,7 +2011,7 @@ export class Game {
             cardElement.style.transform = 'scale(1)';
         });
 
-        // カードクリッ  イベントの追加（詳細表示用）
+        // カードクリックイベントの追加（詳細表示用）
         cardElement.addEventListener('click', () => {
             this.showCardDetail(card);
         });
@@ -1702,7 +2046,7 @@ export class Game {
         playerHand.appendChild(handContainer);
     }
 
-    // カードの効果をフォーマットすメソッド
+    // カードの効果をフォーマットするメソッド
     formatCardEffect(effect) {
         if (!effect) return '';
         
@@ -1710,15 +2054,15 @@ export class Game {
         if (effect.includes('D')) {
             return `${effect}`;
         }
-        // 回カー（H）の場合
+        // 回復カード（H）の場合
         else if (effect.includes('H')) {
             return `${effect}`;
         }
-        // それ以外の効果カーの場合
+        // それ以外の効果カードの場合
         return effect;
     }
 
-    // カード詳細を示する関数
+    // カード詳細を表示する関数
     async showCardDetail(card) {
         try {
             // 既存のモーダルがあれば削除
@@ -1745,7 +2089,7 @@ export class Game {
                 }
             });
 
-            // 説明が見つからない場合はデフルトの説明を使用
+            // 説明が見つからない場合はデフォルトの説明を使用
             if (!explanation) {
                 if (card.effect.includes('D')) {
                     const damageMatch = card.effect.match(/D(\d+)/);
@@ -1758,7 +2102,7 @@ export class Game {
                 }
             }
 
-            // ードの種類に基づいてボタンのテキストを設定
+            // カードの種類に基づいてボタンのテキストを設定
             const isBattleCard = card.effect && (card.effect.includes('D') || card.effect.includes('H'));
             const buttonText = isBattleCard ? '召喚' : '発動';
 
@@ -1896,7 +2240,7 @@ export class Game {
             await this.sendToGraveyard([card], this.playerId);
 
             // 効果の種類を判断
-            if (card.effect.includes('山札から１ドロー')) {
+            if (card.effect.includes('山札から１枚ドロー')) {
                 await this.drawCard();
             } else if (card.effect.includes('相手の手札を2枚見る')) {
                 await this.revealOpponentCards();
@@ -2094,7 +2438,7 @@ export class Game {
             );
 
             if (targetCards.length === 0) {
-                alert('対象となるカドがりません');
+                alert('対象となるカードが選択されていません');
                 return;
             }
 
@@ -2341,7 +2685,7 @@ export class Game {
             return;
         }
 
-        // カードを表にする（アニメーション付   ）
+        // カードを表にする（アニメーション付き）
         await this.revealBattleCards();
 
         // 数値の比較とダメージ計算
@@ -2368,14 +2712,14 @@ export class Game {
         await this.switchTurns();
     }
 
-    // カード数値を抽出す関数
+    // カード数値を抽出する関数
     extractCardValue(effect) {
         if (!effect) return 0;
         const match = effect.match(/D(\d+)/);
         return match ? parseInt(match[1]) : 0;
     }
 
-    // バトルードを表  する
+    // バトルカードを表にする
     async revealBattleCards() {
         // アニメーション付きでカードを表にする処理
         const attackerCard = document.querySelector('.attacker-zone .card');
@@ -2405,7 +2749,7 @@ export class Game {
         await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
-    // バトル果を表示
+    // バトル結果を表示
     async showBattleResult(attackValue, defenseValue, damage, isPlayerAttacker) {
         const resultOverlay = document.createElement('div');
         resultOverlay.style.cssText = `
@@ -2447,7 +2791,7 @@ export class Game {
             </div>
         `;
 
-        // 果表示（プレイヤーの立場に応じてメッセージを変更）
+        // 結果表示（プレイヤーの立場に応じてメッセージを変更）
         const resultText = document.createElement('div');
         resultText.style.cssText = `
             font-size: 32px;
@@ -2465,7 +2809,7 @@ export class Game {
                     </div>
                 `;
             } else {
-                // プレ   ヤーが防   側の場合
+                // プレイヤーが防御側の場合
                 resultText.innerHTML = `
                     <div style="color: #ff4444;">
                         ${damage}ダメージを受けた！
@@ -2499,7 +2843,7 @@ export class Game {
         resultOverlay.remove();
     }
 
-    // ーンの切り替え
+    // ターンの切り替え
     async switchTurns() {
         // バトルゾーンをクリア
         this.battleState.attackerCard = null;
@@ -2508,7 +2852,7 @@ export class Game {
         // 攻守を入れ替え
         this.battleState.isAttacker = !this.battleState.isAttacker;
         
-        // 相手のプイヤーIDを取得
+        // 相手のプレイヤーIDを取得
         const opponentId = Object.keys(this.gameData.players).find(id => id !== this.playerId);
 
         // Firestoreの状態を更新
@@ -2527,7 +2871,7 @@ export class Game {
         this.updateTurnIndicator();
     }
 
-    // ダメ  ジを適用
+    // ダメージを適用
     async applyBattleDamage(damage) {
         // ダメージを受けるプレイヤーを特定
         const targetPlayerId = this.battleState.isAttacker ? this.playerId : Object.keys(this.gameData.players).find(id => id !== this.playerId);
@@ -2583,7 +2927,7 @@ export class Game {
     // バトルカードの詳細表示用の新しいメソドを追加
     async showBattleCardDetail(card) {
         try {
-            // 既存のモーダルあれば削除
+            // 既存のモーダルがあれば削除
             const existingModal = document.querySelector('.card-detail-modal');
             if (existingModal) {
                 existingModal.remove();
@@ -2678,7 +3022,7 @@ export class Game {
                 </div>
             `;
 
-            // 背景オーバーレイの成
+            // 背景オーバーレイの作成
             const overlay = document.createElement('div');
             overlay.style.cssText = `
                 position: fixed;
@@ -2690,7 +3034,7 @@ export class Game {
                 z-index: 999;
             `;
 
-            // 手札に戻すボタンのイベントリスナー
+            //手札に戻すボタンのイベントリスナー
             const returnButton = modal.querySelector('.return-hand-button');
             returnButton.addEventListener('click', () => {
                 this.returnCardToHand(card);
@@ -2698,14 +3042,14 @@ export class Game {
                 overlay.remove();
             });
 
-            // キャンセルボタンのイベントリスナー
+            //キャンセルボタンのイベントリスナー
             const closeButton = modal.querySelector('.close-button');
             closeButton.addEventListener('click', () => {
                 modal.remove();
                 overlay.remove();
             });
 
-            // モールと背景を表示
+            //モーダルと背景表示
             document.body.appendChild(overlay);
             document.body.appendChild(modal);
 
@@ -2728,7 +3072,7 @@ export class Game {
                 'battleState.attackerCard': null,
                 'battleState.defenderCard': null,
                 'battleState.battlePhase': 'waiting',
-                'battleState.cardsPlayedThisTurn': 0  // カー  使用回数をリセット
+                'battleState.cardsPlayedThisTurn': 0  // カード使用回数をリセット
             };
 
             await window.updateDoc(gameRef, updateData);
@@ -2747,7 +3091,7 @@ export class Game {
         }
     }
 
-    // updateTurnEndButton ソッドを追加
+    // updateTurnEndButton メソッドを追加
     updateTurnEndButton() {
         const turnEndContainer = document.getElementById('turn-end-container');
         if (!turnEndContainer) return;
@@ -2975,7 +3319,7 @@ export class Game {
             const playerCard = this.battleState.playedCards?.[this.playerId]?.[1];
             
             if (playerCard) {
-                console.log('バトルゾーンのカードを墓地に送りま:', playerCard);
+                console.log('バトルゾーンのカードを墓地に送ります:', playerCard);
                 
                 // カードを墓地に送る
                 await this.sendToGraveyard([playerCard], this.playerId);
@@ -2986,7 +3330,7 @@ export class Game {
                     [`battleState.playedCards.${this.playerId}`]: {}
                 });
                 
-                // ローカの状態も更新
+                // ローカルの状態も更新
                 if (this.battleState.playedCards) {
                     this.battleState.playedCards[this.playerId] = {};
                 }
@@ -2999,9 +3343,9 @@ export class Game {
         }
     }
 
-    // updateHands メソ  ドを修正
+    // updateHands メソッドを修正
     updateHands() {
-        // プレ   ヤーの手札を更新
+        // プレイヤーの手札を更新
         const playerHand = document.getElementById('player-hand');
         if (playerHand) {
             playerHand.innerHTML = '';
@@ -3132,7 +3476,7 @@ export class Game {
                 `;
                 modal.appendChild(emptyMessage);
             } else {
-                // カードを表示するコ   テナ
+                // カードを表示するコンテナ
                 const content = document.createElement('div');
                 content.style.cssText = `
                     display: grid;
@@ -3441,7 +3785,7 @@ export class Game {
         }
     }
 
-    // 撃力を増加させる関数
+    // 攻撃力を増加させる関数
     async increaseAttackPower(amount) {
         try {
             // プレイヤーの手札から攻撃カードを探す
@@ -3736,7 +4080,7 @@ export class Game {
                 return;
             }
 
-            // カードを山札から取り除���、手札に加える
+            // カードを山札から取り除き、手札に加える
             const drawnCard = deck[cardIndex];
             const newDeck = [...deck.slice(0, cardIndex), ...deck.slice(cardIndex + 1)];
             const newHand = [...this.gameState.playerHand, drawnCard];
@@ -3923,6 +4267,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (error) {
         console.error('ゲーム初期化エラー:', error);
         console.error('エラーのスタックトレース:', error.stack);
-        alert('ゲームの初期化に失敗しました。ページを再読み込みみしてください。');
+        alert('ゲームの初期化に失敗しました。ページを再読み込みしてください。');
     }
 });
