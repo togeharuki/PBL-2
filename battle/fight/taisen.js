@@ -1898,7 +1898,7 @@ export class Game {
             // 効果の種類を判断
             if (card.effect.includes('山札から１ドロー')) {
                 await this.drawCard();
-            } else if (card.effect.includes('相手の手札を2枚る')) {
+            } else if (card.effect.includes('相手の手札を2枚見る')) {
                 await this.revealOpponentCards();
             } else if (card.effect.includes('数値＋２')) {
                 await this.increaseCardValue();
