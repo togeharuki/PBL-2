@@ -567,7 +567,7 @@ button:hover::before {
 #speaker-icon {
     color: #ff6b6b;
     position: fixed;
-    bottom: 70px;
+    bottom: 20px;
     right: 20px;
     cursor: pointer;
     z-index: 1000;
