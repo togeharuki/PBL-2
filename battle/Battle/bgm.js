@@ -3,6 +3,7 @@ const musicFiles = {
     bgm1: 'path/to/Sample.mp3',
     bgm2: 'path/to/神の一手.mp3',
     bgm3: 'path/to/フリー音源1.mp3',
+    bgm4: 'path/to/クリスマスソング.mp3',
     oic: 'path/to/oic_S.mp3',
 };
 
