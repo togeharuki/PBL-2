@@ -73,7 +73,18 @@
             <img src="https://raw.githubusercontent.com/haruki1298/Deck-Dreamers/refs/heads/Deck-Dreamers/battle/gatya/%E5%86%99%E7%9C%9F/%E3%82%AB%E3%83%BC%E3%83%89%E3%81%AE%E8%A3%8F%E9%9D%A2.png" alt="パック" class="pack-image">
         </div>
     </div>
+     <!-- スピーカーアイコン -->
+     <div id="speaker-icon">
+        <img src="syasin/off.png" alt="音量オフ">
+        <img src="syasin/on.png" alt="音量オン">
+    </div>
 
+    <!-- BGMプレイヤー -->
+    <audio id="music-player" loop>
+        <source id="music-source" src="">
+    </audio>
+
+    <script src="../Battle/bgm.js"></script>
     <script src="gatya.js"></script>
     <script>
         function playSound(filename) {
