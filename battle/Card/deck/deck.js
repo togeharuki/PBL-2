@@ -120,7 +120,7 @@ async function loadDeckCards() {
 
         if (cards.length === 0) {
             console.error('倉庫にカードが存在しません');
-            showNotification('効果カードが見つかりません', 'error');
+            showNotification('ガチャカードがありません', 'error');
             return;
         }
 
@@ -199,7 +199,7 @@ async function loadGachaCards() {
 
         if (cards.length === 0) {
             console.error('倉庫にカードが存在しません');
-            showNotification('効果カードが見つかりません', 'error');
+            showNotification('ガチャカードがありません', 'error');
             return;
         }
 
