@@ -2,7 +2,7 @@
 const DEFAULT_CARDS = [
     {
         name: "逆転の1手",
-        image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/逆転の1手.jpg",
+        image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/%E9%80%86%E8%BB%A2%E3%81%AE%E4%B8%80%E6%89%8B.png",
         effect: "山札から１枚ドロー",
         explanation:"山札からカードを１枚引く"
     },
@@ -56,7 +56,7 @@ const DEFAULT_CARDS = [
     },
     {
         name: "共倒れの1手",
-        image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/共倒れの1手.jpg",
+        image: "https://togeharuki.github.io/Deck-Dreamers/battle/Card/deck/kizon/共倒れ.png",
         effect: "両方に2ダメージ",
         explanation:"自分と相手にそれぞれ２ダメージを与える"
     }, {
