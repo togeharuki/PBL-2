@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const value = Math.floor(Math.random() * 3) + 1; // 1から3のランダムな値
                 const newCard = {
                     name: `自動作成カード`,
-                    image: "https://raw.githubusercontent.com/haruki1298/Deck-Dreamers/refs/heads/Deck-Dreamers/kakusi/%E3%83%A2%E3%83%96%E3%82%AB%E3%83%BC%E3%83%89.png",
+                    image: "https://raw.githubusercontent.com/haruki1298/Deck-Dreamers/refs/heads/Deck-Dreamers/kakusi/%E5%9B%9E%E5%BE%A9%E8%96%AC.png",
                     effect: `✨ H ${value} ✨`,
                     timestamp: new Date(),
                     explanation:"回復"
